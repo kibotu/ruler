@@ -21,34 +21,34 @@ import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
 interface ArtifactParser<in T> {
-    fun parseFile(artifact: T): List<DependencyEntry>
+    fun parseFile(artifactResult: T): List<DependencyEntry>
 }
 
 /** Plain artifact parser which returns a list of all artifact files. */
 class DefaultArtifactParser : ArtifactParser<ArtifactResult.DefaultArtifact> {
 
-    override fun parseFile(artifact: ArtifactResult.DefaultArtifact): List<DependencyEntry> {
+    override fun parseFile(artifactResult: ArtifactResult.DefaultArtifact): List<DependencyEntry> {
         val name =
-            artifact.file.absolutePath.removePrefix(artifact.resolvedArtifactFile.absolutePath)
-        return listOf(DependencyEntry.Default(name, artifact.component))
+            artifactResult.file.absolutePath.removePrefix(artifactResult.resolvedArtifactFile.absolutePath)
+        return listOf(DependencyEntry.Default(name, artifactResult.component))
     }
 }
 
 /** Artifact parser for .class files that returns a list of the class artifact. */
 class ClassArtifactParser : ArtifactParser<ArtifactResult.ClassArtifact> {
-    override fun parseFile(artifact: ArtifactResult.ClassArtifact): List<DependencyEntry> {
+    override fun parseFile(artifactResult: ArtifactResult.ClassArtifact): List<DependencyEntry> {
         val name =
-            artifact.file.absolutePath.removePrefix(artifact.resolvedArtifactFile.absolutePath)
-        return listOf(DependencyEntry.Class(name, artifact.component))
+            artifactResult.file.absolutePath.removePrefix(artifactResult.resolvedArtifactFile.absolutePath)
+        return listOf(DependencyEntry.Class(name, artifactResult.component))
     }
 }
 
 /** Artifact parser which parses JAR artifacts and returns the contents of those JAR files. */
 class JarArtifactParser : ArtifactParser<ArtifactResult.JarArtifact> {
 
-    override fun parseFile(artifact: ArtifactResult.JarArtifact): List<DependencyEntry> {
-        val component = artifact.component
-        return JarFile(artifact.file).use { jarFile ->
+    override fun parseFile(artifactResult: ArtifactResult.JarArtifact): List<DependencyEntry> {
+        val component = artifactResult.component
+        return JarFile(artifactResult.file).use { jarFile ->
             jarFile.entries().asSequence().filterNot(JarEntry::isDirectory).map { entry ->
                 when {
                     isClassEntry(entry.name) -> DependencyEntry.Class(entry.name, component)
