@@ -68,7 +68,7 @@ external interface FileTypeGraphsProps : Props {
 }
 
 val FileTypeGraphs = FC<FileTypeGraphsProps> { props ->
-    val labels = arrayOf("Classes", "Resources", "Assets", "Native libraries", "Other")
+    val labels = arrayOf("Classes", "Resources", "Assets", "Native libraries", "Native files", "Other")
     val downloadSizes = LongArray(labels.size)
     val installSizes = LongArray(labels.size)
     val fileCounts = LongArray(labels.size)
