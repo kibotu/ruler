@@ -127,7 +127,7 @@ val ContainerListItemHeader = FC<ContainerListItemProps> { props ->
 val ContainerListItemBody = FC<ContainerListItemProps> { props ->
     div {
         className = ClassName("accordion-collapse collapse")
-        id = "module-${props.id}-body"
+        id = "module-${props.id}-body".asDynamic()
         div {
             className = ClassName("accordion-body p-0")
             FileList {

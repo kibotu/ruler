@@ -48,6 +48,8 @@ dependencies {
     implementation(Dependencies.ANDROID_TOOLS_COMMON)
     implementation(Dependencies.ANDROID_TOOLS_SDKLIB)
     implementation(Dependencies.DEXLIB)
+    // https://mvnrepository.com/artifact/com.android.tools.smali/smali-dexlib2
+    implementation("com.android.tools.smali:smali-dexlib2:3.0.9") // Required for DexBackedDexFile
 
     implementation(project(":ruler-models"))
 

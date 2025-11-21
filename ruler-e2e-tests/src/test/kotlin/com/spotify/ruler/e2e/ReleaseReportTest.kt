@@ -46,14 +46,14 @@ class ReleaseReportTest {
         var files = app.files?.filter { !it.name.startsWith("/META-INF/androidx") }
 
         // There are multiple BNDLTOOL.RSA and .SF files feels cleaner to check them separately.
-        assertThat(files).comparingElementsUsing(Correspondence.file()).containsAtLeast(
+        assertThat(files).comparingElementsUsing(Correspondence.file()!!).containsAtLeast(
             FileMatcher("/META-INF/BNDLTOOL.RSA", FileType.OTHER, "default-team"),
             FileMatcher("/META-INF/BNDLTOOL.SF", FileType.OTHER, "default-team"),
         )
 
         files = files?.filter { !it.name.startsWith("/META-INF/BNDLTOOL") }
 
-        assertThat(files).comparingElementsUsing(Correspondence.file()).containsExactly(
+        assertThat(files).comparingElementsUsing(Correspondence.file()!!).containsExactly(
             FileMatcher("com.spotify.ruler.sample.app.MainActivity", FileType.CLASS, "main-team"),
             FileMatcher("/res/layout/activity_main.xml", FileType.RESOURCE, "main-team", ResourceType.LAYOUT),
             FileMatcher("/res/drawable/test_drawable.xml", FileType.RESOURCE, "default-team", ResourceType.DRAWABLE),
@@ -73,7 +73,7 @@ class ReleaseReportTest {
         assertThat(lib.type).isEqualTo(ComponentType.INTERNAL)
         assertThat(lib.owner).isEqualTo("lib-team")
 
-        assertThat(lib.files).comparingElementsUsing(Correspondence.file()).containsExactly(
+        assertThat(lib.files).comparingElementsUsing(Correspondence.file()!!).containsExactly(
             FileMatcher("com.spotify.ruler.sample.lib.LibActivity", FileType.CLASS, "lib-team"),
             FileMatcher("com.spotify.ruler.sample.lib.ClassToObfuscate", FileType.CLASS, "lib-team"),
             FileMatcher("/res/layout/activity_lib.xml", FileType.RESOURCE, "lib-team", ResourceType.LAYOUT),
@@ -88,13 +88,13 @@ class ReleaseReportTest {
         assertThat(dynamic.owner).isEqualTo("dynamic-team")
 
         // There are multiple BNDLTOOL.RSA and .SF files feels cleaner to check them separately.
-        assertThat(dynamic.files).comparingElementsUsing(Correspondence.file()).containsAtLeast(
+        assertThat(dynamic.files).comparingElementsUsing(Correspondence.file()!!).containsAtLeast(
             FileMatcher("/META-INF/BNDLTOOL.RSA", FileType.OTHER, "dynamic-team"),
             FileMatcher("/META-INF/BNDLTOOL.SF", FileType.OTHER, "dynamic-team"),
         )
         val files = dynamic.files?.filter { !it.name.startsWith("/META-INF/BNDLTOOL") }
 
-        assertThat(files).comparingElementsUsing(Correspondence.file()).containsExactly(
+        assertThat(files).comparingElementsUsing(Correspondence.file()!!).containsExactly(
             FileMatcher("/AndroidManifest.xml", FileType.OTHER, "dynamic-team"),
             FileMatcher("/resources.arsc", FileType.OTHER, "dynamic-team"),
             FileMatcher("com.spotify.ruler.sample.dynamic.DynamicActivity", FileType.CLASS, "dynamic-team"),

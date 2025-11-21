@@ -17,7 +17,7 @@
 package com.spotify.ruler.frontend.chart
 
 import com.spotify.ruler.frontend.binding.ApexChartOptions
-import js.core.jso
+import kotlinext.js.js as jso
 
 /** Base config for displaying charts. Check https://apexcharts.com/docs/options/ for all chart types and options. */
 abstract class ChartConfig {
@@ -26,7 +26,7 @@ abstract class ChartConfig {
     abstract fun getOptions(): ApexChartOptions
 
     /** Utility function which allows concrete configs to start with a common sets of defaults. */
-    protected fun buildOptions(builder: ApexChartOptions.() -> Unit) = jso<ApexChartOptions> {
+    protected fun buildOptions(builder: ApexChartOptions.() -> Unit): ApexChartOptions = jso {
         chart = jso {
             fontFamily = FONT_FAMILY
             toolbar = jso {

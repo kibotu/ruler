@@ -17,7 +17,7 @@
 package com.spotify.ruler.frontend.chart
 
 import com.spotify.ruler.frontend.binding.Series
-import js.core.jso
+import kotlinext.js.js as jso
 
 fun seriesOf(name: String, data: LongArray): Series = jso {
     this.name = name

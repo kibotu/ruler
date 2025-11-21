@@ -209,11 +209,11 @@ val Chart = FC<ChartProps> { props ->
             +props.description
         }
         div {
-            id = props.id
+            id = props.id.asDynamic()
             useEffect {
                 val chart = ApexCharts(document.getElementById(props.id),props.config.getOptions())
-                chart.render()
-                cleanup {
+                chart.render();
+                {
                     chart.destroy()
                 }
             }

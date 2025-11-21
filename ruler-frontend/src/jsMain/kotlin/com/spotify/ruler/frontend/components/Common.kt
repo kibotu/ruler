@@ -19,7 +19,7 @@ package com.spotify.ruler.frontend.components
 import com.spotify.ruler.frontend.formatSize
 import com.spotify.ruler.models.AppReport
 import com.spotify.ruler.models.Measurable
-import js.core.jso
+import kotlinext.js.js as jso
 import react.FC
 import react.Props
 import react.PropsWithChildren
@@ -228,7 +228,7 @@ external interface DropDownProps : Props {
 val DropDown = FC<DropDownProps> { props ->
     select {
         className = ClassName("form-select")
-        id = props.id
+        id = props.id.asDynamic()
         onChange = { event ->
             props.onOptionSelected(event.target.value)
         }

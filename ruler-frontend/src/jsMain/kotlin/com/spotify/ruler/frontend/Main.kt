@@ -27,14 +27,14 @@ import react.create
 import react.dom.client.createRoot
 
 fun main() {
-    require("./style.css")
+    require<Any>("./style.css")
 
     // use cdn files
 //    require("bootstrap/dist/css/bootstrap.css")
 //    require("bootstrap/dist/js/bootstrap.bundle.js")
 
     // Load and show the favicon
-    val favicon = require("./favicon.svg").toString()
+    val favicon = require<Any>("./favicon.svg").toString()
     val link = document.createElement("link").apply {
         setAttribute("rel", "icon")
         setAttribute("href", favicon)
@@ -42,12 +42,12 @@ fun main() {
     document.head?.append(link)
 
     // Load and deserialize the report data
-    val rawReport = require("report.json").toString()
+    val rawReport = require<Any>("report.json").toString()
     val reportData = Json.decodeFromString<AppReport>(rawReport)
 
     // Visualize and display the report data
     val container =
-        web.dom.document.getElementById("root") ?: error("Couldn't find root container!")
+        web.dom.document.getElementById("root".asDynamic()) ?: error("Couldn't find root container!")
     createRoot(container).render(Fragment.create {
         Report {
             report = reportData
