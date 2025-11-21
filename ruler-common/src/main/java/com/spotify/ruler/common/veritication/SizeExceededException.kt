@@ -1,5 +1,5 @@
 /*
-* Copyright 2021 Spotify AB
+* Copyright 2024 Spotify AB
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,14 +14,7 @@
 * limitations under the License.
 */
 
-package com.spotify.ruler.models
+package com.spotify.ruler.common.veritication
 
-/** Type of [AppFile]. */
-enum class FileType {
-    CLASS,
-    RESOURCE,
-    ASSET,
-    NATIVE_LIB,
-    NATIVE_FILE,
-    OTHER,
-}
+class SizeExceededException(label: String, size: Long, threshold: Long) :
+    Exception("$label size exceeds the threshold by ${size - threshold} bytes.")

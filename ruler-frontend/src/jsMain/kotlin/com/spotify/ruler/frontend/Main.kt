@@ -29,11 +29,12 @@ import react.dom.client.createRoot
 fun main() {
     require("./style.css")
 
-    require("bootstrap/dist/css/bootstrap.css")
-    require("bootstrap/dist/js/bootstrap.bundle.js")
+    // use cdn files
+//    require("bootstrap/dist/css/bootstrap.css")
+//    require("bootstrap/dist/js/bootstrap.bundle.js")
 
     // Load and show the favicon
-    val favicon = kotlinext.js.require("./favicon.svg").toString()
+    val favicon = require("./favicon.svg").toString()
     val link = document.createElement("link").apply {
         setAttribute("rel", "icon")
         setAttribute("href", favicon)

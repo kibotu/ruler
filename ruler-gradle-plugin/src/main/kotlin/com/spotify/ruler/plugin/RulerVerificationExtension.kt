@@ -1,5 +1,5 @@
 /*
-* Copyright 2021 Spotify AB
+* Copyright 2024 Spotify AB
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
 * limitations under the License.
 */
 
-package com.spotify.ruler.models
+package com.spotify.ruler.plugin
 
-/** Type of [AppFile]. */
-enum class FileType {
-    CLASS,
-    RESOURCE,
-    ASSET,
-    NATIVE_LIB,
-    NATIVE_FILE,
-    OTHER,
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+
+open class RulerVerificationExtension(objects: ObjectFactory) {
+    val downloadSizeThreshold: Property<Long> = objects.property(Long::class.java)
+    val installSizeThreshold: Property<Long> = objects.property(Long::class.java)
+
+    init {
+        downloadSizeThreshold.convention(Long.MAX_VALUE)
+        installSizeThreshold.convention(Long.MAX_VALUE)
+    }
 }

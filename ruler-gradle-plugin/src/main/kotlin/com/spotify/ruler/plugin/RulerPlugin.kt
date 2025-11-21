@@ -16,24 +16,27 @@
 
 package com.spotify.ruler.plugin
 
-import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
 import com.spotify.ruler.common.models.AppInfo
 import com.spotify.ruler.common.models.DeviceSpec
+import com.spotify.ruler.common.veritication.VerificationConfig
+import com.spotify.ruler.plugin.dependency.EntryParser
 import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.RegularFile
-import org.gradle.api.provider.Provider
+import org.gradle.api.plugins.ExtensionAware
 
 class RulerPlugin : Plugin<Project> {
 
     private val name: String = "ruler"
 
-    @Suppress("UnstableApiUsage")
     override fun apply(project: Project) {
         val rulerExtension = project.extensions.create(name, RulerExtension::class.java)
+        val rulerVerificationExtension = (rulerExtension as ExtensionAware).extensions.create(
+            "verification",
+            RulerVerificationExtension::class.java
+        )
 
         project.plugins.withId("com.android.application") {
             val androidComponents =
@@ -45,12 +48,20 @@ class RulerPlugin : Plugin<Project> {
                     RulerTask::class.java
                 ) { task ->
                     task.group = name
+
+                    val resolve = EntryParser().parse(variant.runtimeConfiguration)
+
+                    resolve.forEach(task.dependencyEntries::put)
+
+                    task.projectPath.set(project.path)
+                    task.sdkDirectory.set(androidComponents.sdkComponents.sdkDirectory)
+
                     task.appInfo.set(getAppInfo(project, variant))
                     task.deviceSpec.set(getDeviceSpec(rulerExtension))
 
-                    task.bundleFile.set(getBundleFile(project, variant))
-                    task.mappingFile.set(getMappingFile(project, variant))
-                    task.resourceMappingFile.set(getResourceMappingFile(project, variant))
+                    task.bundleFile.set(project.getBundleFile(variant))
+                    task.mappingFile.set(project.getMappingFile(variant))
+                    task.resourceMappingFile.set(project.getResourceMappingFile(variant))
                     task.ownershipFile.set(rulerExtension.ownershipFile)
                     task.defaultOwner.set(rulerExtension.defaultOwner)
 
@@ -61,6 +72,8 @@ class RulerPlugin : Plugin<Project> {
                     task.omitFileBreakdown.set(rulerExtension.omitFileBreakdown)
                     task.unstrippedNativeFiles.set(rulerExtension.unstrippedNativeFiles)
 
+                    task.verificationConfig.set(getVerificationConfig(rulerVerificationExtension))
+
                     // Add explicit dependency to support DexGuard
                     task.dependsOn("bundle$variantName")
                 }
@@ -68,7 +81,6 @@ class RulerPlugin : Plugin<Project> {
         }
     }
 
-    @Suppress("UnstableApiUsage")
     private fun getAppInfo(project: Project, variant: ApplicationVariant) = project.provider {
         AppInfo(
             applicationId = variant.applicationId.get(),
@@ -84,90 +96,11 @@ class RulerPlugin : Plugin<Project> {
         sdkVersion = extension.sdkVersion.orNull ?: error("SDK version not specified."),
     )
 
-    /**
-     * Returns the bundle file that's going to be analyzed. DexGuard produces a separate bundle instead of overriding
-     * the default one, so we have to handle that separately.
-     */
-    private fun getBundleFile(
-        project: Project,
-        variant: ApplicationVariant
-    ): Provider<RegularFile> {
-        val defaultBundleFile = variant.artifacts.get(SingleArtifact.BUNDLE)
-        if (!hasDexGuard(project)) {
-            return defaultBundleFile // No DexGuard means we can use the default bundle
-        }
-
-        // Bundle can still be in the default location, depending on the DexGuard config
-        return defaultBundleFile.flatMap { bundle ->
-            val dexGuardBundle =
-                bundle.asFile.parentFile.resolve("${bundle.asFile.nameWithoutExtension}-protected.aab")
-            if (dexGuardBundle.exists()) {
-                project.layout.buildDirectory.file(dexGuardBundle.absolutePath) // File exists -> use it
-            } else {
-                defaultBundleFile // File doesn't exist -> fall back to default
-            }
-        }
+    private fun getVerificationConfig(extension: RulerVerificationExtension): VerificationConfig {
+        return VerificationConfig(
+            downloadSizeThreshold = extension.downloadSizeThreshold.get(),
+            installSizeThreshold = extension.installSizeThreshold.get()
+        )
     }
 
-    /**
-     * Returns the mapping file used for de-obfuscation. Different obfuscation tools like DexGuard and ProGuard place
-     * their mapping files in different directories, so we have to handle those separately.
-     */
-    private fun getMappingFile(
-        project: Project,
-        variant: ApplicationVariant
-    ): Provider<RegularFile> {
-        val defaultMappingFile = variant.artifacts.get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
-        val mappingFilePath = when {
-            hasDexGuard(project) -> "outputs/dexguard/mapping/bundle/${variant.name}/mapping.txt"
-            hasProGuard(project) -> "outputs/proguard/${variant.name}/mapping/mapping.txt"
-            else -> return defaultMappingFile // No special obfuscation plugin -> use default path
-        }
-
-        // Mapping files can also be missing, for example when obfuscation is disabled for a variant
-        val mappingFileProvider = project.layout.buildDirectory.file(mappingFilePath)
-        return mappingFileProvider.flatMap { mappingFile ->
-            if (mappingFile.asFile.exists()) {
-                mappingFileProvider // File exists -> use it
-            } else {
-                defaultMappingFile // File doesn't exist -> fall back to default
-            }
-        }
-    }
-
-    /**
-     * Returns a mapping file to de-obfuscate resource names. DexGuard supports this feature by default, so we need to
-     * handle it accordingly.
-     */
-    private fun getResourceMappingFile(
-        project: Project,
-        variant: ApplicationVariant
-    ): Provider<RegularFile> {
-        val defaultResourceMappingFile = project.objects.fileProperty() // Empty by default
-        val resourceMappingFilePath = when {
-            hasDexGuard(project) -> "outputs/dexguard/mapping/bundle/${variant.name}/resourcefilenamemapping.txt"
-            else -> return defaultResourceMappingFile // No DexGuard plugin -> use default empty file
-        }
-
-        // Mapping file can still be missing, for example if resource obfuscation is disabled for a variant
-        val resourceMappingFileProvider =
-            project.layout.buildDirectory.file(resourceMappingFilePath)
-        return resourceMappingFileProvider.flatMap { resourceMappingFile ->
-            if (resourceMappingFile.asFile.exists()) {
-                resourceMappingFileProvider // File exists -> use it
-            } else {
-                defaultResourceMappingFile // File doesn't exist -> fall back to default
-            }
-        }
-    }
-
-    /** Checks if the given [project] is using DexGuard for obfuscation, instead of R8. */
-    private fun hasDexGuard(project: Project): Boolean {
-        return project.pluginManager.hasPlugin("dexguard")
-    }
-
-    /** Checks if the given [project] is using ProGuard for obfuscation, instead of R8. */
-    private fun hasProGuard(project: Project): Boolean {
-        return project.pluginManager.hasPlugin("com.guardsquare.proguard")
-    }
 }
