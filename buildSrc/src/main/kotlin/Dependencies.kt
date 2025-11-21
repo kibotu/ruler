@@ -26,7 +26,7 @@ object Dependencies {
 
     const val BUNDLETOOL = "com.android.tools.build:bundletool:${Versions.BUNDLETOOL}"
     const val PROTOBUF_CORE = "com.google.protobuf:protobuf-java:${Versions.PROTOBUF}"
-    const val DEXLIB = "org.smali:dexlib2:${Versions.DEXLIB}"
+    const val DEXLIB = "com.android.tools.smali:smali-dexlib2:${Versions.DEXLIB}"
     const val ANDROID_TOOLS_COMMON = "com.android.tools:common:${Versions.ANDROID_TOOLS}"
     const val ANDROID_TOOLS_SDKLIB = "com.android.tools:sdklib:${Versions.ANDROID_TOOLS}"
     const val ANDROID_CONSTRAINT_LAYOUT = "androidx.constraintlayout:constraintlayout:${Versions.CONSTRAINT_LAYOUT}"
@@ -40,6 +40,7 @@ object Dependencies {
     const val JUNIT_ENGINE = "org.junit.jupiter:junit-jupiter-engine:${Versions.JUNIT}"
     const val JUNIT_API = "org.junit.jupiter:junit-jupiter-api:${Versions.JUNIT}"
     const val JUNIT_PARAMS = "org.junit.jupiter:junit-jupiter-params:${Versions.JUNIT}"
+    const val JUNIT_PLATFORM_LAUNCHER = "org.junit.platform:junit-platform-launcher:${Versions.JUNIT_PLATFORM}"
     const val GOOGLE_TRUTH = "com.google.truth:truth:${Versions.GOOGLE_TRUTH}"
     const val GOOGLE_GUAVA = "com.google.guava:guava:${Versions.GOOGLE_GUAVA}"
 
@@ -54,6 +55,7 @@ object Dependencies {
     const val REACT = "react"
     const val REACT_DOM = "react-dom"
     const val BOOTSTRAP = "bootstrap"
+    const val POPPERJS_CORE = "@popperjs/core"
     const val APEX_CHARTS = "apexcharts"
 
     object Versions {
@@ -65,7 +67,7 @@ object Dependencies {
 
         const val BUNDLETOOL = "1.18.2" // https://mvnrepository.com/artifact/com.android.tools.build/bundletool
         const val PROTOBUF = "4.33.1" // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
-        const val DEXLIB = "2.5.2" // https://mvnrepository.com/artifact/org.smali/dexlib2
+        const val DEXLIB = "3.0.9" //  https://mvnrepository.com/artifact/com.android.tools.smali/smali-dexlib2
 
         const val ANDROID_TOOLS = "31.13.1" // https://mvnrepository.com/artifact/com.android.tools/common?repo=google
         const val CLIKT = "5.0.3" // https://mvnrepository.com/artifact/com.github.ajalt.clikt/clikt
@@ -74,18 +76,20 @@ object Dependencies {
         const val CONSTRAINT_LAYOUT = "2.2.1" // https://mvnrepository.com/artifact/androidx.constraintlayout/constraintlayout
 
         const val JUNIT = "6.0.1" // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
+        const val JUNIT_PLATFORM = "1.12.1" // https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
         const val GOOGLE_TRUTH = "1.4.5" // https://mvnrepository.com/artifact/com.google.truth/truth
         const val GOOGLE_GUAVA = "31.1-jre" // https://mvnrepository.com/artifact/com.google.guava/guava
 
-        const val KOTLIN_REACT = "2025.11.11-19.2.0" // https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-react
-        const val KOTLIN_REACT_ROUTER = "2025.1.6-6.28.0" // https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-react-router-dom
-        const val KOTLIN_JS_EXTENSIONS = "1.0.1-pre.823" // https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-extensions
+        const val KOTLIN_REACT = "2025.11.11-19.2.0" // https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-react - Stable version for Kotlin 1.9
+        const val KOTLIN_REACT_ROUTER = "2025.1.6-6.28.0" // https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-react-router-dom - Stable version for Kotlin 1.9
+        const val KOTLIN_JS_EXTENSIONS = "1.0.1-pre.823" // https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-extensions - Stable version for Kotlin 1.9
 
         const val SELENIUM_WEBDRIVER = "4.38.0" // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
         const val SELENIUM_WEBDRIVER_MANAGER = "6.3.3" // https://mvnrepository.com/artifact/io.github.bonigarcia/webdrivermanager
 
-        const val REACT = "19.2.0" // https://www.npmjs.com/package/react
+        const val REACT = "18.2.0" // https://www.npmjs.com/package/react - Matching React wrapper version
         const val BOOTSTRAP = "5.3.8" // https://www.npmjs.com/package/bootstrap
+        const val POPPERJS_CORE = "2.11.8" // https://www.npmjs.com/package/@popperjs/core - Required peer dependency for Bootstrap
         const val APEX_CHARTS = "5.3.6" // https://www.npmjs.com/package/apexcharts
     }
 }

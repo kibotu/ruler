@@ -22,7 +22,7 @@ plugins {
 
 android {
     namespace = "com.spotify.ruler.sample.dynamic"
-    compileSdk = 33
+    compileSdk = 36
     defaultConfig {
         minSdk = 21
     }

@@ -59,7 +59,7 @@ val ContainerList = FC<ContainerListProps> { props ->
         props.containers.forEachIndexed { index, container ->
             ContainerListItem {
                 id = index
-                ContainerListItem@this.container = container
+                this.container = container
                 sizeType = props.sizeType
                 key = container.name
             }

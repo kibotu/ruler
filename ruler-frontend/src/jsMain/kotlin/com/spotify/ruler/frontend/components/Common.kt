@@ -19,7 +19,6 @@ package com.spotify.ruler.frontend.components
 import com.spotify.ruler.frontend.formatSize
 import com.spotify.ruler.models.AppReport
 import com.spotify.ruler.models.Measurable
-import kotlinext.js.js as jso
 import react.FC
 import react.Props
 import react.PropsWithChildren
@@ -111,15 +110,17 @@ val Report = FC<ReportProps> { props ->
     }
 
     val hashRouter = createHashRouter(
-        routes = arrayOf(jso {
-            element = layout
-            children = tabs.map {
-                jso<RouteObject> {
-                    path = it.path
-                    element = it.content.invoke().asElementOrNull()
-                }
-            }.toTypedArray()
-        })
+        routes = arrayOf(
+            js("({})").unsafeCast<RouteObject>().apply {
+                element = layout
+                children = tabs.map {
+                    js("({})").unsafeCast<RouteObject>().apply {
+                        path = it.path
+                        element = it.content.invoke().asElementOrNull()
+                    }
+                }.toTypedArray()
+            }
+        )
     )
 
     RouterProvider {

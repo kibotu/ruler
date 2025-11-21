@@ -24,6 +24,7 @@ dependencies {
     testImplementation(Dependencies.SELENIUM_WEBDRIVER_MANAGER)
 
     testRuntimeOnly(Dependencies.JUNIT_ENGINE)
+    testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
     testImplementation(Dependencies.JUNIT_API)
     testImplementation(Dependencies.GOOGLE_TRUTH)
 }

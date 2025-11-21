@@ -51,6 +51,7 @@ dependencies {
     implementation(Dependencies.SNAKE_YAML)
 
     testRuntimeOnly(Dependencies.JUNIT_ENGINE)
+    testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
     testImplementation(gradleTestKit())
     testImplementation(Dependencies.JUNIT_API)
     testImplementation(Dependencies.JUNIT_PARAMS)
@@ -70,7 +71,7 @@ dependencies {
 
 // Include the output of the frontend JS compilation in the plugin resources
 sourceSets.main {
-    resources.srcDir(project(":ruler-frontend").tasks.named("jsBrowserDistribution"))
+    resources.srcDir(provider { project(":ruler-frontend").tasks.named("jsBrowserDistribution").get().outputs.files })
 }
 
 tasks.withType<Test> {
