@@ -19,7 +19,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("io.gitlab.arturbosch.detekt")
-    id("com.github.johnrengelman.shadow")
+    id("com.gradleup.shadow")
     id("maven-publish")
     id("signing")
 }
@@ -57,8 +57,8 @@ tasks.withType<Test> {
 
 publishing {
     publications {
-        create<MavenPublication>("maven") {
-            artifact(tasks["shadowJar"])
+        create<MavenPublication>("shadow") {
+            from(components["shadow"])
         }
     }
     configurePublications(project)
