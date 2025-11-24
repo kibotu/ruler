@@ -52,6 +52,10 @@ class ReleaseReportTest {
         )
 
         files = files?.filter { !it.name.startsWith("/META-INF/BNDLTOOL") }
+        
+        // Filter out baseline profile files and version control info as they may vary
+        files = files?.filter { !it.name.startsWith("/assets/dexopt/") }
+        files = files?.filter { !it.name.startsWith("/META-INF/version-control-info") }
 
         assertThat(files).comparingElementsUsing(Correspondence.file()!!).containsExactly(
             FileMatcher("com.spotify.ruler.sample.app.MainActivity", FileType.CLASS, "main-team"),
