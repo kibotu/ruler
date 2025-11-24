@@ -1,4 +1,4 @@
 jdk:
   - openjdk17
 install:
-  - ./gradlew :ruler-models:publishJvmPublicationToMavenLocal :ruler-models:publishKotlinMultiplatformPublicationToMavenLocal :ruler-common:publishToMavenLocal :ruler-gradle-plugin:publishToMavenLocal -PwithoutSample -Pgroup=com.github.kibotu -Pversion=$VERSION -xtest -xlint -xsignMavenPublication
+  - echo "withoutSample=true" >> gradle.properties && ./gradlew :ruler-models:publishJvmPublicationToMavenLocal :ruler-models:publishKotlinMultiplatformPublicationToMavenLocal :ruler-common:publishToMavenLocal :ruler-gradle-plugin:publishToMavenLocal -Pgroup=com.github.kibotu -Pversion=$VERSION -xtest -xlint -xsignMavenPublication
