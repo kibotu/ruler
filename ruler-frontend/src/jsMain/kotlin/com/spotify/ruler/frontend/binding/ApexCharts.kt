@@ -21,12 +21,47 @@ import org.w3c.dom.Element
 typealias NumberFormatter = (Number) -> String
 typealias TooltipAxisFormatter = (Number, TooltipAxisFormatterOptions) -> String
 
-@JsModule("apexcharts")
-@JsNonModule
-@Suppress("UnusedPrivateMember")
-external class ApexCharts(element: Element?, options: dynamic) {
-    fun render()
-    fun destroy()
+// External require function for importing modules
+external fun require(module: String): dynamic
+
+// Helper function to create ApexCharts instance
+// ApexCharts 5.x uses ES modules - need to handle various export formats
+private fun instantiateApexCharts(module: dynamic, element: Element?, options: dynamic): dynamic {
+    return js("""
+        (function(mod, el, opts) {
+            // Handle different module formats
+            // ES module default export: mod.default
+            // CommonJS: mod itself
+            // Named export: mod.ApexCharts
+            var ApexChartsConstructor = mod.default || mod.ApexCharts || mod;
+            
+            if (typeof ApexChartsConstructor !== 'function') {
+                console.error('ApexCharts constructor not found!', mod);
+                throw new Error('ApexCharts constructor not found');
+            }
+            
+            return new ApexChartsConstructor(el, opts);
+        })(module, element, options)
+    """)
+}
+
+// Wrapper class to properly instantiate ApexCharts from CommonJS/ES module
+class ApexCharts(element: Element?, options: dynamic) {
+    private val chart: dynamic
+    
+    init {
+        val apexModule = require("apexcharts")
+        chart = instantiateApexCharts(apexModule, element, options)
+    }
+    
+    fun render(): dynamic = chart.render()
+    fun destroy(): dynamic = chart.destroy()
+    fun updateOptions(options: dynamic, redrawPaths: Boolean = true, animate: Boolean = true): dynamic {
+        return chart.updateOptions(options, redrawPaths, animate)
+    }
+    fun updateSeries(newSeries: Array<Series>, animate: Boolean = true): dynamic {
+        return chart.updateSeries(newSeries, animate)
+    }
 }
 
 external interface ApexChartOptions {

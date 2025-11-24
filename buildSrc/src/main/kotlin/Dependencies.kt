@@ -87,7 +87,7 @@ object Dependencies {
         const val SELENIUM_WEBDRIVER = "4.38.0" // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
         const val SELENIUM_WEBDRIVER_MANAGER = "6.3.3" // https://mvnrepository.com/artifact/io.github.bonigarcia/webdrivermanager
 
-        const val REACT = "18.2.0" // https://www.npmjs.com/package/react - Matching React wrapper version
+        const val REACT = "19.2.0" // https://www.npmjs.com/package/react - Matching React wrapper version
         const val BOOTSTRAP = "5.3.8" // https://www.npmjs.com/package/bootstrap
         const val POPPERJS_CORE = "2.11.8" // https://www.npmjs.com/package/@popperjs/core - Required peer dependency for Bootstrap
         const val APEX_CHARTS = "5.3.6" // https://www.npmjs.com/package/apexcharts

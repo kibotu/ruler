@@ -51,7 +51,7 @@ class WebDriverExtension : BeforeAllCallback, BeforeEachCallback, AfterEachCallb
         driver = ChromeDriver(options)
 
         // Open and use the generated development report page for testing
-        val reportPath = Paths.get("..", "ruler-frontend", "build", "processedResources", "js", "main", "index.html")
+        val reportPath = Paths.get("..", "ruler-frontend", "build", "dist", "js", "developmentExecutable", "index.html")
         require(reportPath.toFile().exists()) { "Report file not found at: ${reportPath.toAbsolutePath()}" }
         driver.get(reportPath.toUri().toString())
     }

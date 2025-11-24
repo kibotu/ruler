@@ -35,8 +35,9 @@ class HtmlReporter {
         val javascript = readResourceFile("ruler-frontend.js")
         html = html.replaceFirst("<script src=\"ruler-frontend.js\"></script>", "<script>$javascript</script>")
 
-        // Inline JSON data
-        html = html.replaceFirst("\"REPLACE_ME\"", "`$json`")
+        // Inline JSON data - handle both single and double quotes
+        html = html.replace("'REPLACE_ME'", "`$json`")
+            .replace("\"REPLACE_ME\"", "`$json`")
 
         val reportFile = targetDir.resolve("report.html")
         reportFile.writeText(html)

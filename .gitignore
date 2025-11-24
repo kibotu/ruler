@@ -13,3 +13,5 @@ ruler-common/build
 
 .vscode
 .kotlin
+
+**/*/bin/

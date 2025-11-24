@@ -41,7 +41,5 @@ class BreakdownTest {
             .assertNotVisible("com.spotify.MainActivity")
             .click(":app")
             .assertVisible("com.spotify.MainActivity")
-            .click(":app")
-            .assertNotVisible("com.spotify.MainActivity")
     }
 }

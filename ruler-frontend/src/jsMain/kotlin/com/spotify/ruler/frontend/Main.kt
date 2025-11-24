@@ -43,7 +43,8 @@ fun main() {
     document.head?.append(link)
 
     // Load and deserialize the report data
-    val rawReport = require("report.json").toString()
+    // This placeholder will be replaced by HtmlReporter with actual report data
+    val rawReport = "REPLACE_ME"
     val reportData = Json.decodeFromString<AppReport>(rawReport)
 
     // Visualize and display the report data

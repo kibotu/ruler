@@ -156,7 +156,8 @@ external interface ResourcesTypeGraphsProps : Props {
 }
 
 val ResourcesTypeGraphs = FC<ResourcesTypeGraphsProps> { props ->
-    val labels = arrayOf("Drawable", "Layout", "Raw", "Values", "Font", "Other")
+    // Labels must match the order of ResourceType enum: DRAWABLE, LAYOUT, FONT, RAW, VALUES, OTHER
+    val labels = arrayOf("Drawable", "Layout", "Font", "Raw", "Values", "Other")
     val downloadSizes = LongArray(labels.size)
     val installSizes = LongArray(labels.size)
     val fileCounts = LongArray(labels.size)
@@ -210,11 +211,11 @@ val Chart = FC<ChartProps> { props ->
         }
         div {
             id = props.id.asDynamic()
-            useEffect {
-                val chart = ApexCharts(document.getElementById(props.id),props.config.getOptions())
-                chart.render();
-                {
-                    chart.destroy()
+            useEffect(props.id) {
+                val element = document.getElementById(props.id)
+                if (element != null) {
+                    val chart = ApexCharts(element, props.config.getOptions())
+                    chart.render()
                 }
             }
         }

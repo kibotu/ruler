@@ -59,6 +59,8 @@ abstract class BaseRobot<T : BaseRobot<T>>(protected val driver: WebDriver) {
     /** Clicks on the element with the given [text]. */
     fun click(text: String): T {
         driver.findElement(text(text)).click()
+        // Wait a bit for Bootstrap animations to complete
+        Thread.sleep(1000)
         return self()
     }
 
@@ -84,8 +86,10 @@ abstract class BaseRobot<T : BaseRobot<T>>(protected val driver: WebDriver) {
 
     /** Asserts that no element with the given [text] is visible (after a certain maximum duration). */
     fun assertNotVisible(text: String): T {
-        val elements = driver.findElements(text(text))
-        WebDriverWait(driver, WAIT_DURATION).until(invisibilityOfAllElements(elements))
+        WebDriverWait(driver, WAIT_DURATION).until {
+            val elements = driver.findElements(text(text))
+            elements.isEmpty() || elements.all { !it.isDisplayed }
+        }
         return self()
     }
 }
