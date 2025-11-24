@@ -3,9 +3,10 @@
 
 _Ruler is a Gradle plugin which helps you analyze the size of your Android apps._
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/spotify/ruler/ci.yaml?branch=main)](https://github.com/spotify/ruler/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/kibotu/ruler/ci.yaml?branch=main)](https://github.com/kibotu/ruler/actions)
 [![Maven Release](https://img.shields.io/maven-central/v/com.spotify.ruler/ruler-gradle-plugin)](https://github.com/spotify/ruler/releases)
-[![License](https://img.shields.io/github/license/spotify/ruler)](https://github.com/spotify/ruler/blob/main/LICENSE)
+[![JitPack](https://jitpack.io/v/kibotu/ruler.svg)](https://jitpack.io/#kibotu/ruler)
+[![License](https://img.shields.io/github/license/kibotu/ruler)](https://github.com/kibotu/ruler/blob/main/LICENSE)
 
 ## Motivation
 
@@ -24,6 +25,8 @@ Follow the following steps to start using Ruler in your project.
 
 ### Adding the plugin
 
+#### Option 1: Maven Central (Official Spotify Release)
+
 First you need to add the Ruler Gradle plugin to the buildscript classpath in your top-level `build.gradle` file:
 
 ```kotlin
@@ -34,6 +37,23 @@ buildscript {
     }
     dependencies {
         classpath("com.spotify.ruler:ruler-gradle-plugin:2.0.0-beta-3")
+    }
+}
+```
+
+#### Option 2: JitPack (Community Fork)
+
+Alternatively, you can use the JitPack version:
+
+```kotlin
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+    dependencies {
+        classpath("com.github.kibotu:ruler:v2.0.0-beta-4")
     }
 }
 ```
@@ -56,7 +76,7 @@ ruler {
     abi.set("arm64-v8a")
     locale.set("en")
     screenDensity.set(480)
-    sdkVersion.set(27)
+    sdkVersion.set(36)
 }
 ```
 
@@ -140,8 +160,8 @@ When working on the frontend, you can start a development server by running `./g
 The latest version of this plugin is compatible with
 
 - Java 17 or above,
-- Gradle 8.4 or above and
-- Android Gradle Plugin 8.2.0 or above.
+- Gradle 8.4 or above (tested with 9.2.0) and
+- Android Gradle Plugin 8.2.0 or above (tested with 8.13.1).
 
 Earlier versions might also work, but compatibility can't be guaranteed.
 
@@ -149,11 +169,13 @@ Earlier versions might also work, but compatibility can't be guaranteed.
 
 We want your help to improve Ruler! You can contribute by opening issues for bugs and ideas for improvement.
 
-You can also contribute directly by solving open issues. Specifically look out for issues marked as [bugs](https://github.com/spotify/ruler/labels/bug), [good first issues](https://github.com/spotify/ruler/labels/good%20first%20issue) and [help wanted](https://github.com/spotify/ruler/labels/help%20wanted).
+You can also contribute directly by solving open issues. Specifically look out for issues marked as [bugs](https://github.com/kibotu/ruler/labels/bug), [good first issues](https://github.com/kibotu/ruler/labels/good%20first%20issue) and [help wanted](https://github.com/kibotu/ruler/labels/help%20wanted).
+
+This is a community fork of the original [Spotify Ruler](https://github.com/spotify/ruler) project.
 
 ## Code of conduct
 
-This project adheres to the [Open Code of Conduct](https://github.com/spotify/code-of-conduct/blob/master/code-of-conduct.md). By participating, you are expected to honor this code.
+This project adheres to the [Open Code of Conduct](https://github.com/spotify/code-of-conduct/blob/master/code-of-conduct.md) from the original Spotify project. By participating, you are expected to honor this code.
 
 ## License
 
