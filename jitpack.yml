@@ -1,14 +1,8 @@
 jdk:
   - openjdk17
 before_install:
-#  - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-#  - apt-get install -y nodejs
-#  - node --version
-#  - npm --version
   - echo "withoutSample=true" >> gradle.properties
   - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
-  - echo "kotlin.js.compiler=ir"  >> gradle.properties
-  - echo "org.jetbrains.kotlin.js.nodeVersion=18.20.0"  >> gradle.properties
+  - echo "kotlin.js.nodeVersion=18.20.0"  >> gradle.properties
 install:
   - ./gradlew clean build publishToMavenLocal -Pgroup=com.github.kibotu -Pversion=$VERSION
-  -
