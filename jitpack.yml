@@ -1,2 +1,4 @@
 jdk:
   - openjdk17
+install:
+  - ./gradlew clean -Pgroup=com.github.kibotu -Pversion=$VERSION -xtest -xlint -xsignMavenPublication -x:ruler-frontend:processResources -x:ruler-frontend:browserProductionExecutableDistributeResources -x:kotlinNodeJsSetup -x:kotlinNpmCachesSetup -x:kotlinYarnSetup -x:kotlinNpmInstall -x:packageJsonUmbrella -x:rootPackageJson assemble publishToMavenLocal
