@@ -1,5 +1,5 @@
 jdk:
-  - openjdk17
+  - openjdk21
 before_install:
   - echo "withoutSample=true" >> gradle.properties
   - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
