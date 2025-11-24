@@ -22,7 +22,9 @@ include(":ruler-gradle-plugin")
 include(":ruler-models")
 include(":ruler-common")
 include(":ruler-cli")
-if (!startParameter.projectProperties.containsKey("withoutSample")) {
+
+val withoutSample = providers.gradleProperty("withoutSample").orNull
+if (withoutSample == null && !startParameter.projectProperties.containsKey("withoutSample")) {
     include(":ruler-e2e-tests")
 
     include(":sample:app")
