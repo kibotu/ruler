@@ -16,15 +16,20 @@
 
 rootProject.name = "ruler"
 
-include(":ruler-frontend")
-include(":ruler-frontend-tests")
+val withoutSample = providers.gradleProperty("withoutSample").orNull
+val skipSample = withoutSample != null || startParameter.projectProperties.containsKey("withoutSample")
+
+if (!skipSample) {
+    include(":ruler-frontend")
+    include(":ruler-frontend-tests")
+}
+
 include(":ruler-gradle-plugin")
 include(":ruler-models")
 include(":ruler-common")
 include(":ruler-cli")
 
-val withoutSample = providers.gradleProperty("withoutSample").orNull
-if (withoutSample == null && !startParameter.projectProperties.containsKey("withoutSample")) {
+if (!skipSample) {
     include(":ruler-e2e-tests")
 
     include(":sample:app")
