@@ -19,7 +19,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("io.gitlab.arturbosch.detekt")
-    id("com.github.johnrengelman.shadow")
+    id("com.gradleup.shadow")
     id("maven-publish")
     id("signing")
 }
@@ -42,6 +42,7 @@ dependencies {
     implementation(Dependencies.KOTLINX_SERIALIZATION_JSON)
 
     testRuntimeOnly(Dependencies.JUNIT_ENGINE)
+    testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
     testImplementation(Dependencies.JUNIT_API)
     testImplementation(Dependencies.JUNIT_PARAMS)
     testImplementation(Dependencies.GOOGLE_TRUTH)
@@ -57,8 +58,8 @@ tasks.withType<Test> {
 
 publishing {
     publications {
-        create<MavenPublication>("maven") {
-            artifact(tasks["shadowJar"])
+        create<MavenPublication>("shadow") {
+            from(components["shadow"])
         }
     }
     configurePublications(project)

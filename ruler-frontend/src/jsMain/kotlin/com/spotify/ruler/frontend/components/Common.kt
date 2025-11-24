@@ -19,7 +19,6 @@ package com.spotify.ruler.frontend.components
 import com.spotify.ruler.frontend.formatSize
 import com.spotify.ruler.models.AppReport
 import com.spotify.ruler.models.Measurable
-import js.core.jso
 import react.FC
 import react.Props
 import react.PropsWithChildren
@@ -111,15 +110,17 @@ val Report = FC<ReportProps> { props ->
     }
 
     val hashRouter = createHashRouter(
-        routes = arrayOf(jso {
-            element = layout
-            children = tabs.map {
-                jso<RouteObject> {
-                    path = it.path
-                    element = it.content.invoke().asElementOrNull()
-                }
-            }.toTypedArray()
-        })
+        routes = arrayOf(
+            js("({})").unsafeCast<RouteObject>().apply {
+                element = layout
+                children = tabs.map {
+                    js("({})").unsafeCast<RouteObject>().apply {
+                        path = it.path
+                        element = it.content.invoke().asElementOrNull()
+                    }
+                }.toTypedArray()
+            }
+        )
     )
 
     RouterProvider {
@@ -228,7 +229,7 @@ external interface DropDownProps : Props {
 val DropDown = FC<DropDownProps> { props ->
     select {
         className = ClassName("form-select")
-        id = props.id
+        id = props.id.asDynamic()
         onChange = { event ->
             props.onOptionSelected(event.target.value)
         }

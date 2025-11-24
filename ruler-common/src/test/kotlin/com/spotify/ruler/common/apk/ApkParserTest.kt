@@ -28,9 +28,9 @@ class ApkParserTest {
     fun `APK entries are parsed`() {
         val entries = parser.parse(apkFile)
 
-        assertThat(entries).contains(ApkEntry.Default("/AndroidManifest.xml", 776, 776))
-        assertThat(entries).contains(ApkEntry.Default("/res/layout/activity_main.xml", 257, 257))
-        assertThat(entries).contains(ApkEntry.Default("/resources.arsc", 212, 768))
+        assertThat(entries).contains(ApkEntry.Default("/AndroidManifest.xml", 794, 776))
+        assertThat(entries).contains(ApkEntry.Default("/res/layout/activity_main.xml", 275, 257))
+        assertThat(entries).contains(ApkEntry.Default("/resources.arsc", 230, 768))
     }
 
     @Test

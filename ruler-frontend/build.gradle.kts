@@ -15,7 +15,8 @@
  */
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
+    kotlin("multiplatform")
+    kotlin("plugin.js-plain-objects") version Dependencies.Versions.KOTLIN
     id("io.gitlab.arturbosch.detekt")
 }
 
@@ -38,12 +39,12 @@ dependencies {
     "jsMainImplementation"(Dependencies.KOTLIN_REACT)
     "jsMainImplementation"(Dependencies.KOTLIN_REACT_DOM)
     "jsMainImplementation"(Dependencies.KOTLIN_REACT_ROUTER)
-    "jsMainImplementation"(Dependencies.KOTLIN_JS_EXTENSIONS)
     "jsMainImplementation"(Dependencies.KOTLINX_SERIALIZATION_JSON)
 
     "jsMainImplementation"(npm(Dependencies.REACT, Dependencies.Versions.REACT))
     "jsMainImplementation"(npm(Dependencies.REACT_DOM, Dependencies.Versions.REACT))
     "jsMainImplementation"(npm(Dependencies.BOOTSTRAP, Dependencies.Versions.BOOTSTRAP))
+    "jsMainImplementation"(npm(Dependencies.POPPERJS_CORE, Dependencies.Versions.POPPERJS_CORE))
     "jsMainImplementation"(npm(Dependencies.APEX_CHARTS, Dependencies.Versions.APEX_CHARTS))
 
     "jsTestImplementation"(kotlin("test-js"))

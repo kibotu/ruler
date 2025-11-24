@@ -33,14 +33,14 @@ class ApkParser(
         println(unstrippedNativeLibraryPaths.map { it.path }.joinToString { ", " })
         val sizeCalculator = ApkSizeCalculator.getDefault()
         val downloadSizePerFile = sizeCalculator.getDownloadSizePerFile(apkFile.toPath())
-        val installSizePerFile = sizeCalculator.getRawSizePerFile(apkFile.toPath())
+        val installSizePerFile = sizeCalculator.getInfoPerFile(apkFile.toPath())
         val bloaty = Bloaty(bloatyPath)
         val apkEntries = mutableListOf<ApkEntry>()
         ZipFile(apkFile).use { zipFile ->
             zipFile.entries().iterator().forEach { zipEntry ->
                 val name = "/${zipEntry.name}"
                 val downloadSize = downloadSizePerFile.getValue(name)
-                val installSize = installSizePerFile.getValue(name)
+                val installSize = installSizePerFile.getValue(name).size
 
                 apkEntries += when {
                     isDexEntry(name) -> {
@@ -76,8 +76,8 @@ class ApkParser(
     /** Parses a DEX entry (represented by its [bytes]) and returns a list of all contained class entries. */
     private fun parseDexEntry(bytes: ByteArray): List<ApkEntry> {
         val dexFile = DexFiles.getDexFile(bytes)
-        return dexFile.classes.map { classDef ->
-            ApkEntry.Default(classDef.type, classDef.size.toLong(), classDef.size.toLong())
+        return dexFile.getClasses().map { classDef ->
+            ApkEntry.Default(classDef.getType(), classDef.getSize().toLong(), classDef.getSize().toLong())
         }
     }
 

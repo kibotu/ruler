@@ -58,6 +58,7 @@ dependencies {
     implementation(Dependencies.SNAKE_YAML)
 
     testRuntimeOnly(Dependencies.JUNIT_ENGINE)
+    testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
     testImplementation(gradleTestKit())
     testImplementation(Dependencies.JUNIT_API)
     testImplementation(Dependencies.JUNIT_PARAMS)

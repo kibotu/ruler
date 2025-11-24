@@ -23,12 +23,12 @@ plugins {
 
 android {
     namespace = "com.spotify.ruler.sample.app"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.spotify.ruler.sample"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }
@@ -56,7 +56,7 @@ ruler {
     abi.set("arm64-v8a")
     locale.set("en")
     screenDensity.set(480)
-    sdkVersion.set(27)
+    sdkVersion.set(36)
 
     ownershipFile.set(project.layout.projectDirectory.file("ownership.yaml"))
     defaultOwner.set("default-team")

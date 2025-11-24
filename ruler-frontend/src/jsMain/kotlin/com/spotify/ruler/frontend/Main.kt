@@ -18,7 +18,6 @@ package com.spotify.ruler.frontend
 
 import com.spotify.ruler.frontend.components.Report
 import com.spotify.ruler.models.AppReport
-import kotlinext.js.require
 import kotlinx.browser.document
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -26,12 +25,14 @@ import react.Fragment
 import react.create
 import react.dom.client.createRoot
 
+external fun require(module: String): dynamic
+
 fun main() {
     require("./style.css")
 
     // use cdn files
-//    require("bootstrap/dist/css/bootstrap.css")
-//    require("bootstrap/dist/js/bootstrap.bundle.js")
+    require("bootstrap/dist/css/bootstrap.css")
+    require("bootstrap/dist/js/bootstrap.bundle.js")
 
     // Load and show the favicon
     val favicon = require("./favicon.svg").toString()
@@ -42,12 +43,13 @@ fun main() {
     document.head?.append(link)
 
     // Load and deserialize the report data
-    val rawReport = require("report.json").toString()
+    // This placeholder will be replaced by HtmlReporter with actual report data
+    val rawReport = "REPLACE_ME"
     val reportData = Json.decodeFromString<AppReport>(rawReport)
 
     // Visualize and display the report data
     val container =
-        web.dom.document.getElementById("root") ?: error("Couldn't find root container!")
+        web.dom.document.getElementById("root".asDynamic()) ?: error("Couldn't find root container!")
     createRoot(container).render(Fragment.create {
         Report {
             report = reportData

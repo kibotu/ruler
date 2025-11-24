@@ -16,8 +16,7 @@
 
 package com.spotify.ruler.frontend.chart
 
-import com.spotify.ruler.frontend.binding.ApexChartOptions
-import js.core.jso
+import com.spotify.ruler.frontend.binding.*
 
 /** Base config for displaying charts. Check https://apexcharts.com/docs/options/ for all chart types and options. */
 abstract class ChartConfig {
@@ -26,61 +25,74 @@ abstract class ChartConfig {
     abstract fun getOptions(): ApexChartOptions
 
     /** Utility function which allows concrete configs to start with a common sets of defaults. */
-    protected fun buildOptions(builder: ApexChartOptions.() -> Unit) = jso<ApexChartOptions> {
-        chart = jso {
+    protected fun buildOptions(builder: ApexChartOptions.() -> Unit): ApexChartOptions {
+        val options = js("({})").unsafeCast<ApexChartOptions>()
+        
+        options.chart = js("({})").unsafeCast<ChartOptions>().apply {
             fontFamily = FONT_FAMILY
-            toolbar = jso {
+            toolbar = js("({})").unsafeCast<ToolbarOptions>().apply {
                 show = false
             }
         }
-        dataLabels = jso {
+        
+        options.dataLabels = js("({})").unsafeCast<DataLabelOptions>().apply {
             enabled = false
         }
-        fill = jso {
+        
+        options.fill = js("({})").unsafeCast<FillOptions>().apply {
             opacity = 1.0
         }
-        grid = jso {
-            xaxis = jso {
-                lines = jso()
+        
+        options.grid = js("({})").unsafeCast<GridOptions>().apply {
+            xaxis = js("({})").unsafeCast<GridAxisOptions>().apply {
+                lines = js("({})").unsafeCast<GridAxisLineOptions>()
             }
-            yaxis = jso {
-                lines = jso()
+            yaxis = js("({})").unsafeCast<GridAxisOptions>().apply {
+                lines = js("({})").unsafeCast<GridAxisLineOptions>()
             }
         }
-        legend = jso {
+        
+        options.legend = js("({})").unsafeCast<LegendOptions>().apply {
             fontSize = FONT_SIZE
-            markers = jso {
+            markers = js("({})").unsafeCast<LegendMarkerOptions>().apply {
                 width = FONT_SIZE
                 height = FONT_SIZE
             }
         }
-        plotOptions = jso {
-            bar = jso()
+        
+        options.plotOptions = js("({})").unsafeCast<PlotOptions>().apply {
+            bar = js("({})").unsafeCast<BarPlotOptions>()
         }
-        stroke = jso {
+        
+        options.stroke = js("({})").unsafeCast<StrokeOptions>().apply {
             show = true
             colors = arrayOf("transparent")
             width = STROKE_WIDTH
         }
-        tooltip = jso {
-            x = jso()
-            y = jso()
+        
+        options.tooltip = js("({})").unsafeCast<TooltipOptions>().apply {
+            x = js("({})").unsafeCast<TooltipAxisOptions>()
+            y = js("({})").unsafeCast<TooltipAxisOptions>()
         }
-        xaxis = jso {
-            labels = jso {
-                style = jso {
+        
+        options.xaxis = js("({})").unsafeCast<AxisOptions>().apply {
+            labels = js("({})").unsafeCast<AxisLabelOptions>().apply {
+                style = js("({})").unsafeCast<AxisLabelStyleOptions>().apply {
                     fontSize = FONT_SIZE
                 }
             }
         }
-        yaxis = jso {
-            labels = jso {
-                style = jso {
+        
+        options.yaxis = js("({})").unsafeCast<AxisOptions>().apply {
+            labels = js("({})").unsafeCast<AxisLabelOptions>().apply {
+                style = js("({})").unsafeCast<AxisLabelStyleOptions>().apply {
                     fontSize = FONT_SIZE
                 }
             }
         }
-    }.apply(builder)
+        
+        return options.apply(builder)
+    }
 
     private companion object {
         const val FONT_FAMILY = "var(--bs-body-font-family)"

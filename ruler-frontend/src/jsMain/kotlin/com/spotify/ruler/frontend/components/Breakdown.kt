@@ -59,7 +59,7 @@ val ContainerList = FC<ContainerListProps> { props ->
         props.containers.forEachIndexed { index, container ->
             ContainerListItem {
                 id = index
-                ContainerListItem@this.container = container
+                this.container = container
                 sizeType = props.sizeType
                 key = container.name
             }
@@ -127,7 +127,7 @@ val ContainerListItemHeader = FC<ContainerListItemProps> { props ->
 val ContainerListItemBody = FC<ContainerListItemProps> { props ->
     div {
         className = ClassName("accordion-collapse collapse")
-        id = "module-${props.id}-body"
+        id = "module-${props.id}-body".asDynamic()
         div {
             className = ClassName("accordion-body p-0")
             FileList {

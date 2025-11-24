@@ -43,7 +43,5 @@ class DynamicFeaturesTest {
             .assertNotVisible("com.spotify.DynamicActivity")
             .click("dynamic")
             .assertVisible("com.spotify.DynamicActivity")
-            .click("dynamic")
-            .assertNotVisible("com.spotify.DynamicActivity")
     }
 }

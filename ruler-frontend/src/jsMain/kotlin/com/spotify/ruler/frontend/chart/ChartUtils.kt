@@ -17,9 +17,10 @@
 package com.spotify.ruler.frontend.chart
 
 import com.spotify.ruler.frontend.binding.Series
-import js.core.jso
 
-fun seriesOf(name: String, data: LongArray): Series = jso {
-    this.name = name
-    this.data = data.map(Long::toInt).toTypedArray()
+fun seriesOf(name: String, data: LongArray): Series {
+    val series = js("({})").unsafeCast<Series>()
+    series.name = name
+    series.data = data.map(Long::toInt).toTypedArray()
+    return series
 }
