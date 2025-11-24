@@ -1,4 +1,7 @@
 jdk:
   - openjdk17
+before_install:
+  - echo "withoutSample=true" >> gradle.properties
+  - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
 install:
-  - ./gradlew :ruler-models:publishJvmPublicationToMavenLocal :ruler-models:publishKotlinMultiplatformPublicationToMavenLocal :ruler-common:publishToMavenLocal :ruler-gradle-plugin:publishToMavenLocal -PwithoutSample=true -Pgroup=com.github.kibotu -Pversion=$VERSION -xsignMavenPublication
+  - ./gradlew :ruler-models:publishJvmPublicationToMavenLocal :ruler-models:publishKotlinMultiplatformPublicationToMavenLocal :ruler-common:publishToMavenLocal :ruler-gradle-plugin:publishToMavenLocal -Pgroup=com.github.kibotu -Pversion=$VERSION -xsignMavenPublication
