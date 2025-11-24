@@ -33,7 +33,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
 
     // Make development report available
-    dependsOn(":ruler-frontend:jsBrowserDevelopmentExecutableDistribution")
+    dependsOn(":ruler-frontend:jsBrowserDevelopmentWebpack")
 }
 
 kotlin {

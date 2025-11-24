@@ -27,17 +27,9 @@ kotlin {
                 cssSupport {
                     enabled.set(true)
                 }
-                mode = org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.Mode.DEVELOPMENT
             })
         }
         binaries.executable()
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    sourceMap.set(true)
-                }
-            }
-        }
     }
 }
 
