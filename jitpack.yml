@@ -4,7 +4,6 @@ env:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
   JITPACK: "true"
 before_install:
-  # Install NVM and Node.js 16 (compatible with older GLIBC)
   - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
   - export NVM_DIR="$HOME/.nvm"
   - source "$NVM_DIR/nvm.sh"
@@ -12,13 +11,11 @@ before_install:
   - nvm use 16.13.0
   - node --version
   - npm --version
-  # Install Yarn globally
   - npm install -g yarn@1.22.19
   - yarn --version
-  # Configure Gradle to disable offline mode and use system Node.js
   - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
   - echo "" >> gradle.properties
-  - echo "# JitPack: Use system Node.js and Yarn" >> gradle.properties
+  - echo "# JitPack Use system Node.js and Yarn" >> gradle.properties
   - echo "kotlin.js.nodejs.download=false" >> gradle.properties
   - echo "kotlin.js.yarn.download=false" >> gradle.properties
 install:
