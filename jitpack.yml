@@ -2,6 +2,7 @@ jdk:
   - openjdk17
 env:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
+  JITPACK: "true"
 before_install:
   # Install NVM and Node.js 16 (compatible with older GLIBC)
   - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -14,4 +15,4 @@ before_install:
   # Configure Gradle
   - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
 install:
-  - export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && nvm use 16.13.0 && ./gradlew :ruler-models:publish :ruler-common:publish :ruler-gradle-plugin:publish -Pgroup=com.github.kibotu -Pversion=$VERSION --no-daemon
+  - export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && nvm use 16.13.0 && ./gradlew :ruler-models:publishToMavenLocal :ruler-common:publishToMavenLocal :ruler-gradle-plugin:publishToMavenLocal -Pgroup=com.github.kibotu -Pversion=$VERSION --no-daemon
