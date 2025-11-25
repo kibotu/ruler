@@ -16,21 +16,11 @@
 
 rootProject.name = "ruler"
 
-include(":ruler-frontend")
-include(":ruler-frontend-tests")
-include(":ruler-gradle-plugin")
+// Only include modules necessary for publishing the Gradle plugin
 include(":ruler-models")
+include(":ruler-frontend")
 include(":ruler-common")
-include(":ruler-cli")
-
-val withoutSample = providers.gradleProperty("withoutSample").orNull
-if (withoutSample == null && !startParameter.projectProperties.containsKey("withoutSample")) {
-    include(":ruler-e2e-tests")
-
-    include(":sample:app")
-    include(":sample:dynamic")
-    include(":sample:lib")
-}
+include(":ruler-gradle-plugin")
 
 //plugins {
 //    id("com.gradle.develocity") version "4.2.2" // https://mvnrepository.com/artifact/com.gradle.develocity/com.gradle.develocity.gradle.plugin
