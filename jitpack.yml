@@ -12,8 +12,10 @@ before_install:
   - nvm use 16.13.0
   - node --version
   - npm --version
-  # Configure Gradle to disable offline mode and force Node.js 16
+  # Install Yarn globally
+  - npm install -g yarn@1.22.19
+  - yarn --version
+  # Configure Gradle to disable offline mode
   - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
-  - echo "kotlin.js.nodejs.download=false" >> gradle.properties
 install:
   - export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && nvm use 16.13.0 && export PATH="$NVM_DIR/versions/node/v16.13.0/bin:$PATH" && ./gradlew :ruler-models:publishToMavenLocal :ruler-common:publishToMavenLocal :ruler-gradle-plugin:publishToMavenLocal -Pgroup=com.github.kibotu -Pversion=$VERSION --no-daemon

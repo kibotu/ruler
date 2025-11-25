@@ -33,7 +33,10 @@ buildscript {
         classpath(Dependencies.KOTLIN_GRADLE_PLUGIN)
         classpath(Dependencies.KOTLINX_SERIALIZATION_GRADLE_PLUGIN)
         classpath(Dependencies.DETEKT_GRADLE_PLUGIN)
-        classpath(Dependencies.NEXUS_PUBLISH_GRADLE_PLUGIN)
+        // Only load Nexus plugin when not building for JitPack
+        if (System.getenv("JITPACK") != "true") {
+            classpath(Dependencies.NEXUS_PUBLISH_GRADLE_PLUGIN)
+        }
         classpath(Dependencies.SHADOW_GRADLE_PLUGIN)
 
         if (!properties.containsKey("withoutSample")) {
@@ -42,7 +45,10 @@ buildscript {
     }
 }
 
-apply(plugin = "io.github.gradle-nexus.publish-plugin")
+// Only apply Nexus plugin when not building for JitPack
+if (System.getenv("JITPACK") != "true") {
+    apply(plugin = "io.github.gradle-nexus.publish-plugin")
+}
 
 allprojects {
     repositories {
@@ -54,11 +60,30 @@ allprojects {
 group = RULER_PLUGIN_GROUP
 version = RULER_PLUGIN_VERSION
 
-extensions.configure(NexusPublishExtension::class) {
-    repositories {
-        sonatype {
-            username.set(System.getenv(ENV_SONATYPE_USERNAME))
-            password.set(System.getenv(ENV_SONATYPE_PASSWORD))
+// Configure Node.js and Yarn for Kotlin/JS - use system installation on JitPack
+if (System.getenv("JITPACK") == "true") {
+    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().apply {
+            nodeVersion = "16.13.0"
+            download = false // Use system Node.js instead of downloading
+        }
+    }
+    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().apply {
+            version = "1.22.19"
+            download = false // Use system Yarn instead of downloading
+        }
+    }
+}
+
+// Only configure Sonatype when not building for JitPack
+if (System.getenv("JITPACK") != "true") {
+    extensions.configure(NexusPublishExtension::class) {
+        repositories {
+            sonatype {
+                username.set(System.getenv(ENV_SONATYPE_USERNAME))
+                password.set(System.getenv(ENV_SONATYPE_PASSWORD))
+            }
         }
     }
 }
