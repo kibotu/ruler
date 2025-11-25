@@ -15,7 +15,11 @@ before_install:
   # Install Yarn globally
   - npm install -g yarn@1.22.19
   - yarn --version
-  # Configure Gradle to disable offline mode
+  # Configure Gradle to disable offline mode and use system Node.js
   - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
+  - echo "" >> gradle.properties
+  - echo "# JitPack: Use system Node.js and Yarn" >> gradle.properties
+  - echo "kotlin.js.nodejs.download=false" >> gradle.properties
+  - echo "kotlin.js.yarn.download=false" >> gradle.properties
 install:
   - export NVM_DIR="$HOME/.nvm" && source "$NVM_DIR/nvm.sh" && nvm use 16.13.0 && export PATH="$NVM_DIR/versions/node/v16.13.0/bin:$PATH" && ./gradlew :ruler-models:publishToMavenLocal :ruler-common:publishToMavenLocal :ruler-gradle-plugin:publishToMavenLocal -Pgroup=com.github.kibotu -Pversion=$VERSION --no-daemon

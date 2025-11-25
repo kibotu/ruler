@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import io.github.gradlenexus.publishplugin.NexusPublishExtension
-
 buildscript {
     repositories {
         mavenLocal {
@@ -60,32 +58,9 @@ allprojects {
 group = RULER_PLUGIN_GROUP
 version = RULER_PLUGIN_VERSION
 
-// Configure Node.js and Yarn for Kotlin/JS - use system installation on JitPack
-if (System.getenv("JITPACK") == "true") {
-    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
-        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().apply {
-            nodeVersion = "16.13.0"
-            download = false // Use system Node.js instead of downloading
-        }
-    }
-    rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
-        rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().apply {
-            version = "1.22.19"
-            download = false // Use system Yarn instead of downloading
-        }
-    }
-}
-
 // Only configure Sonatype when not building for JitPack
 if (System.getenv("JITPACK") != "true") {
-    extensions.configure(NexusPublishExtension::class) {
-        repositories {
-            sonatype {
-                username.set(System.getenv(ENV_SONATYPE_USERNAME))
-                password.set(System.getenv(ENV_SONATYPE_PASSWORD))
-            }
-        }
-    }
+    apply(from = "nexus-config.gradle.kts")
 }
 
 allprojects {
