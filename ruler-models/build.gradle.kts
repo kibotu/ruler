@@ -29,6 +29,7 @@ kotlin {
     jvm()
     js(IR) {
         browser()
+        nodejs()
     }
     sourceSets {
         val commonMain by getting {
@@ -36,6 +37,20 @@ kotlin {
                 implementation(Dependencies.KOTLINX_SERIALIZATION_CORE)
             }
         }
+    }
+}
+
+// Ensure compatible Node.js version for JitPack
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().apply {
+        nodeVersion = "16.13.0"
+        nodeDownloadBaseUrl = "https://nodejs.org/dist"
+    }
+}
+
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().apply {
+        version = "1.22.19"
     }
 }
 

@@ -1,6 +1,8 @@
 jdk:
   - openjdk17
+env:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
 before_install:
   - sed -i 's/org.gradle.offline=true/org.gradle.offline=false/g' gradle.properties
 install:
-  - ./gradlew :ruler-models:publish :ruler-common:publish :ruler-gradle-plugin:publish -Pgroup=com.github.kibotu -Pversion=$VERSION
+  - ./gradlew :ruler-models:publish :ruler-common:publish :ruler-gradle-plugin:publish -Pgroup=com.github.kibotu -Pversion=$VERSION --no-daemon
