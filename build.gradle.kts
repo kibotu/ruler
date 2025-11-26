@@ -57,6 +57,10 @@ version = RULER_PLUGIN_VERSION
 extensions.configure(NexusPublishExtension::class) {
     repositories {
         sonatype {
+            // Use s01.oss.sonatype.org for accounts created after February 2021
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            
             val username = System.getenv(ENV_SONATYPE_USERNAME)
             val password = System.getenv(ENV_SONATYPE_PASSWORD)
             if (username != null && password != null) {
