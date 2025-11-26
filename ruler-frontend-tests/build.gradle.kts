@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
+import java.io.File
+
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("io.gitlab.arturbosch.detekt")
@@ -31,31 +40,31 @@ dependencies {
     testImplementation(project(":ruler-common"))
 }
 
-val generateTestReport by tasks.registering {
-    dependsOn(":ruler-frontend:jsBrowserDevelopmentExecutableDistribution")
+abstract class GenerateTestReportTask : DefaultTask() {
+    @get:InputFile
+    abstract val reportJsonFile: RegularFileProperty
     
-    val reportJsonFile = file("${project(":ruler-frontend").projectDir}/src/development/report.json")
-    val distDir = file("${project(":ruler-frontend").projectDir}/build/dist/js/developmentExecutable")
-    val outputDir = file("$buildDir/test-report")
+    @get:InputDirectory
+    abstract val distDir: DirectoryProperty
     
-    inputs.file(reportJsonFile)
-    inputs.dir(distDir)
-    outputs.dir(outputDir)
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
     
-    doLast {
-        outputDir.mkdirs()
+    @TaskAction
+    fun generate() {
+        val outputDirFile = outputDir.get().asFile
+        val distDirFile = distDir.get().asFile
+        
+        outputDirFile.mkdirs()
         
         // Copy all files from dist
-        copy {
-            from(distDir)
-            into(outputDir)
-        }
+        distDirFile.copyRecursively(outputDirFile, overwrite = true)
         
         // Read the report JSON
-        val reportJson = reportJsonFile.readText()
+        val reportJson = reportJsonFile.get().asFile.readText()
         
         // Read and modify the JavaScript to inject the report data
-        val jsFile = file("$outputDir/ruler-frontend.js")
+        val jsFile = File(outputDirFile, "ruler-frontend.js")
         var js = jsFile.readText()
         
         // Replace the REPLACE_ME placeholder with actual data
@@ -64,6 +73,14 @@ val generateTestReport by tasks.registering {
         
         jsFile.writeText(js)
     }
+}
+
+val generateTestReport by tasks.registering(GenerateTestReportTask::class) {
+    dependsOn(":ruler-frontend:jsBrowserDevelopmentExecutableDistribution")
+    
+    reportJsonFile.set(layout.projectDirectory.file("../ruler-frontend/src/development/report.json"))
+    distDir.set(layout.projectDirectory.dir("../ruler-frontend/build/dist/js/developmentExecutable"))
+    outputDir.set(layout.buildDirectory.dir("test-report"))
 }
 
 tasks.withType<Test> {
