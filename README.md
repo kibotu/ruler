@@ -4,8 +4,8 @@
 _Ruler is a Gradle plugin which helps you analyze the size of your Android apps._
 
 [![CI](https://github.com/kibotu/ruler/actions/workflows/ci.yaml/badge.svg)](https://github.com/kibotu/ruler/actions/workflows/ci.yaml)
-[![Maven Release](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://github.com/spotify/ruler/releases)
-[![License](https://img.shields.io/github/license/spotify/ruler)](https://github.com/spotify/ruler/blob/main/LICENSE)
+[![Maven Release](https://img.shields.io/maven-central/v/net.kibotu/ruler-gradle-plugin)](https://github.com/kibotu/ruler/releases)
+[![License](https://img.shields.io/github/license/kibotu/ruler)](https://github.com/kibotu/ruler/blob/main/LICENSE)
 
 ## Motivation
 
@@ -121,7 +121,9 @@ When you pass an ownership file to Ruler, you'll see a new tab in the HTML repor
 
 Ruler is built with Kotlin and contains multiple modules:
 
-- **ruler:** Core Gradle plugin where the APK parsing, dependency handling and attribution logic lives.
+- **ruler-gradle-plugin:** Core Gradle plugin where the APK parsing, dependency handling and attribution logic lives.
+- **ruler-common:** Common utilities and APK/AAB analysis logic.
+- **ruler-cli:** Command-line interface for analyzing APKs and AABs.
 - **ruler-frontend:** React template used for the HTML report, built with Kotlin JS.
 - **ruler-models:** Common models shared between the Gradle plugin and the frontend, built with Kotlin Multiplatform.
 - **ruler-frontend-tests:** UI tests for the HTML report frontend.
@@ -140,8 +142,8 @@ When working on the frontend, you can start a development server by running `./g
 The latest version of this plugin is compatible with
 
 - Java 17 or above,
-- Gradle 8.4 or above and
-- Android Gradle Plugin 8.2.0 or above.
+- Gradle 9.2.0 or above and
+- Android Gradle Plugin 8.13.1 or above.
 
 Earlier versions might also work, but compatibility can't be guaranteed.
 
@@ -149,7 +151,7 @@ Earlier versions might also work, but compatibility can't be guaranteed.
 
 We want your help to improve Ruler! You can contribute by opening issues for bugs and ideas for improvement.
 
-You can also contribute directly by solving open issues. Specifically look out for issues marked as [bugs](https://github.com/spotify/ruler/labels/bug), [good first issues](https://github.com/spotify/ruler/labels/good%20first%20issue) and [help wanted](https://github.com/spotify/ruler/labels/help%20wanted).
+You can also contribute directly by solving open issues. Specifically look out for issues marked as [bugs](https://github.com/kibotu/ruler/labels/bug), [good first issues](https://github.com/kibotu/ruler/labels/good%20first%20issue) and [help wanted](https://github.com/kibotu/ruler/labels/help%20wanted).
 
 ## Code of conduct
 
