@@ -57,9 +57,10 @@ version = RULER_PLUGIN_VERSION
 extensions.configure(NexusPublishExtension::class) {
     repositories {
         sonatype {
-            // Use s01.oss.sonatype.org for accounts created after February 2021
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            // Use the new Sonatype Central Portal (OSSRH is deprecated and EOL June 30, 2025)
+            // See: https://github.com/gradle-nexus/publish-plugin#publishing-to-maven-central-via-sonatype-central
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
             
             val username = System.getenv(ENV_SONATYPE_USERNAME)
             val password = System.getenv(ENV_SONATYPE_PASSWORD)
