@@ -34,15 +34,9 @@ const val ENV_SIGNING_KEY = "PGP_SIGNING_KEY"
 const val ENV_SIGNING_PASSWORD = "PGP_SIGNING_PASSWORD"
 
 fun PublishingExtension.configurePublications(project: Project) {
-    val javadocJar = project.tasks.register("javadocJar", Jar::class.java) {
-        archiveClassifier.set("javadoc") // Use empty javadoc JAR until Dokka supports Kotlin Multiplatform projects
-    }
-
     publications.withType(MavenPublication::class.java) {
         groupId = RULER_PLUGIN_GROUP
         version = RULER_PLUGIN_VERSION
-
-        artifact(javadocJar)
 
         pom {
             name.set(project.extra[EXT_POM_NAME].toString())

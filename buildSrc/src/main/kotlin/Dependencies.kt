@@ -23,6 +23,7 @@ object Dependencies {
     const val DETEKT_GRADLE_PLUGIN = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${Versions.DETEKT_GRADLE_PLUGIN}"
     const val NEXUS_PUBLISH_GRADLE_PLUGIN = "io.github.gradle-nexus.publish-plugin:io.github.gradle-nexus.publish-plugin.gradle.plugin:${Versions.NEXUS_PUBLISH_GRADLE_PLUGIN}"
     const val SHADOW_GRADLE_PLUGIN = "com.gradleup.shadow:shadow-gradle-plugin:${Versions.SHADOW_GRADLE_PLUGIN}"
+    const val PLUGIN_PUBLISH_GRADLE_PLUGIN = "com.gradle.publish:plugin-publish-plugin:${Versions.PLUGIN_PUBLISH_GRADLE_PLUGIN}"
 
     const val BUNDLETOOL = "com.android.tools.build:bundletool:${Versions.BUNDLETOOL}"
     const val PROTOBUF_CORE = "com.google.protobuf:protobuf-java:${Versions.PROTOBUF}"
@@ -64,6 +65,7 @@ object Dependencies {
         const val DETEKT_GRADLE_PLUGIN = "1.23.8" // https://mvnrepository.com/artifact/io.gitlab.arturbosch.detekt/detekt-gradle-plugin
         const val NEXUS_PUBLISH_GRADLE_PLUGIN = "2.0.0" // https://mvnrepository.com/artifact/io.github.gradle-nexus.publish-plugin/io.github.gradle-nexus.publish-plugin.gradle.plugin
         const val SHADOW_GRADLE_PLUGIN = "9.2.2" // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
+        const val PLUGIN_PUBLISH_GRADLE_PLUGIN = "1.3.0" // https://plugins.gradle.org/plugin/com.gradle.plugin-publish
 
         const val BUNDLETOOL = "1.18.2" // https://mvnrepository.com/artifact/com.android.tools.build/bundletool
         const val PROTOBUF = "4.33.1" // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
