@@ -50,10 +50,17 @@ class WebDriverExtension : BeforeAllCallback, BeforeEachCallback, AfterEachCallb
 
         driver = ChromeDriver(options)
 
-        // Open and use the generated development report page for testing
-        val reportPath = Paths.get("..", "ruler-frontend", "build", "dist", "js", "developmentExecutable", "index.html")
+        // Open and use the generated test report page with injected test data
+        val reportPath = Paths.get("build", "test-report", "index.html")
         require(reportPath.toFile().exists()) { "Report file not found at: ${reportPath.toAbsolutePath()}" }
         driver.get(reportPath.toUri().toString())
+        
+        // Wait for the root element to be populated (React to mount)
+        val wait = org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(10))
+        wait.until { d -> 
+            val root = d.findElement(org.openqa.selenium.By.id("root"))
+            root.findElements(org.openqa.selenium.By.xpath(".//*")).isNotEmpty()
+        }
     }
 
     override fun afterEach(context: ExtensionContext) {

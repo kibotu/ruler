@@ -64,9 +64,11 @@ tasks.named("jsBrowserDevelopmentRun") {
 }
 
 tasks.named("jsBrowserDevelopmentWebpack") {
-    dependsOn("jsProductionExecutableCompileSync")
+    dependsOn("jsDevelopmentExecutableCompileSync")
+    mustRunAfter("jsProductionExecutableCompileSync")
 }
 
 tasks.named("jsBrowserProductionWebpack") {
-    dependsOn("jsDevelopmentExecutableCompileSync")
+    dependsOn("jsProductionExecutableCompileSync")
+    mustRunAfter("jsDevelopmentExecutableCompileSync")
 }
