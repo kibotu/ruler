@@ -22,7 +22,7 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.extra
 import org.gradle.plugins.signing.SigningExtension
 
-const val RULER_PLUGIN_GROUP = "com.spotify.ruler"
+const val RULER_PLUGIN_GROUP = "net.kibotu"
 const val RULER_PLUGIN_VERSION = "2.0.0-beta-3" // Also adapt this version in the README
 const val EXT_POM_NAME = "POM_NAME"
 const val EXT_POM_DESCRIPTION = "POM_DESCRIPTION"

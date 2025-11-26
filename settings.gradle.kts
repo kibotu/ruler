@@ -18,10 +18,12 @@ rootProject.name = "ruler"
 
 include(":ruler-frontend")
 include(":ruler-frontend-tests")
-include(":ruler-gradle-plugin")
+include(":ruler")
 include(":ruler-models")
 include(":ruler-common")
 include(":ruler-cli")
+
+project(":ruler").projectDir = file("ruler-gradle-plugin")
 if (!startParameter.projectProperties.containsKey("withoutSample")) {
     include(":ruler-e2e-tests")
 

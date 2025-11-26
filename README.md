@@ -4,7 +4,7 @@
 _Ruler is a Gradle plugin which helps you analyze the size of your Android apps._
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/spotify/ruler/ci.yaml?branch=main)](https://github.com/spotify/ruler/actions)
-[![Maven Release](https://img.shields.io/maven-central/v/com.spotify.ruler/ruler-gradle-plugin)](https://github.com/spotify/ruler/releases)
+[![Maven Release](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://github.com/spotify/ruler/releases)
 [![License](https://img.shields.io/github/license/spotify/ruler)](https://github.com/spotify/ruler/blob/main/LICENSE)
 
 ## Motivation
@@ -33,7 +33,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.spotify.ruler:ruler-gradle-plugin:2.0.0-beta-3")
+        classpath("net.kibotu:ruler:2.0.0-beta-3")
     }
 }
 ```
@@ -121,7 +121,7 @@ When you pass an ownership file to Ruler, you'll see a new tab in the HTML repor
 
 Ruler is built with Kotlin and contains multiple modules:
 
-- **ruler-gradle-plugin:** Core Gradle plugin where the APK parsing, dependency handling and attribution logic lives.
+- **ruler:** Core Gradle plugin where the APK parsing, dependency handling and attribution logic lives.
 - **ruler-frontend:** React template used for the HTML report, built with Kotlin JS.
 - **ruler-models:** Common models shared between the Gradle plugin and the frontend, built with Kotlin Multiplatform.
 - **ruler-frontend-tests:** UI tests for the HTML report frontend.
