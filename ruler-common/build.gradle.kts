@@ -88,15 +88,25 @@ publishing {
     publications {
         create<MavenPublication>("jvm") {
             from(components["java"])
+            // Don't apply standard POM configuration for internal modules
+            groupId = RULER_PLUGIN_GROUP
+            artifactId = "ruler-common"
+            version = findProperty("version")?.toString() ?: RULER_PLUGIN_VERSION
         }
     }
-    configurePublications(project)
+    // Only publish to mavenLocal, not to Maven Central
+    // This is an internal dependency used by the Gradle plugin
+    repositories {
+        mavenLocal()
+    }
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-signing {
-    configureSigning(publishing.publications)
-}
+// Don't sign internal modules - they're not published to Maven Central
+// signing {
+//     configureSigning(publishing.publications)
+// }
+

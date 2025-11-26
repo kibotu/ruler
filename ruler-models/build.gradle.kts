@@ -39,18 +39,26 @@ kotlin {
     }
 }
 
-// Create empty javadoc JAR for Maven Central compliance
+// Create empty javadoc JAR for local publishing
 val javadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
 publishing {
-    configurePublications(project)
     publications.withType<MavenPublication> {
         artifact(javadocJar)
+        // Don't apply standard POM configuration for internal modules
+        groupId = RULER_PLUGIN_GROUP
+        version = findProperty("version")?.toString() ?: RULER_PLUGIN_VERSION
+    }
+    // Only publish to mavenLocal, not to Maven Central
+    // This is an internal dependency used by the Gradle plugin
+    repositories {
+        mavenLocal()
     }
 }
 
-signing {
-    configureSigning(publishing.publications)
-}
+// Don't sign internal modules - they're not published to Maven Central
+// signing {
+//     configureSigning(publishing.publications)
+// }

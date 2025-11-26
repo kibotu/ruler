@@ -60,11 +60,20 @@ publishing {
     publications {
         create<MavenPublication>("shadow") {
             from(components["shadow"])
+            // Don't apply standard POM configuration for internal modules
+            groupId = RULER_PLUGIN_GROUP
+            artifactId = "ruler-cli"
+            version = findProperty("version")?.toString() ?: RULER_PLUGIN_VERSION
         }
     }
-    configurePublications(project)
+    // Only publish to mavenLocal, not to Maven Central
+    // The CLI is included in the Gradle plugin fat JAR
+    repositories {
+        mavenLocal()
+    }
 }
 
-signing {
-    configureSigning(publishing.publications)
-}
+// Don't sign internal modules - they're not published to Maven Central
+// signing {
+//     configureSigning(publishing.publications)
+// }

@@ -62,7 +62,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Maven Central
-        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=${{ steps.extract_version.outputs.VERSION }} -PwithoutSample --no-configuration-cache --no-daemon --stacktrace
+        run: ./gradlew :ruler:publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=${{ steps.extract_version.outputs.VERSION }} -PwithoutSample --no-configuration-cache --no-daemon --stacktrace
 
   publish-gradle-portal:
     needs: build
