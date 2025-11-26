@@ -30,7 +30,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Publish plugin to Maven Central
-        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -PwithoutSample --no-daemon --stacktrace
+        run: ./gradlew publish -PwithoutSample --no-daemon --stacktrace
 
       - name: Publish plugin to Gradle Plugin Portal
         run: ./gradlew publishPlugins -PwithoutSample --no-daemon --stacktrace
