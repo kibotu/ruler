@@ -36,7 +36,9 @@ const val ENV_SIGNING_PASSWORD = "PGP_SIGNING_PASSWORD"
 fun PublishingExtension.configurePublications(project: Project) {
     publications.withType(MavenPublication::class.java) {
         groupId = RULER_PLUGIN_GROUP
-        version = RULER_PLUGIN_VERSION
+        // Use the project version (which can be overridden via -Pversion)
+        // Don't hardcode RULER_PLUGIN_VERSION here
+        version = project.version.toString()
 
         pom {
             name.set(project.extra[EXT_POM_NAME].toString())
