@@ -4,7 +4,8 @@
 _Ruler is a Gradle plugin which helps you analyze the size of your Android apps._
 
 [![CI](https://github.com/kibotu/ruler/actions/workflows/ci.yaml/badge.svg)](https://github.com/kibotu/ruler/actions/workflows/ci.yaml)
-[![Maven Release](https://img.shields.io/maven-central/v/net.kibotu/ruler-gradle-plugin)](https://github.com/kibotu/ruler/releases)
+[![Maven Central Version](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://central.sonatype.com/artifact/net.kibotu/ruler)
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/net.kibotu.ruler)](https://plugins.gradle.org/plugin/net.kibotu.ruler)
 [![License](https://img.shields.io/github/license/kibotu/ruler)](https://github.com/kibotu/ruler/blob/main/LICENSE)
 
 ## Motivation
@@ -24,8 +25,33 @@ Follow the following steps to start using Ruler in your project.
 
 ### Adding the plugin
 
-First you need to add the Ruler Gradle plugin to the buildscript classpath in your top-level `build.gradle` file:
+You can add Ruler to your project using either the **Gradle Plugin Portal** (recommended) or **Maven Central**.
 
+#### Option 1: Gradle Plugin Portal (Recommended)
+
+Add the plugin to your `build.gradle.kts` or `build.gradle`:
+
+**Kotlin DSL (build.gradle.kts):**
+```kotlin
+plugins {
+    id("com.android.application")
+    id("net.kibotu.ruler") version "2.1.9"
+}
+```
+
+**Groovy DSL (build.gradle):**
+```groovy
+plugins {
+    id 'com.android.application'
+    id 'net.kibotu.ruler' version '2.1.9'
+}
+```
+
+#### Option 2: Maven Central
+
+Add the plugin to the buildscript classpath in your top-level `build.gradle.kts` or `build.gradle`:
+
+**Kotlin DSL (build.gradle.kts):**
 ```kotlin
 buildscript {
     repositories {
@@ -33,18 +59,41 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("net.kibotu:ruler:2.0.0-beta-3")
+        classpath("net.kibotu:ruler:2.1.9")
     }
 }
 ```
 
-You also have to apply the plugin in the `build.gradle` of your application module:
+Then apply the plugin in your application module:
 
 ```kotlin
 plugins {
     id("com.android.application")
     id("net.kibotu.ruler")
 }
+```
+
+**Groovy DSL (build.gradle):**
+```groovy
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.kibotu:ruler:2.1.9'
+    }
+}
+```
+
+Then apply the plugin:
+
+```groovy
+plugins {
+    id 'com.android.application'
+}
+
+apply plugin: 'net.kibotu.ruler'
 ```
 
 ### Configuring the plugin

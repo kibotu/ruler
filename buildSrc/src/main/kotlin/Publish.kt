@@ -43,11 +43,11 @@ fun PublishingExtension.configurePublications(project: Project) {
         pom {
             name.set(project.extra[EXT_POM_NAME].toString())
             description.set(project.extra[EXT_POM_DESCRIPTION].toString())
-            url.set("https://github.com/spotify/ruler")
+            url.set("https://github.com/kibotu/ruler")
             scm {
-                url.set("https://github.com/spotify/ruler")
-                connection.set("scm:git@github.com:spotify/ruler.git")
-                developerConnection.set("scm:git@github.com:spotify/ruler.git")
+                url.set("https://github.com/kibotu/ruler")
+                connection.set("scm:git@github.com:kibotu/ruler.git")
+                developerConnection.set("scm:git@github.com:kibotu/ruler.git")
             }
             licenses {
                 license {
@@ -59,6 +59,10 @@ fun PublishingExtension.configurePublications(project: Project) {
                 developer {
                     id.set("spotify")
                     name.set("Spotify AB")
+                }
+                developer {
+                    id.set("kibotu")
+                    name.set("Jan Rabe")
                 }
             }
         }
