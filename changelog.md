@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration cache support via `@CacheableTask`
 - DexGuard and ProGuard mapping file support
 - Published to Gradle Plugin Portal
+- Published to Maven Central
 
 ### Changed
 
@@ -23,12 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Android Gradle Plugin 8.2.0 → 8.13.1
 - Kotlin 1.9.10 → 2.2.21
 - Kotlin React wrappers updated to 2025.11.11
+- Publishing now uses fat JAR (single dependency)
 
 ### Fixed
 
 - Kotlin/JS API migrations (jso, Fragment.create, useEffect)
 - Clikt 5.0 API compatibility
 - DexBackedDexFile API changes
+- Insights page rendering issues
 
 ## [2.0.0-beta-3]
 
