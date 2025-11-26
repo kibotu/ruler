@@ -63,13 +63,22 @@ publishing {
             // Don't apply standard POM configuration for internal modules
             groupId = RULER_PLUGIN_GROUP
             artifactId = "ruler-cli"
-            version = findProperty("version")?.toString() ?: RULER_PLUGIN_VERSION
+            version = project.version.toString()
         }
     }
     // Only publish to mavenLocal, not to Maven Central
     // The CLI is included in the Gradle plugin fat JAR
     repositories {
         mavenLocal()
+    }
+}
+
+// Remove Sonatype repository added by nexus-publish plugin
+afterEvaluate {
+    tasks.withType<PublishToMavenRepository>().configureEach {
+        if (repository.name == "sonatype") {
+            enabled = false
+        }
     }
 }
 

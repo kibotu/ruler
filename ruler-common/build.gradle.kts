@@ -91,13 +91,22 @@ publishing {
             // Don't apply standard POM configuration for internal modules
             groupId = RULER_PLUGIN_GROUP
             artifactId = "ruler-common"
-            version = findProperty("version")?.toString() ?: RULER_PLUGIN_VERSION
+            version = project.version.toString()
         }
     }
     // Only publish to mavenLocal, not to Maven Central
     // This is an internal dependency used by the Gradle plugin
     repositories {
         mavenLocal()
+    }
+}
+
+// Remove Sonatype repository added by nexus-publish plugin
+afterEvaluate {
+    tasks.withType<PublishToMavenRepository>().configureEach {
+        if (repository.name == "sonatype") {
+            enabled = false
+        }
     }
 }
 
