@@ -3,7 +3,7 @@
 
 _Ruler is a Gradle plugin which helps you analyze the size of your Android apps._
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/spotify/ruler/ci.yaml?branch=main)](https://github.com/spotify/ruler/actions)
+[![CI](https://github.com/kibotu/ruler/actions/workflows/ci.yaml/badge.svg)](https://github.com/kibotu/ruler/actions/workflows/ci.yaml)
 [![Maven Release](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://github.com/spotify/ruler/releases)
 [![License](https://img.shields.io/github/license/spotify/ruler)](https://github.com/spotify/ruler/blob/main/LICENSE)
 
