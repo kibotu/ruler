@@ -12,6 +12,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Publishing version: $TAG_NAME"
+
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
@@ -23,7 +30,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build with Gradle
-        run: ./gradlew build -PwithoutSample --no-daemon --stacktrace
+        run: ./gradlew build -Pversion=${{ steps.extract_version.outputs.VERSION }} -PwithoutSample --no-configuration-cache --no-daemon --stacktrace
 
   publish-maven-central:
     needs: build
@@ -37,6 +44,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Publishing version: $TAG_NAME"
+
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
@@ -48,7 +62,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Maven Central
-        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -PwithoutSample --no-daemon --stacktrace
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=${{ steps.extract_version.outputs.VERSION }} -PwithoutSample --no-configuration-cache --no-daemon --stacktrace
 
   publish-gradle-portal:
     needs: build
@@ -59,6 +73,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Publishing version: $TAG_NAME"
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -71,4 +92,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Gradle Plugin Portal
-        run: ./gradlew publishPlugins -PwithoutSample --no-daemon --stacktrace
+        run: ./gradlew publishPlugins -Pversion=${{ steps.extract_version.outputs.VERSION }} -PwithoutSample --no-configuration-cache --no-daemon --stacktrace

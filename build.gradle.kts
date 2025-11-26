@@ -52,7 +52,7 @@ allprojects {
 }
 
 group = RULER_PLUGIN_GROUP
-version = RULER_PLUGIN_VERSION
+version = findProperty("version")?.toString() ?: RULER_PLUGIN_VERSION
 
 extensions.configure(NexusPublishExtension::class) {
     repositories {
