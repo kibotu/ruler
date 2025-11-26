@@ -70,6 +70,8 @@ fun SigningExtension.configureSigning(publications: PublicationContainer) {
     // Only sign artifacts on CI
     isRequired = signingKey != null && signingPassword != null
 
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publications)
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publications)
+    }
 }

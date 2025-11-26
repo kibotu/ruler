@@ -57,8 +57,12 @@ version = RULER_PLUGIN_VERSION
 extensions.configure(NexusPublishExtension::class) {
     repositories {
         sonatype {
-            username.set(System.getenv(ENV_SONATYPE_USERNAME))
-            password.set(System.getenv(ENV_SONATYPE_PASSWORD))
+            val username = System.getenv(ENV_SONATYPE_USERNAME)
+            val password = System.getenv(ENV_SONATYPE_PASSWORD)
+            if (username != null && password != null) {
+                this.username.set(username)
+                this.password.set(password)
+            }
         }
     }
 }
