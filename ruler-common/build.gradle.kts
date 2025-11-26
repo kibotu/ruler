@@ -79,6 +79,11 @@ tasks.withType<Copy>().named("processResources") {
     from(browserDist)
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 publishing {
     publications {
         create<MavenPublication>("jvm") {

@@ -39,8 +39,16 @@ kotlin {
     }
 }
 
+// Create empty javadoc JAR for Maven Central compliance
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+}
+
 publishing {
     configurePublications(project)
+    publications.withType<MavenPublication> {
+        artifact(javadocJar)
+    }
 }
 
 signing {
