@@ -16,7 +16,7 @@
 
 plugins {
     id("com.android.application")
-    id("com.spotify.ruler")
+    id("net.kibotu.ruler")
 }
 
 android {

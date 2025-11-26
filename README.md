@@ -43,7 +43,7 @@ You also have to apply the plugin in the `build.gradle` of your application modu
 ```kotlin
 plugins {
     id("com.android.application")
-    id("com.spotify.ruler")
+    id("net.kibotu.ruler")
 }
 ```
 

@@ -37,7 +37,7 @@ gradlePlugin {
     
     plugins {
         create("rulerPlugin") {
-            id = "com.spotify.ruler"
+            id = "net.kibotu.ruler"
             displayName = "Ruler - Android App Size Analyzer"
             description = "Gradle plugin for analyzing the size of your Android apps"
             tags.set(listOf("android", "apk", "size", "analysis", "bundle"))

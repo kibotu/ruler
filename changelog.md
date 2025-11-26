@@ -7,9 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-11-26
+
 ### Added
 
-- Added supper for Android Gradle Plugin 7.4.x
+- Size verification with configurable thresholds for download and install size
+- Configuration cache support via `@CacheableTask`
+- DexGuard and ProGuard mapping file support
+- Published to Gradle Plugin Portal
+
+### Changed
+
+- Migrated from `kotlin-js` to `kotlin-multiplatform` plugin
+- Gradle 8.4 → 9.2.0
+- Android Gradle Plugin 8.2.0 → 8.13.1
+- Kotlin 1.9.10 → 2.2.21
+- Kotlin React wrappers updated to 2025.11.11
+
+### Fixed
+
+- Kotlin/JS API migrations (jso, Fragment.create, useEffect)
+- Clikt 5.0 API compatibility
+- DexBackedDexFile API changes
+
+## [2.0.0-beta-3]
+
+### Added
+
+- Added support for Android Gradle Plugin 7.4.x
 
 ## [2.0.0-alpha-2] - 2023-03-31
 
