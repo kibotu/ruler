@@ -1,22 +1,22 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("net.kibotu.ruler")
 }
 
 android {
     namespace = "com.spotify.ruler.sample.app"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.spotify.ruler.sample"
-        minSdk = 21
-        targetSdk = 36
+        minSdk = 23
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
     }
     buildTypes {
         release {
+            isShrinkResources = true
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
@@ -27,6 +27,17 @@ android {
     packaging {
         resources.excludes.add("**/*.kotlin_builtins")
         resources.excludes.add("kotlin-tooling-metadata.json")
+    }
+    bundle {
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
+        }
+        language {
+            enableSplit = false
+        }
     }
 }
 

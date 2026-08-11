@@ -1,13 +1,12 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
 }
 
 android {
     namespace = "com.spotify.ruler.sample.lib"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
     }
     lint {
         warningsAsErrors = true
@@ -15,7 +14,7 @@ android {
 }
 
 dependencies {
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation(Dependencies.CONSTRAINTLAYOUT)
 }
 
 kotlin {

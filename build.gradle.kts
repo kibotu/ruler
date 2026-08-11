@@ -1,9 +1,8 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.1.20" apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20" apply false
-    id("com.android.application") version "8.13.1" apply false
-    id("com.android.library") version "8.13.1" apply false
-    id("org.jetbrains.kotlin.android") version "2.1.20" apply false
+    id("org.jetbrains.kotlin.jvm") version Dependencies.Versions.KOTLIN apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version Dependencies.Versions.KOTLIN apply false
+    id("com.android.application") version Dependencies.Versions.ANDROID_GRADLE_PLUGIN apply false
+    id("com.android.library") version Dependencies.Versions.ANDROID_GRADLE_PLUGIN apply false
 }
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension

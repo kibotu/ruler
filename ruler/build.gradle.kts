@@ -7,8 +7,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.gradleup.shadow:shadow-gradle-plugin:9.2.2")
-        classpath("com.gradle.publish:plugin-publish-plugin:1.3.0")
+        classpath(Dependencies.SHADOW_GRADLE_PLUGIN)
+        classpath(Dependencies.PLUGIN_PUBLISH_GRADLE_PLUGIN)
         classpath(Dependencies.ANDROID_GRADLE_PLUGIN)
     }
 }

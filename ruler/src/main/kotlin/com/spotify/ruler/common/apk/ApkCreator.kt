@@ -87,7 +87,7 @@ open class ApkCreator(private val androidSDKDir: File? = null) {
         val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
         val progressIndicator = object : ProgressIndicatorAdapter() { /* No progress reporting */ }
         val buildToolInfo = sdkHandler.getLatestBuildTool(progressIndicator, true)
-        return buildToolInfo.location.resolve(SdkConstants.FN_AAPT2)
+        return buildToolInfo!!.location.resolve(SdkConstants.FN_AAPT2)
     }
 
     /**

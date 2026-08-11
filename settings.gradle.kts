@@ -25,8 +25,5 @@ dependencyResolutionManagement {
 rootProject.name = "ruler"
 
 include(":ruler")
-
-if (startParameter.projectProperties.containsKey("withSample")) {
-    include(":sample:app")
-    include(":sample:lib")
-}
+include(":sample:app")
+include(":sample:lib")

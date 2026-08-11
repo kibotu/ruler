@@ -17,6 +17,8 @@ object Dependencies {
     const val KOTLINX_SERIALIZATION_JSON = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.KOTLINX_SERIALIZATION}"
     const val SNAKE_YAML = "org.yaml:snakeyaml:${Versions.SNAKE_YAML}"
 
+    const val CONSTRAINTLAYOUT = "androidx.constraintlayout:constraintlayout:${Versions.CONSTRAINTLAYOUT}"
+
     const val JUNIT_ENGINE = "org.junit.jupiter:junit-jupiter-engine:${Versions.JUNIT}"
     const val JUNIT_API = "org.junit.jupiter:junit-jupiter-api:${Versions.JUNIT}"
     const val JUNIT_PARAMS = "org.junit.jupiter:junit-jupiter-params:${Versions.JUNIT}"
@@ -24,7 +26,7 @@ object Dependencies {
     const val GOOGLE_TRUTH = "com.google.truth:truth:${Versions.GOOGLE_TRUTH}"
 
     object Versions {
-        const val ANDROID_GRADLE_PLUGIN = "8.13.1"
+        const val ANDROID_GRADLE_PLUGIN = "9.3.1"
         const val KOTLIN = "2.1.20"
         const val SHADOW_GRADLE_PLUGIN = "9.2.2"
         const val PLUGIN_PUBLISH_GRADLE_PLUGIN = "1.3.0"
@@ -32,10 +34,11 @@ object Dependencies {
         const val BUNDLETOOL = "1.18.2"
         const val PROTOBUF = "4.33.1"
         const val DEXLIB = "3.0.9"
-        const val ANDROID_TOOLS = "31.13.1"
+        const val ANDROID_TOOLS = "32.3.1"
 
         const val KOTLINX_SERIALIZATION = "1.9.0"
         const val SNAKE_YAML = "2.5"
+        const val CONSTRAINTLAYOUT = "2.2.1"
 
         const val JUNIT = "5.12.2"
         const val JUNIT_PLATFORM = "1.12.2"
