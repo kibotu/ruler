@@ -42,14 +42,13 @@ class DependencySanitizer(private val classNameSanitizer: ClassNameSanitizer) {
         }
     }
 
-    private val versionRegex = Regex("^\\d+\\.\\d+\\.\\d.*")
-
     /**
      * Determines the correct component type for a given [entry].
-     * Assuming that all external dependencies do have a version number in the format XX.XX.XX
-     * */
+     * After stripping the "project " prefix, Gradle subprojects look like ":foo" (internal),
+     * while Maven dependencies look like "org.bar:bar:1.0.0" (external).
+     */
     private fun getComponentType(entry: DependencyEntry): ComponentType = when {
-        versionRegex.containsMatchIn(entry.component.substringAfterLast(":","")) -> ComponentType.EXTERNAL
-        else -> ComponentType.INTERNAL
+        entry.component.startsWith(":") -> ComponentType.INTERNAL
+        else -> ComponentType.EXTERNAL
     }
 }
