@@ -2,7 +2,7 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id == "net.kibotu.ruler") {
-                useModule("net.kibotu:ruler-gradle-plugin:3.0.0")
+                useModule("net.kibotu:ruler:3.0.0")
             }
         }
     }
@@ -24,11 +24,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "ruler"
 
-include(":ruler-models")
-include(":ruler-common")
-include(":ruler-gradle-plugin")
+include(":ruler")
 
-//if (startParameter.projectProperties.containsKey("withSample")) {
+if (startParameter.projectProperties.containsKey("withSample")) {
     include(":sample:app")
     include(":sample:lib")
-//}
+}

@@ -15,6 +15,7 @@ buildscript {
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("java-gradle-plugin")
     id("maven-publish")
     id("signing")
@@ -48,9 +49,6 @@ dependencies {
     compileOnly(Dependencies.DEXLIB)
 
     // These will be included in the fat JAR
-    implementation(project(":ruler-models"))
-    implementation(project(":ruler-common"))
-
     implementation(Dependencies.APK_ANALYZER) {
         exclude(group = "com.android.tools.lint")
     }
