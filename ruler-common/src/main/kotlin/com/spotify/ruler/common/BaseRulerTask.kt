@@ -1,0 +1,127 @@
+package com.spotify.ruler.common
+
+import com.spotify.ruler.common.apk.ApkParser
+import com.spotify.ruler.common.apk.ApkSanitizer
+import com.spotify.ruler.common.attribution.Attributor
+import com.spotify.ruler.common.dependency.DependencyComponent
+import com.spotify.ruler.common.dependency.StaticComponent
+import com.spotify.ruler.common.models.RulerConfig
+import com.spotify.ruler.common.ownership.OwnershipFileParser
+import com.spotify.ruler.common.ownership.OwnershipInfo
+import com.spotify.ruler.common.report.HtmlReporter
+import com.spotify.ruler.common.report.JsonReporter
+import com.spotify.ruler.common.report.ReportBuilder
+import com.spotify.ruler.common.report.ReportInsights
+import com.spotify.ruler.common.sanitizer.ClassNameSanitizer
+import com.spotify.ruler.common.sanitizer.ResourceNameSanitizer
+import com.spotify.ruler.common.util.toEscapeCharRegex
+import com.spotify.ruler.common.veritication.Verificator
+import com.spotify.ruler.models.AppFile
+import com.spotify.ruler.models.ComponentType
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import java.io.File
+
+const val FEATURE_NAME = "base"
+
+@Suppress("TooManyFunctions")
+interface BaseRulerTask {
+
+    fun print(content: String)
+    fun provideMappingFile(): File?
+    fun provideResourceMappingFile(): File?
+    fun rulerConfig(): RulerConfig
+    fun provideUnstrippedLibraryFiles(): List<File>
+    fun provideBloatyPath(): String?
+
+    private val rulerConfig: RulerConfig
+        get() = rulerConfig()
+
+    fun provideDependencies(): Map<String, List<DependencyComponent>>
+
+    fun provideStaticDependencies(): Map<Regex, List<DependencyComponent>> {
+        val staticComponent = rulerConfig.staticDependenciesFile ?: return emptyMap()
+        val jsonString = staticComponent.readText()
+        val itemList = Json.decodeFromString<List<StaticComponent>>(jsonString)
+        return itemList.associate {
+            it.path.toEscapeCharRegex() to listOf(DependencyComponent(it.id, ComponentType.INTERNAL))
+        }
+    }
+
+    fun run() {
+        val files = getFilesFromBundle() // Get all relevant files from the provided bundle
+        val dependencies = provideDependencies() + mapOf(
+            "kotlin" to listOf(DependencyComponent("kotlin", ComponentType.INTERNAL))
+        ) // Get all entries from all dependencies
+        // Split main APK bundle entries and dynamic feature module entries
+        val mainFiles = files.getValue(FEATURE_NAME)
+        val featureFiles = files.filter { (feature, _) -> feature != FEATURE_NAME }
+
+        // The default component in Gradle is a "fake" application component.
+        // In Bazel we already have an application component based on the target name of the app,
+        // which we can reuse
+        val defaultComponent = dependencies.values.flatten()
+            .firstOrNull { it.name == rulerConfig.projectPath }
+            ?: DependencyComponent(rulerConfig.projectPath, ComponentType.INTERNAL)
+
+        // Attribute main APK bundle entries and group into components
+        val attributor =
+            Attributor(defaultComponent, provideStaticDependencies())
+        val components = attributor.attribute(mainFiles, dependencies)
+
+        val ownershipInfo = getOwnershipInfo() // Get ownership information for all components
+        generateReports(components, featureFiles, ownershipInfo)
+
+        val verificator = rulerConfig.verificationConfig.let(::Verificator)
+        verificator.verify(components.values.flatten())
+    }
+
+    private fun getFilesFromBundle(): Map<String, List<AppFile>> {
+        val apkParser = ApkParser(provideUnstrippedLibraryFiles(), provideBloatyPath())
+        val classNameSanitizer = ClassNameSanitizer(provideMappingFile())
+        val resourceNameSanitizer = ResourceNameSanitizer(provideResourceMappingFile())
+        val apkSanitizer = ApkSanitizer(classNameSanitizer, resourceNameSanitizer)
+        val config = rulerConfig()
+        return config.apkFilesMap.mapValues { (name, apks) ->
+            val entries = apks.flatMap(apkParser::parse).toMutableList()
+            if (name == FEATURE_NAME && config.additionalEntries != null) {
+                entries += config.additionalEntries
+            }
+            apkSanitizer.sanitize(entries, config.ignoredFiles)
+        }
+    }
+
+    private fun getOwnershipInfo(): OwnershipInfo? {
+        val ownershipFile = rulerConfig.ownershipFile ?: return null
+        val ownershipFileParser = OwnershipFileParser()
+        val ownershipEntries = ownershipFileParser.parse(ownershipFile)
+
+        return OwnershipInfo(ownershipEntries, rulerConfig.defaultOwner)
+    }
+
+    private fun generateReports(
+        components: Map<DependencyComponent, List<AppFile>>,
+        features: Map<String, List<AppFile>>,
+        ownershipInfo: OwnershipInfo?,
+    ) {
+        val reportDir = rulerConfig.reportDir
+
+        val reportBuilder = ReportBuilder()
+        val report = reportBuilder.build(
+            rulerConfig.appInfo,
+            components,
+            features,
+            ownershipInfo,
+            rulerConfig.omitFileBreakdown
+        )
+
+        val jsonReporter = JsonReporter()
+        val jsonReport = jsonReporter.write(report, reportDir)
+        print("Wrote JSON report to ${jsonReport.toPath().toUri()}")
+
+        val insights = ReportInsights.from(report)
+        val htmlReporter = HtmlReporter()
+        val htmlReport = htmlReporter.write(report, insights, reportDir)
+        print("Wrote HTML report to ${htmlReport.toPath().toUri()}")
+    }
+}
