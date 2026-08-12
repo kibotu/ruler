@@ -3,93 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ruler — App Size Report</title>
+<title>App Size Report</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#f5f5f5;--surface:#fff;--surface2:#f8f9fa;--border:#e0e0e0;--text:#333;--text2:#666;--text3:#999;--primary:#063773;--primary-light:#0a5aa8;--accent:#9b59b6;--green:#2ecc71;--red:#e74c3c;--orange:#e67e22;--blue:#3498db}
-@media(prefers-color-scheme:dark){:root{--bg:#1a1a2e;--surface:#16213e;--surface2:#1a1a2e;--border:#2a2a4a;--text:#e0e0e0;--text2:#b0b0b0;--text3:#808080;--primary:#4a9eff;--primary-light:#6ab4ff;--accent:#bb86fc;--green:#4caf50;--red:#ef5350;--orange:#ff9800;--blue:#42a5f5}}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-.container{max-width:1400px;margin:0 auto;background:var(--surface);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);overflow:hidden}
-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;padding:30px}
-header h1{font-size:28px;margin-bottom:4px}
-header p{opacity:.85;font-size:14px}
-.header-meta{display:flex;gap:20px;margin-top:12px;font-size:13px;opacity:.8}
-.header-meta span{display:flex;align-items:center;gap:6px}
-.tabs{display:flex;background:var(--surface2);border-bottom:2px solid var(--border)}
-.tab{padding:14px 28px;cursor:pointer;font-weight:600;color:var(--text2);border-bottom:3px solid transparent;transition:all .2s;font-size:14px}
-.tab:hover{color:var(--primary);background:rgba(6,55,115,.04)}
-.tab.active{color:var(--primary);border-bottom-color:var(--primary);background:var(--surface)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Oxygen','Ubuntu','Cantarell','Helvetica Neue',sans-serif;background:#f5f5f5;padding:20px;line-height:1.6;color:#333}
+.container{max-width:1400px;margin:0 auto;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);overflow:hidden}
+header{background:linear-gradient(135deg,#063773 0%,#0a5aa8 100%);color:#fff;padding:30px}
+header h1{font-size:32px;margin-bottom:10px}
+header p{opacity:.9;font-size:14px}
+.tabs{display:flex;background:#f8f9fa;border-bottom:2px solid #e0e0e0}
+.tab{padding:15px 30px;cursor:pointer;font-weight:600;color:#666;border-bottom:3px solid transparent;transition:all .2s}
+.tab:hover{color:#063773;background:rgba(6,55,115,.05)}
+.tab.active{color:#063773;border-bottom-color:#063773;background:#fff}
 .tab-content{display:none}.tab-content.active{display:block}
-.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;padding:24px;background:var(--surface2);border-bottom:1px solid var(--border)}
-.summary-card{background:var(--surface);padding:18px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.summary-card h3{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.summary-card .value{font-size:26px;font-weight:700;color:var(--text)}
-.summary-card .label{font-size:11px;color:var(--text3);margin-top:4px}
-.summary-card .internal{font-size:12px;color:var(--accent);margin-top:6px;font-weight:600}
-.controls{padding:16px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.controls input,.controls select{padding:9px 14px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:var(--surface);color:var(--text)}
-.controls input{flex:1;min-width:200px}
-.filter-chips{display:flex;gap:8px;flex-wrap:wrap}
-.filter-chip{padding:6px 14px;border:2px solid var(--border);border-radius:16px;font-size:12px;font-weight:600;color:var(--text2);background:var(--surface);cursor:pointer;transition:all .2s;user-select:none}
-.filter-chip:hover{border-color:var(--primary);color:var(--primary)}
-.filter-chip.active{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-color:var(--primary)}
-.modules-grid{padding:24px}
-.module-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden;transition:all .2s}
-.module-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06)}
-.module-header{padding:14px 20px;background:var(--surface2);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.module-header:hover{opacity:.95}
-.module-info{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.module-name{font-size:15px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.owner-badge{display:inline-flex;padding:3px 8px;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.type-badge{display:inline-flex;padding:3px 8px;border-radius:8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.type-internal{background:linear-gradient(135deg,var(--accent),#8e44ad);color:#fff}
-.type-external{background:var(--border);color:var(--text2)}
-.module-size{font-size:15px;color:var(--primary);font-weight:700;white-space:nowrap}
-.expand-icon{color:var(--primary);font-size:11px;transition:transform .2s}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:30px;background:#f8f9fa;border-bottom:1px solid #e0e0e0}
+.summary-card{background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.summary-card h3{font-size:14px;color:#666;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.summary-card .value{font-size:28px;font-weight:bold;color:#333}
+.summary-card .label{font-size:11px;color:#999;margin-top:5px}
+.summary-card .internal-info{font-size:12px;color:#9b59b6;margin-top:8px;font-weight:600}
+.controls{padding:20px 30px;background:#fff;border-bottom:1px solid #e0e0e0;display:flex;gap:15px;flex-wrap:wrap;align-items:center}
+.controls input{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;flex:1;min-width:200px}
+.controls select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff;cursor:pointer}
+.filter-chips{display:flex;gap:10px;flex-wrap:wrap}
+.filter-chip{padding:8px 16px;border:2px solid #e0e0e0;border-radius:20px;font-size:13px;font-weight:600;color:#666;background:#fff;cursor:pointer;transition:all .2s;user-select:none}
+.filter-chip:hover{border-color:#063773;color:#063773;background:#f0f6ff}
+.filter-chip.active{background:linear-gradient(135deg,#063773 0%,#0a5aa8 100%);color:#fff;border-color:#063773}
+.filter-chip.active:hover{background:linear-gradient(135deg,#0a5aa8 0%,#063773 100%)}
+.modules-grid{padding:30px}
+.module-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px;overflow:hidden;transition:all .2s ease}
+.module-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:#063773}
+.module-header{padding:18px 24px;background:#fafafa;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;transition:background .15s ease}
+.module-header:hover{background:#f5f6fa}
+.module-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.module-name-row{font-size:16px;font-weight:600;color:#2d3748;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owner-badge{display:inline-flex;align-items:center;padding:4px 10px;background:linear-gradient(135deg,#063773 0%,#0a5aa8 100%);color:#fff;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 2px 4px rgba(6,55,115,.2);flex-shrink:0}
+.internal-badge{display:inline-flex;align-items:center;padding:4px 10px;background:linear-gradient(135deg,#9b59b6 0%,#8e44ad 100%);color:#fff;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 2px 4px rgba(155,89,182,.2);flex-shrink:0}
+.module-stats{display:flex;align-items:center;gap:20px;flex-shrink:0}
+.module-stat{display:flex;flex-direction:column;align-items:flex-end}
+.module-stat-label{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.5px}
+.module-size{font-size:16px;color:#063773;font-weight:700;white-space:nowrap}
+.expand-icon{color:#063773;font-size:12px;transition:transform .2s}
 .expand-icon.open{transform:rotate(180deg)}
-.module-details{padding:16px 20px;display:none;background:var(--surface2);border-top:1px solid var(--border)}
+.module-details{padding:20px 24px;display:none;background:#fafafa}
 .module-details.open{display:block}
-.files-table{width:100%;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
-.files-header{display:grid;grid-template-columns:1fr auto;gap:12px;padding:10px 14px;background:var(--surface2);font-weight:600;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
-.file-row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .15s;align-items:center}
+.size-bars{margin-bottom:30px}
+.size-bar{margin-bottom:15px}
+.size-bar-label{display:flex;justify-content:space-between;margin-bottom:5px;font-size:14px}
+.size-bar-label .name{color:#333;font-weight:500}
+.size-bar-label .value{color:#666}
+.size-bar-fill{height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden}
+.size-bar-progress{height:100%;background:linear-gradient(90deg,#063773 0%,#0a5aa8 100%);transition:width .3s}
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:30px}
+.resource-card{background:#fff;padding:15px;border-radius:6px;border:1px solid #e0e0e0}
+.resource-type{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.resource-size{font-size:18px;font-weight:bold;color:#333}
+.resource-count{font-size:12px;color:#999}
+.files-section{margin-top:30px}
+.files-section h4{font-size:16px;margin-bottom:15px;color:#333;display:flex;align-items:center;gap:10px}
+.files-section h4 .count-badge{background:#063773;color:#fff;padding:2px 8px;border-radius:10px;font-size:12px}
+.files-table{width:100%;background:#fff;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0}
+.files-table-header{display:grid;grid-template-columns:1fr auto;gap:15px;padding:12px 15px;background:#f8f9fa;font-weight:600;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #e0e0e0}
+.file-row{display:grid;grid-template-columns:1fr auto;gap:15px;padding:12px 15px;border-bottom:1px solid #f0f0f0;transition:background .15s;align-items:center}
 .file-row:last-child{border-bottom:none}
-.file-row:hover{background:var(--surface2)}
-.file-name{color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.file-size{color:var(--primary);font-weight:600;font-size:12px;white-space:nowrap}
-.no-results{text-align:center;padding:48px 16px;color:var(--text3);font-size:15px}
-.chart-section{padding:24px;background:var(--surface);border-bottom:1px solid var(--border)}
-.chart-section h2{font-size:18px;color:var(--text);margin-bottom:16px}
-.chart-section h3{font-size:15px;color:var(--text2);margin-bottom:12px}
-.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
-.chart-container{background:var(--surface2);border-radius:8px;padding:16px;min-height:200px}
-svg text{font-family:inherit}
-.tooltip{position:absolute;background:rgba(0,0,0,.9);color:#fff;padding:10px 14px;border-radius:6px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.tooltip.visible{opacity:1}
-.ownership-bar{margin-bottom:12px}
-.ownership-bar-label{display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px}
-.ownership-bar-fill{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
-.ownership-bar-progress{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));transition:width .3s}
-.owner-select{width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:var(--surface);color:var(--text);margin:16px 0}
-.dynamic-list{padding:24px}
-.dynamic-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
-.user-impact{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.impact-card{background:var(--surface);padding:18px;border-radius:8px;border-left:4px solid var(--primary)}
-.impact-card .time{font-size:28px;font-weight:700;margin:8px 0 4px}
-.impact-card .label{font-size:12px;color:var(--text3)}
-.storage-bar{background:var(--border);height:16px;border-radius:8px;overflow:hidden;margin:8px 0}
-.storage-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));transition:width .8s}
+.file-row:hover{background:#f8f9fa}
+.file-name{color:#2d3748;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.file-size{color:#063773;font-weight:600;font-size:13px;text-align:right;white-space:nowrap}
+.top-files{margin-top:20px}
+.top-files h4{font-size:16px;margin-bottom:15px;color:#333}
+.file-item{display:flex;justify-content:space-between;padding:10px;background:#fff;margin-bottom:5px;border-radius:4px;font-size:13px;border-left:4px solid #e0e0e0;transition:all .2s}
+.file-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.file-path{color:#666;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-size-value{color:#333;font-weight:500;margin-left:15px;white-space:nowrap}
+.file-type-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;margin-right:8px}
+.file-type-image{border-left-color:#3498db}
+.file-type-image .file-type-badge{background:#e3f2fd;color:#1976d2}
+.file-type-lottie{border-left-color:#9b59b6}
+.file-type-lottie .file-type-badge{background:#f3e5f5;color:#7b1fa2}
+.file-type-pdf{border-left-color:#e74c3c}
+.file-type-pdf .file-type-badge{background:#ffebee;color:#c62828}
+.file-type-video{border-left-color:#e67e22}
+.file-type-video .file-type-badge{background:#fff3e0;color:#e65100}
+.file-type-audio{border-left-color:#1abc9c}
+.file-type-audio .file-type-badge{background:#e0f2f1;color:#00695c}
+.file-type-font{border-left-color:#34495e}
+.file-type-font .file-type-badge{background:#eceff1;color:#37474f}
+.file-type-native{border-left-color:#2ecc71}
+.file-type-native .file-type-badge{background:#e8f5e9;color:#2e7d32}
+.file-type-class{border-left-color:#063773}
+.file-type-class .file-type-badge{background:#e3f2fd;color:#063773}
+.file-type-layout{border-left-color:#f39c12}
+.file-type-layout .file-type-badge{background:#fff8e1;color:#f57f17}
+.file-type-other{border-left-color:#95a5a6}
+.file-type-other .file-type-badge{background:#f5f5f5;color:#616161}
+.no-results{text-align:center;padding:60px 20px;color:#999;font-size:16px}
+.no-data{padding:15px;color:#999;font-style:italic;text-align:center}
+.section-block{padding:30px;background:#fff;border-bottom:1px solid #e0e0e0}
+.section-block.alt{background:#f8f9fa}
+.section-title{font-size:20px;color:#333;margin-bottom:20px}
+.section-subtitle{color:#666;font-size:14px;margin-bottom:20px}
+.chart-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+.chart-grid-3>div{min-width:0;overflow:hidden}
+.chart-grid-3 h3{font-size:16px;color:#666;margin-bottom:15px}
+.hbar-row{margin-bottom:10px}
+.hbar-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;color:#333}
+.hbar-label span:last-child{color:#666;font-weight:600}
+.hbar-track{height:22px;background:#f0f0f0;border-radius:3px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.donut-wrap{display:flex;justify-content:center;padding:10px 0}
+.legend-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;margin-top:30px}
+.legend-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8f9fa;border-radius:6px;font-size:13px}
+.legend-swatch{width:16px;height:16px;border-radius:3px;flex-shrink:0}
+.ownership-chart{padding:10px 0}
+.owner-bar-group{margin-bottom:24px}
+.owner-bar-label{font-size:13px;font-weight:600;color:#333;margin-bottom:8px}
+.owner-bar-pair{display:flex;gap:6px;align-items:flex-end;height:120px}
+.owner-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.owner-bar{flex:1;width:100%;max-width:40px;border-radius:3px 3px 0 0;transition:height .8s ease}
+.owner-bar.download{background:#063773}
+.owner-bar.install{background:#2ecc71}
+.owner-bar-caption{font-size:10px;color:#666;text-align:center}
+.owner-legend{display:flex;justify-content:center;gap:30px;margin-top:16px;font-size:12px}
+.owner-legend span{display:flex;align-items:center;gap:6px}
+.owner-legend i{display:inline-block;width:20px;height:12px;border-radius:2px}
+.owner-select{width:100%;padding:12px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff;cursor:pointer}
+.owner-detail-summary{padding:30px;background:#fff;border-top:1px solid #e0e0e0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:30px}
+.owner-stat{text-align:center}
+.owner-stat .num{font-size:36px;font-weight:bold;color:#333}
+.owner-stat .num.blue{color:#063773}
+.owner-stat .num.green{color:#2ecc71}
+.owner-stat .lbl{font-size:14px;color:#666;margin-top:5px}
+.impact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-bottom:30px}
+.impact-card{background:#fff;padding:20px;border-radius:8px;border-left:4px solid #063773}
+.impact-card .time{font-size:32px;font-weight:bold;margin-bottom:5px}
+.impact-card .lbl{font-size:12px;color:#999}
+.storage-block{background:#fff;padding:25px;border-radius:8px}
+.storage-row{margin-bottom:20px}
+.storage-row:last-child{margin-bottom:0}
+.storage-header{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px}
+.storage-track{background:#e0e0e0;height:20px;border-radius:10px;overflow:hidden}
+.storage-fill{background:linear-gradient(90deg,#063773 0%,#0a5aa8 100%);height:100%;transition:width .8s ease}
+.storage-sub{font-size:11px;color:#999;margin-top:5px}
+.treemap-box{background:#fff;border-radius:8px;overflow:hidden;min-height:400px}
+.dynamic-list{padding:30px}
+.dynamic-item{background:#fff;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px;padding:18px 24px}
+@media(max-width:900px){.chart-grid-3{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <h1 id="appTitle">Ruler — App Size Report</h1>
-    <p id="appSubtitle"></p>
-    <div class="header-meta">
-      <span id="headerDownload"></span>
-      <span id="headerInstall"></span>
-      <span id="headerComponents"></span>
-    </div>
+    <h1 id="headerTitle">📱 App Size Report</h1>
+    <p id="headerSubtitle">Detailed analysis of app module sizes and resources</p>
   </header>
 
   <div class="tabs">
@@ -99,88 +164,93 @@ svg text{font-family:inherit}
     <div class="tab" data-tab="dynamic" id="tabDynamic" style="display:none">Dynamic Features</div>
   </div>
 
-  <!-- Breakdown -->
   <div id="breakdown" class="tab-content active">
     <div class="summary" id="summary"></div>
     <div class="controls">
-      <input type="text" id="searchInput" placeholder="Search components...">
-      <div class="filter-chips">
+      <input type="text" id="searchInput" placeholder="Search modules...">
+      <div class="filter-chips" id="breakdownFilters">
         <div class="filter-chip active" data-filter="internal">Internal</div>
         <div class="filter-chip active" data-filter="external">External</div>
         <div class="filter-chip active" data-filter="owned">Owned</div>
         <div class="filter-chip active" data-filter="unowned">Unowned</div>
       </div>
       <select id="sortSelect">
-        <option value="downloadSize">Sort: Download Size</option>
-        <option value="installSize">Sort: Install Size</option>
-        <option value="name">Sort: Name</option>
+        <option value="downloadSize">Sort by: Download Size</option>
+        <option value="installSize">Sort by: Install Size</option>
+        <option value="name">Sort by: Name</option>
       </select>
     </div>
     <div class="modules-grid" id="modulesGrid"></div>
   </div>
 
-  <!-- Insights -->
   <div id="insights" class="tab-content">
-    <div class="chart-section" id="componentTypeSection">
-      <h2>Component Type Distribution</h2>
-      <div class="chart-grid"><div class="chart-container" id="componentTypeChart"></div></div>
+    <div class="controls">
+      <div class="filter-chips" id="insightsFilters">
+        <div class="filter-chip active" data-filter="internal">Internal</div>
+        <div class="filter-chip active" data-filter="external">External</div>
+      </div>
     </div>
-    <div class="chart-section" id="fileTypeSection">
-      <h2>File Type Distribution</h2>
-      <div class="chart-grid"><div class="chart-container" id="fileTypeChart"></div></div>
+    <div class="section-block">
+      <h2 class="section-title">🔥 Top Offenders</h2>
+      <div class="chart-grid-3">
+        <div><h3>Largest Modules</h3><div id="topModulesChart"></div></div>
+        <div><h3>Largest Source Files</h3><div id="topFilesChart"></div></div>
+        <div><h3>Largest Asset Files</h3><div id="topAssetsChart"></div></div>
+      </div>
     </div>
-    <div class="chart-section" id="resourceTypeSection">
-      <h2>Resource Type Distribution</h2>
-      <div class="chart-grid"><div class="chart-container" id="resourceTypeChart"></div></div>
+    <div class="section-block alt">
+      <h2 class="section-title">🗺️ App Size Treemap</h2>
+      <p class="section-subtitle">Visualization of components sized proportionally by install size.</p>
+      <div class="treemap-box" id="treemapChart"></div>
     </div>
-    <div class="chart-section" id="topComponentsSection">
-      <h2>Top 20 Components</h2>
-      <div class="chart-grid"><div class="chart-container" id="topComponentsChart"></div></div>
+    <div class="section-block">
+      <h2 class="section-title">📦 Resource Type Breakdown</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:30px;justify-items:center">
+        <div style="width:100%;max-width:400px"><h3 style="font-size:16px;color:#666;margin-bottom:15px;text-align:center">By Count</h3><div id="resourceCountChart"></div></div>
+        <div style="width:100%;max-width:400px"><h3 style="font-size:16px;color:#666;margin-bottom:15px;text-align:center">By Size (Install Size)</h3><div id="resourceSizeChart"></div></div>
+      </div>
+      <div class="legend-row" id="resourceLegend"></div>
     </div>
-    <div class="chart-section" id="topFilesSection">
-      <h2>Top 20 Files</h2>
-      <div class="chart-grid"><div class="chart-container" id="topFilesChart"></div></div>
-    </div>
-    <div class="chart-section" id="treemapSection">
-      <h2>Treemap</h2>
-      <div class="chart-container" id="treemapChart"></div>
-    </div>
-    <div class="chart-section" id="userImpactSection">
-      <h2>User Impact</h2>
-      <div id="userImpactContent"></div>
+    <div class="section-block alt">
+      <h2 class="section-title">👤 User Impact</h2>
+      <div id="userImpactSection"></div>
     </div>
   </div>
 
-  <!-- Ownership -->
   <div id="ownership" class="tab-content">
-    <div class="chart-section">
-      <h2>Ownership Overview</h2>
-      <div class="controls">
-        <div class="filter-chips">
-          <div class="filter-chip active" data-filter="internal">Internal</div>
-          <div class="filter-chip active" data-filter="external">External</div>
+    <div class="section-block">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px;margin-bottom:30px">
+        <div>
+          <h2 class="section-title" style="margin-bottom:10px">Ownership overview</h2>
+          <p style="color:#666;font-size:14px">Shows how much of the overall app size is owned by each owner.</p>
         </div>
-        <select id="ownershipSortSelect">
-          <option value="downloadSize">Sort: Download Size</option>
-          <option value="installSize">Sort: Install Size</option>
-        </select>
+        <div style="display:flex;gap:15px;align-items:center">
+          <div class="filter-chips" id="ownershipFilters">
+            <div class="filter-chip active" data-filter="internal">Internal</div>
+            <div class="filter-chip active" data-filter="external">External</div>
+          </div>
+          <select id="ownershipSortSelect">
+            <option value="downloadSize">Sort by: Download Size</option>
+            <option value="installSize">Sort by: Install Size</option>
+          </select>
+        </div>
       </div>
-      <div id="ownershipChart"></div>
+      <div class="ownership-chart" id="ownershipChart"></div>
+    </div>
+    <div class="section-block alt">
+      <h2 class="section-title">Components and files grouped by owner</h2>
       <select class="owner-select" id="ownerSelect"><option value="">Select an owner...</option></select>
     </div>
-    <div id="ownerDetail" style="display:none;padding:24px;background:var(--surface2)">
-      <div class="summary" id="ownerSummary"></div>
-      <div class="modules-grid" id="ownerModules"></div>
+    <div id="ownerDetailSection" style="display:none">
+      <div class="owner-detail-summary" id="ownerDetailSummary"></div>
+      <div style="padding:0 30px 30px;background:#fff"><div class="modules-grid" id="ownerModulesGrid" style="padding:0"></div></div>
     </div>
   </div>
 
-  <!-- Dynamic Features -->
   <div id="dynamic" class="tab-content">
     <div class="dynamic-list" id="dynamicList"></div>
   </div>
 </div>
-
-<div class="tooltip" id="tooltip"></div>
 
 <script type="application/json" id="ruler-report">__RULER_REPORT__</script>
 <script type="application/json" id="ruler-insights">__RULER_INSIGHTS__</script>
@@ -191,321 +261,468 @@ svg text{font-family:inherit}
 
 var report = JSON.parse(document.getElementById('ruler-report').textContent);
 var insights = JSON.parse(document.getElementById('ruler-insights').textContent);
-var sizeType = 'downloadSize';
+var currentSort = 'downloadSize';
 var breakdownFilters = {internal:true,external:true,owned:true,unowned:true};
+var insightsFilters = {internal:true,external:true};
 var ownershipFilters = {internal:true,external:true};
-var currentOwner = '';
+var ownershipData = [];
+var insightsRendered = false;
 
-// ── Formatting ──
-function formatBytes(b){
-  if(b===0)return '0 B';
-  var k=1024,sizes=['B','KB','MB','GB','TB'];
-  var i=Math.floor(Math.log(b)/Math.log(k));
-  return (b/Math.pow(k,i)).toFixed(i>0?1:0)+' '+sizes[i];
+var COLORS = ['#063773','#0a5aa8','#9b59b6','#2ecc71','#e74c3c','#f39c12','#3498db','#1abc9c','#e67e22','#95a5a6','#34495e','#8e44ad'];
+
+function formatBytes(bytes){
+  if(bytes===0)return '0 B';
+  var k=1024,sizes=['B','KB','MB','GB'];
+  var i=Math.floor(Math.log(bytes)/Math.log(k));
+  return parseFloat((bytes/Math.pow(k,i)).toFixed(2))+' '+sizes[i];
 }
-function formatPercent(v,total){return total>0?(v/total*100).toFixed(1)+'%':'0%';}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function fileSize(file,key){return file[key]||0;}
 
-// ── Tabs ──
-document.querySelectorAll('.tab').forEach(function(t){
-  t.addEventListener('click',function(){
-    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
-    document.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active')});
-    t.classList.add('active');
-    document.getElementById(t.dataset.tab).classList.add('active');
-    if(t.dataset.tab==='insights')renderInsights();
-    if(t.dataset.tab==='ownership')renderOwnership();
+function isInternal(c){return c.type==='INTERNAL';}
+
+function matchesBreakdownFilters(c){
+  var int=isInternal(c);
+  if(!breakdownFilters.internal&&int)return false;
+  if(!breakdownFilters.external&&!int)return false;
+  var owned=!!c.owner;
+  if(!breakdownFilters.owned&&owned)return false;
+  if(!breakdownFilters.unowned&&!owned)return false;
+  return true;
+}
+function matchesInsightsFilters(c){
+  return (isInternal(c)&&insightsFilters.internal)||(!isInternal(c)&&insightsFilters.external);
+}
+function matchesOwnershipFilters(c){
+  return (isInternal(c)&&ownershipFilters.internal)||(!isInternal(c)&&ownershipFilters.external);
+}
+
+function isBinaryFile(f){return f.type==='CLASS'||f.type==='NATIVE_LIB'||f.type==='NATIVE_FILE';}
+
+function isImageFile(f){
+  if(f.type==='RESOURCE'&&f.resourceType==='DRAWABLE')return true;
+  if(f.type==='ASSET'){
+    var ext=f.name.split('.').pop().toLowerCase();
+    return ['png','jpg','jpeg','gif','webp','svg','bmp','ico','heic','heif'].indexOf(ext)!==-1;
+  }
+  return false;
+}
+
+function isAssetFile(f){
+  if(f.type==='ASSET')return true;
+  if(f.type==='RESOURCE'&&f.resourceType==='DRAWABLE')return true;
+  return false;
+}
+
+function getResourceKey(f){
+  if(f.type==='RESOURCE'&&f.resourceType)return f.resourceType;
+  if(f.type==='ASSET')return 'Assets';
+  if(f.type==='NATIVE_LIB')return 'Native Libraries';
+  if(f.type==='NATIVE_FILE')return 'Native Files';
+  return null;
+}
+
+function getFileTypeInfo(file){
+  var name=file.name||'';
+  var ext=name.split('.').pop().toLowerCase();
+  if(file.type==='CLASS')return {label:'DEX',className:'file-type-class'};
+  if(file.type==='NATIVE_LIB'||file.type==='NATIVE_FILE')return {label:'NATIVE',className:'file-type-native'};
+  if(file.type==='RESOURCE'){
+    if(file.resourceType==='DRAWABLE')return {label:'IMAGE',className:'file-type-image'};
+    if(file.resourceType==='FONT')return {label:'FONT',className:'file-type-font'};
+    if(file.resourceType==='LAYOUT')return {label:'LAYOUT',className:'file-type-layout'};
+    if(file.resourceType==='RAW')return {label:'RAW',className:'file-type-other'};
+    return {label:file.resourceType||'RES',className:'file-type-other'};
+  }
+  if(['png','jpg','jpeg','gif','svg','heic','heif','webp','bmp','ico'].indexOf(ext)!==-1)return {label:ext.toUpperCase(),className:'file-type-image'};
+  if(ext==='json'&&(name.toLowerCase().indexOf('lottie')!==-1||name.toLowerCase().indexOf('animation')!==-1))return {label:'LOTTIE',className:'file-type-lottie'};
+  if(ext==='json')return {label:'JSON',className:'file-type-lottie'};
+  if(ext==='pdf')return {label:'PDF',className:'file-type-pdf'};
+  if(['mp4','mov','avi','mkv','m4v','webm'].indexOf(ext)!==-1)return {label:ext.toUpperCase(),className:'file-type-video'};
+  if(['mp3','wav','m4a','aac','ogg','flac'].indexOf(ext)!==-1)return {label:ext.toUpperCase(),className:'file-type-audio'};
+  if(['ttf','otf','woff','woff2'].indexOf(ext)!==-1)return {label:ext.toUpperCase(),className:'file-type-font'};
+  return {label:ext?ext.toUpperCase():'OTHER',className:'file-type-other'};
+}
+
+function computeComponentBreakdown(component,sizeKey){
+  var files=component.files||[];
+  var binarySize=0,imageSize=0,resources={};
+  files.forEach(function(f){
+    var sz=fileSize(f,sizeKey);
+    if(isBinaryFile(f))binarySize+=sz;
+    else if(isImageFile(f))imageSize+=sz;
+    var key=getResourceKey(f);
+    if(key){
+      if(!resources[key])resources[key]={size:0,count:0};
+      resources[key].size+=sz;
+      resources[key].count++;
+    }
+  });
+  return {binarySize:binarySize,imageSize:imageSize,totalSize:component.installSize||0,resources:resources};
+}
+
+function renderSizeBars(breakdown,maxSize){
+  var bp=maxSize>0?(breakdown.binarySize/maxSize*100):0;
+  var ip=maxSize>0?(breakdown.imageSize/maxSize*100):0;
+  return '<div class="size-bars">'+
+    '<div class="size-bar"><div class="size-bar-label"><span class="name">Binary Size</span><span class="value">'+formatBytes(breakdown.binarySize)+'</span></div>'+
+    '<div class="size-bar-fill"><div class="size-bar-progress" style="width:'+bp+'%"></div></div></div>'+
+    '<div class="size-bar"><div class="size-bar-label"><span class="name">Image Assets</span><span class="value">'+formatBytes(breakdown.imageSize)+'</span></div>'+
+    '<div class="size-bar-fill"><div class="size-bar-progress" style="width:'+ip+'%"></div></div></div>'+
+    '<div class="size-bar"><div class="size-bar-label"><span class="name">Total (Install Size)</span><span class="value">'+formatBytes(breakdown.totalSize)+'</span></div>'+
+    '<div class="size-bar-fill"><div class="size-bar-progress" style="width:100%"></div></div></div></div>';
+}
+
+function renderResourcesGrid(resources){
+  var keys=Object.keys(resources);
+  if(!keys.length)return '';
+  keys.sort(function(a,b){return resources[b].size-resources[a].size;});
+  return '<h4 style="margin-top:20px;margin-bottom:15px;color:#333">Resources</h4><div class="resources-grid">'+
+    keys.map(function(k){return '<div class="resource-card"><div class="resource-type">'+esc(k)+'</div>'+
+      '<div class="resource-size">'+formatBytes(resources[k].size)+'</div>'+
+      '<div class="resource-count">'+resources[k].count+' files</div></div>';}).join('')+'</div>';
+}
+
+function renderAssetFiles(files,sizeKey){
+  var assets=files.filter(isAssetFile).slice().sort(function(a,b){return fileSize(b,sizeKey)-fileSize(a,sizeKey);});
+  if(!assets.length)return '';
+  return '<div class="top-files"><h4>Asset Files <span class="count-badge">'+assets.length+'</span></h4>'+
+    assets.map(function(f){var info=getFileTypeInfo(f);return '<div class="file-item '+info.className+'">'+
+      '<span class="file-path" title="'+esc(f.name)+'"><span class="file-type-badge">'+info.label+'</span>'+esc(f.name)+'</span>'+
+      '<span class="file-size-value">'+formatBytes(fileSize(f,sizeKey))+'</span></div>';}).join('')+'</div>';
+}
+
+function renderSourceFiles(files,sizeKey){
+  var sources=files.filter(function(f){return !isAssetFile(f);}).slice().sort(function(a,b){return fileSize(b,sizeKey)-fileSize(a,sizeKey);});
+  if(!sources.length)return '';
+  return '<div class="files-section"><h4>Source Files <span class="count-badge">'+sources.length+'</span></h4>'+
+    '<div class="files-table"><div class="files-table-header"><div>File Name</div><div>Size</div></div>'+
+    sources.map(function(f){var info=getFileTypeInfo(f);return '<div class="file-row"><div class="file-name" title="'+esc(f.name)+'">'+
+      '<span class="'+info.className+'" style="display:inline;border:none;background:none;padding:0;margin:0"><span class="file-type-badge">'+info.label+'</span></span> '+
+      esc(f.name)+'</div><div class="file-size">'+formatBytes(fileSize(f,sizeKey))+'</div></div>';}).join('')+
+    '</div></div>';
+}
+
+function renderModuleDetails(component,listSizeKey,maxSize){
+  var breakdown=computeComponentBreakdown(component,'installSize');
+  var files=component.files||[];
+  return renderSizeBars(breakdown,maxSize)+renderResourcesGrid(breakdown.resources)+
+    renderAssetFiles(files,listSizeKey)+renderSourceFiles(files,listSizeKey);
+}
+
+function renderModuleCard(component,index,prefix,displayLabel){
+  var listSizeKey=currentSort==='installSize'?'installSize':'downloadSize';
+  var displaySize=component[listSizeKey]||0;
+  var breakdown=computeComponentBreakdown(component,'installSize');
+  var maxRef=breakdown.totalSize||component.installSize||displaySize;
+  var files=component.files||[];
+  var id=prefix+'-'+index;
+  return '<div class="module-card"><div class="module-header" onclick="toggleModule(\''+id+'\')">'+
+    '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
+    (component.owner?'<span class="owner-badge">'+esc(component.owner)+'</span>':'')+
+    (isInternal(component)?'<span class="internal-badge">Internal</span>':'')+'</div>'+
+    '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">'+displayLabel+'</span>'+
+    '<span class="module-size">'+formatBytes(displaySize)+'</span></div>'+
+    '<span class="expand-icon" id="icon-'+id+'">&#9660;</span></div></div>'+
+    '<div class="module-details" id="mod-'+id+'">'+renderModuleDetails(component,listSizeKey,maxRef)+'</div></div>';
+}
+
+window.toggleModule=function(id){
+  document.getElementById('mod-'+id).classList.toggle('open');
+  document.getElementById('icon-'+id).classList.toggle('open');
+};
+
+// Tabs
+document.querySelectorAll('.tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab==='insights'&&!insightsRendered){renderInsights();insightsRendered=true;}
+    if(tab.dataset.tab==='ownership')renderOwnership();
   });
 });
 
-// ── Header ──
-document.getElementById('appTitle').textContent=report.name+' '+report.variant;
-document.getElementById('appSubtitle').textContent='Version '+report.version;
-document.getElementById('headerDownload').textContent='Download: '+formatBytes(report.downloadSize);
-document.getElementById('headerInstall').textContent='Install: '+formatBytes(report.installSize);
-document.getElementById('headerComponents').textContent=report.components.length+' components';
-if(report.dynamicFeatures.length>0)document.getElementById('tabDynamic').style.display='';
+// Header
+(function(){
+  var parts=['Version '+report.version,report.variant];
+  document.getElementById('headerTitle').textContent='📱 '+report.name;
+  document.getElementById('headerSubtitle').textContent=parts.join(' • ');
+  if(report.dynamicFeatures&&report.dynamicFeatures.length)document.getElementById('tabDynamic').style.display='';
+})();
 
-// ── Summary ──
+// Summary
 function renderSummary(){
-  var internal=report.components.filter(function(c){return c.type==='INTERNAL'});
-  var intDown=internal.reduce(function(s,c){return s+c.downloadSize},0);
-  var intUp=internal.reduce(function(s,c){return s+c.installSize},0);
+  var internal=report.components.filter(isInternal);
+  var intDown=internal.reduce(function(s,c){return s+c.downloadSize;},0);
+  var intIns=internal.reduce(function(s,c){return s+c.installSize;},0);
   document.getElementById('summary').innerHTML=
     '<div class="summary-card"><h3>Download Size</h3><div class="value">'+formatBytes(report.downloadSize)+'</div>'+
-    (internal.length?'<div class="internal">Internal: '+formatBytes(intDown)+'</div>':'')+'</div>'+
+    '<div class="label">Compressed APK/AAB</div>'+(internal.length?'<div class="internal-info">Internal: '+formatBytes(intDown)+'</div>':'')+'</div>'+
     '<div class="summary-card"><h3>Install Size</h3><div class="value">'+formatBytes(report.installSize)+'</div>'+
-    (internal.length?'<div class="internal">Internal: '+formatBytes(intUp)+'</div>':'')+'</div>'+
+    '<div class="label">Uncompressed</div>'+(internal.length?'<div class="internal-info">Internal: '+formatBytes(intIns)+'</div>':'')+'</div>'+
     '<div class="summary-card"><h3>Components</h3><div class="value">'+report.components.length+'</div>'+
-    '<div class="label">'+internal.length+' internal, '+(report.components.length-internal.length)+' external</div></div>'+
-    '<div class="summary-card"><h3>Internal Share</h3><div class="value">'+formatPercent(intDown,report.downloadSize)+'</div>'+
-    '<div class="label">of download size</div></div>';
+    '<div class="label">Total Count</div>'+(internal.length?'<div class="internal-info">Internal: '+internal.length+'</div>':'')+'</div>';
 }
 renderSummary();
 
-// ── Breakdown ──
+// Breakdown
 function renderBreakdown(){
   var search=document.getElementById('searchInput').value.toLowerCase();
   var sort=document.getElementById('sortSelect').value;
-  var comps=report.components.slice();
-  if(search)comps=comps.filter(function(c){return c.name.toLowerCase().indexOf(search)!==-1});
-  comps=comps.filter(function(c){
-    var isInt=c.type==='INTERNAL';
-    if(!breakdownFilters.internal&&isInt)return false;
-    if(!breakdownFilters.external&&!isInt)return false;
-    var isOwned=!!c.owner;
-    if(!breakdownFilters.owned&&isOwned)return false;
-    if(!breakdownFilters.unowned&&!isOwned)return false;
-    return true;
-  });
+  currentSort=sort;
+  var comps=report.components.filter(matchesBreakdownFilters);
+  if(search)comps=comps.filter(function(c){return c.name.toLowerCase().indexOf(search)!==-1;});
   comps.sort(function(a,b){
     if(sort==='name')return a.name.localeCompare(b.name);
-    return b[sort]-a[sort];
+    return (b[sort]||0)-(a[sort]||0);
   });
   var grid=document.getElementById('modulesGrid');
-  if(!comps.length){grid.innerHTML='<div class="no-results">No components found</div>';return;}
-  grid.innerHTML=comps.map(function(c,i){
-    var files=(c.files||[]).slice().sort(function(a,b){return b[sizeType]-a[sizeType]});
-    var filesHtml=files.length?
-      '<div class="files-table"><div class="files-header"><div>Name</div><div>Size</div></div>'+
-      files.map(function(f){return '<div class="file-row"><div class="file-name" title="'+esc(f.name)+'">'+esc(f.name)+'</div><div class="file-size">'+formatBytes(f[sizeType])+'</div></div>'}).join('')+'</div>':'';
-    return '<div class="module-card"><div class="module-header" onclick="toggleMod('+i+')">'+
-      '<div class="module-info"><span class="module-name">'+esc(c.name)+'</span>'+
-      (c.owner?'<span class="owner-badge">'+esc(c.owner)+'</span>':'')+
-      '<span class="type-badge type-'+c.type.toLowerCase()+'">'+c.type+'</span></div>'+
-      '<div style="display:flex;align-items:center;gap:12px"><span class="module-size">'+formatBytes(c[sizeType])+'</span>'+
-      '<span class="expand-icon" id="icon-'+i+'">&#9660;</span></div></div>'+
-      '<div class="module-details" id="mod-'+i+'">'+filesHtml+'</div></div>';
-  }).join('');
+  if(!comps.length){grid.innerHTML='<div class="no-results">No modules found</div>';return;}
+  var label=sort==='installSize'?'Install':'Download';
+  grid.innerHTML=comps.map(function(c,i){return renderModuleCard(c,i,'m',label);}).join('');
 }
-window.toggleMod=function(i){
-  document.getElementById('mod-'+i).classList.toggle('open');
-  document.getElementById('icon-'+i).classList.toggle('open');
-};
-function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-document.querySelectorAll('#breakdown .filter-chip').forEach(function(chip){
+document.querySelectorAll('#breakdownFilters .filter-chip').forEach(function(chip){
   chip.addEventListener('click',function(){
-    var f=chip.dataset.filter;
-    breakdownFilters[f]=!breakdownFilters[f];
-    chip.classList.toggle('active',breakdownFilters[f]);
+    breakdownFilters[chip.dataset.filter]=!breakdownFilters[chip.dataset.filter];
+    chip.classList.toggle('active',breakdownFilters[chip.dataset.filter]);
     renderBreakdown();
   });
 });
 document.getElementById('searchInput').addEventListener('input',renderBreakdown);
-document.getElementById('sortSelect').addEventListener('change',function(){sizeType=this.value==='name'?sizeType:this.value;renderBreakdown()});
+document.getElementById('sortSelect').addEventListener('change',renderBreakdown);
 renderBreakdown();
 
-// ── Charts: hBar ──
-function hBar(el,labels,values,color){
+// Charts helpers
+function hBarChart(el,items,color){
   el.innerHTML='';
-  if(!values.length)return;
-  var max=Math.max.apply(null,values);
-  var html='';
-  for(var i=0;i<values.length;i++){
-    var pct=max>0?values[i]/max*100:0;
-    html+='<div class="ownership-bar"><div class="ownership-bar-label"><span>'+esc(labels[i])+'</span><span>'+formatBytes(values[i])+'</span></div>'+
-      '<div class="ownership-bar-fill"><div class="ownership-bar-progress" style="width:'+pct+'%"></div></div></div>';
-  }
-  el.innerHTML=html;
+  if(!items.length){el.innerHTML='<div class="no-data">No data available</div>';return;}
+  var max=Math.max.apply(null,items.map(function(d){return d.size;}));
+  el.innerHTML=items.map(function(d){
+    var pct=max>0?(d.size/max*100):0;
+    var name=d.name.length>28?d.name.substring(0,28)+'...':d.name;
+    return '<div class="hbar-row"><div class="hbar-label"><span title="'+esc(d.name)+'">'+esc(name)+'</span><span>'+formatBytes(d.size)+'</span></div>'+
+      '<div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+  }).join('');
 }
 
-// ── Charts: donut (SVG) ──
-function donut(el,slices){
+function donutChart(el,data,valueKey,labelKey){
   el.innerHTML='';
-  if(!slices.length)return;
-  var total=slices.reduce(function(s,x){return s+x.value},0);
-  var w=260,h=260,r=Math.min(w,h)/2-20;
-  var svg='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">';
-  var cx=w/2,cy=h/2,angle=-Math.PI/2;
-  var colors=['#063773','#0a5aa8','#9b59b6','#2ecc71','#e74c3c','#f39c12','#3498db','#1abc9c','#e67e22','#95a5a6'];
-  for(var i=0;i<slices.length;i++){
-    var pct=total>0?slices[i].value/total:0;
-    var sweep=pct*2*Math.PI;
+  if(!data.length){el.innerHTML='<div class="no-data">No data available</div>';return;}
+  var total=data.reduce(function(s,d){return s+d[valueKey];},0);
+  var w=280,h=280,r=Math.min(w,h)/2-20,cx=w/2,cy=h/2,angle=-Math.PI/2;
+  var svg='<div class="donut-wrap"><svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">';
+  data.forEach(function(d,i){
+    var pct=total>0?d[valueKey]/total:0,sweep=pct*2*Math.PI;
     var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
     var x2=cx+r*Math.cos(angle+sweep),y2=cy+r*Math.sin(angle+sweep);
     var large=sweep>Math.PI?1:0;
-    svg+='<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+colors[i%colors.length]+'" opacity="0.85"><title>'+esc(slices[i].label)+': '+formatBytes(slices[i].value)+' ('+formatPercent(slices[i].value,total)+')</title></path>';
+    svg+='<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+COLORS[i%COLORS.length]+'" opacity=".9"><title>'+
+      esc(d[labelKey])+': '+(valueKey==='size'?formatBytes(d[valueKey]):d[valueKey])+'</title></path>';
     angle+=sweep;
-  }
-  svg+='<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" font-size="18" font-weight="bold" fill="var(--text)">'+formatBytes(total)+'</text>';
-  svg+='<text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" font-size="11" fill="var(--text3)">Total</text>';
-  svg+='</svg>';
+  });
+  var centerVal=valueKey==='size'?formatBytes(total):total.toLocaleString();
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r*.6)+'" fill="#fff"/>'+
+    '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" font-size="22" font-weight="bold" fill="#333">'+centerVal+'</text>'+
+    '<text x="'+cx+'" y="'+(cy+16)+'" text-anchor="middle" font-size="11" fill="#666">Total '+(valueKey==='size'?'Size':'Count')+'</text></svg></div>';
   el.innerHTML=svg;
 }
 
-// ── Charts: treemap (SVG) ──
 function treemap(el,nodes){
   el.innerHTML='';
-  if(!nodes.length)return;
-  var total=nodes.reduce(function(s,n){return s+n.installSize},0);
-  var w=el.offsetWidth||800,h=400;
-  // Simple squarified layout - just horizontal slices for simplicity
-  var sorted=nodes.slice().sort(function(a,b){return b.installSize-a.installSize});
+  if(!nodes.length){el.innerHTML='<div class="no-data">No data available</div>';return;}
+  var total=nodes.reduce(function(s,n){return s+n.installSize;},0);
+  var w=el.offsetWidth||900,h=400,sorted=nodes.slice().sort(function(a,b){return b.installSize-a.installSize;});
   var svg='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'">';
-  var x=0,colors=['#063773','#0a5aa8','#9b59b6','#2ecc71','#e74c3c','#f39c12','#3498db','#1abc9c','#e67e22','#95a5a6'];
-  for(var i=0;i<sorted.length;i++){
-    var nodeW=total>0?(sorted[i].installSize/total)*w:0;
-    if(nodeW<2)continue;
-    svg+='<rect x="'+x+'" y="0" width="'+nodeW+'" height="'+h+'" fill="'+colors[i%colors.length]+'" opacity="0.85" stroke="var(--surface)" stroke-width="2">';
-    svg+='<title>'+esc(sorted[i].name)+': '+formatBytes(sorted[i].installSize)+'</title></rect>';
-    if(nodeW>60){
-      svg+='<text x="'+(x+4)+'" y="20" font-size="11" font-weight="bold" fill="#fff" pointer-events="none">'+esc(sorted[i].name.length>15?sorted[i].name.substring(0,15)+'...':sorted[i].name)+'</text>';
-      svg+='<text x="'+(x+4)+'" y="36" font-size="10" fill="rgba(255,255,255,0.8)" pointer-events="none">'+formatBytes(sorted[i].installSize)+'</text>';
+  var x=0;
+  sorted.forEach(function(n,i){
+    var nw=total>0?(n.installSize/total)*w:0;
+    if(nw<2)return;
+    svg+='<rect x="'+x+'" y="0" width="'+nw+'" height="'+h+'" fill="'+COLORS[i%COLORS.length]+'" opacity=".85" stroke="#fff" stroke-width="2"><title>'+
+      esc(n.name)+': '+formatBytes(n.installSize)+'</title></rect>';
+    if(nw>70){
+      svg+='<text x="'+(x+6)+'" y="22" font-size="11" font-weight="bold" fill="#fff" pointer-events="none">'+esc(n.name.length>18?n.name.substring(0,18)+'...':n.name)+'</text>';
+      svg+='<text x="'+(x+6)+'" y="38" font-size="10" fill="rgba(255,255,255,.9)" pointer-events="none">'+formatBytes(n.installSize)+'</text>';
     }
-    x+=nodeW;
-  }
+    x+=nw;
+  });
   svg+='</svg>';
   el.innerHTML=svg;
 }
 
-// ── Insights ──
+// Insights
+function filteredComponents(){return report.components.filter(matchesInsightsFilters);}
+
 function renderInsights(){
-  // Component type donut
-  if(insights.componentTypes.length){
-    donut(document.getElementById('componentTypeChart'),
-      insights.componentTypes.map(function(b){return{label:b.label,value:b.installSize}}));
-  }
-  // File type hBar
-  if(insights.fileTypes.length){
-    hBar(document.getElementById('fileTypeChart'),
-      insights.fileTypes.map(function(b){return b.label+' ('+b.count+')'}),
-      insights.fileTypes.map(function(b){return b.installSize}));
-  }
-  // Resource type donut
-  if(insights.resourceTypes.length){
-    donut(document.getElementById('resourceTypeChart'),
-      insights.resourceTypes.map(function(b){return{label:b.label,value:b.installSize}}));
-  }
-  // Top components
-  var topC=insights.topComponents.install||insights.topComponents.download||[];
-  if(topC.length){
-    hBar(document.getElementById('topComponentsChart'),
-      topC.map(function(e){return e.name}),
-      topC.map(function(e){return e.installSize}));
-  }
-  // Top files
-  var topF=insights.topFiles.install||insights.topFiles.download||[];
-  if(topF.length){
-    hBar(document.getElementById('topFilesChart'),
-      topF.map(function(e){return e.name}),
-      topF.map(function(e){return e.installSize}));
-  }
-  // Treemap
-  if(insights.treemap.length){
-    treemap(document.getElementById('treemapChart'),insights.treemap);
-  }
-  // User impact
+  var comps=filteredComponents();
+  var topModules=comps.map(function(c){return {name:c.name,size:c.installSize};}).sort(function(a,b){return b.size-a.size;}).slice(0,20);
+  hBarChart(document.getElementById('topModulesChart'),topModules,'#063773');
+
+  var allFiles=[],allAssets=[];
+  comps.forEach(function(c){
+    (c.files||[]).forEach(function(f){
+      var entry={name:f.name,size:f.installSize,component:c.name};
+      if(isAssetFile(f))allAssets.push(entry);
+      else if(isBinaryFile(f)||f.type==='RESOURCE')allFiles.push(entry);
+    });
+  });
+  allFiles.sort(function(a,b){return b.size-a.size;});
+  allAssets.sort(function(a,b){return b.size-a.size;});
+  hBarChart(document.getElementById('topFilesChart'),allFiles.slice(0,20),'#e74c3c');
+  hBarChart(document.getElementById('topAssetsChart'),allAssets.slice(0,20),'#3498db');
+
+  treemap(document.getElementById('treemapChart'),comps.map(function(c){return {name:c.name,installSize:c.installSize};}));
+
+  var resStats={};
+  comps.forEach(function(c){
+    (c.files||[]).forEach(function(f){
+      var key;
+      if(isBinaryFile(f))key='Binary';
+      else if(isImageFile(f))key='Images';
+      else if(f.type==='RESOURCE'&&f.resourceType)key=f.resourceType;
+      else if(f.type==='ASSET')key='Assets';
+      else key='Other';
+      if(!resStats[key])resStats[key]={size:0,count:0};
+      resStats[key].size+=f.installSize;
+      resStats[key].count++;
+    });
+  });
+  var resData=Object.keys(resStats).map(function(k){return {type:k,size:resStats[k].size,count:resStats[k].count};}).sort(function(a,b){return b.size-a.size;});
+  donutChart(document.getElementById('resourceCountChart'),resData,'count','type');
+  donutChart(document.getElementById('resourceSizeChart'),resData,'size','type');
+  document.getElementById('resourceLegend').innerHTML=resData.map(function(d,i){
+    return '<div class="legend-item"><div class="legend-swatch" style="background:'+COLORS[i%COLORS.length]+'"></div>'+
+      '<span style="font-weight:600">'+esc(d.type)+'</span><span style="color:#666">'+formatBytes(d.size)+'</span>'+
+      '<span style="color:#999;font-size:11px">('+d.count+' items)</span></div>';
+  }).join('');
+
   renderUserImpact();
 }
 
 function renderUserImpact(){
   var dl=report.downloadSize,ins=report.installSize;
-  var networks=[
-    {name:'WiFi',speed:100,color:'var(--green)'},
-    {name:'5G',speed:50,color:'var(--blue)'},
-    {name:'4G',speed:10,color:'var(--orange)'},
-    {name:'3G',speed:1,color:'var(--red)'}
-  ];
-  var html='<div class="user-impact">';
-  for(var i=0;i<networks.length;i++){
-    var secs=(dl*8/1024/1024)/networks[i].speed;
+  var networks=[{name:'WiFi',speed:100,color:'#2ecc71',icon:'📶'},{name:'5G',speed:50,color:'#3498db',icon:'📱'},
+    {name:'4G',speed:10,color:'#f39c12',icon:'📱'},{name:'3G',speed:1,color:'#e74c3c',icon:'📱'}];
+  var html='<div class="impact-grid">';
+  networks.forEach(function(n){
+    var secs=(dl*8/1024/1024)/n.speed;
     var time=secs<60?Math.round(secs)+'s':Math.floor(secs/60)+'m '+Math.round(secs%60)+'s';
-    html+='<div class="impact-card" style="border-left-color:'+networks[i].color+'"><div class="label">'+networks[i].name+'</div><div class="time" style="color:'+networks[i].color+'">'+time+'</div><div class="label">Download time for '+formatBytes(dl)+'</div></div>';
-  }
+    html+='<div class="impact-card" style="border-left-color:'+n.color+'"><div style="display:flex;justify-content:space-between;margin-bottom:10px">'+
+      '<div style="font-size:24px">'+n.icon+'</div><div style="font-size:14px;color:#666;font-weight:600">'+n.name+'</div></div>'+
+      '<div class="time" style="color:'+n.color+'">'+time+'</div><div class="lbl">Download time for '+formatBytes(dl)+'</div></div>';
+  });
+  html+='</div><h3 style="font-size:16px;color:#333;margin-bottom:15px">📱 Device Storage Impact</h3><div class="storage-block">';
+  [{name:'32 GB',bytes:32*1024*1024*1024},{name:'64 GB',bytes:64*1024*1024*1024},
+    {name:'128 GB',bytes:128*1024*1024*1024},{name:'256 GB',bytes:256*1024*1024*1024}].forEach(function(d){
+    var pct=ins/d.bytes*100;
+    html+='<div class="storage-row"><div class="storage-header"><span>'+d.name+'</span><span style="color:#063773;font-weight:bold">'+pct.toFixed(3)+'%</span></div>'+
+      '<div class="storage-track"><div class="storage-fill" style="width:'+Math.min(pct,100)+'%"></div></div>'+
+      '<div class="storage-sub">'+formatBytes(ins)+' of '+d.name+'</div></div>';
+  });
   html+='</div>';
-  html+='<h3 style="margin:20px 0 12px;font-size:15px;color:var(--text2)">Device Storage Impact</h3>';
-  var devices=[{name:'32 GB',bytes:32*1024*1024*1024},{name:'64 GB',bytes:64*1024*1024*1024},{name:'128 GB',bytes:128*1024*1024*1024},{name:'256 GB',bytes:256*1024*1024*1024}];
-  for(var j=0;j<devices.length;j++){
-    var pct=ins/devices[j].bytes*100;
-    html+='<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>'+devices[j].name+'</span><span style="font-weight:600">'+pct.toFixed(2)+'%</span></div>'+
-      '<div class="storage-bar"><div class="storage-bar-fill" style="width:'+Math.min(pct,100)+'%"></div></div></div>';
-  }
-  document.getElementById('userImpactContent').innerHTML=html;
+  document.getElementById('userImpactSection').innerHTML=html;
 }
 
-// ── Ownership ──
-function renderOwnership(){
-  var sort=document.getElementById('ownershipSortSelect').value;
+document.querySelectorAll('#insightsFilters .filter-chip').forEach(function(chip){
+  chip.addEventListener('click',function(){
+    insightsFilters[chip.dataset.filter]=!insightsFilters[chip.dataset.filter];
+    chip.classList.toggle('active',insightsFilters[chip.dataset.filter]);
+    renderInsights();
+  });
+});
+
+// Ownership
+function prepareOwnershipData(sortBy){
   var owners={};
-  report.components.forEach(function(c){
-    if(!ownershipFilters.internal&&c.type==='INTERNAL')return;
-    if(!ownershipFilters.external&&c.type==='EXTERNAL')return;
+  report.components.filter(matchesOwnershipFilters).forEach(function(c){
     var o=c.owner||'unassigned';
-    if(!owners[o])owners[o]={download:0,install:0,components:0,files:0};
+    if(!owners[o])owners[o]={download:0,install:0,components:0,files:0,list:[]};
     owners[o].download+=c.downloadSize;
     owners[o].install+=c.installSize;
     owners[o].components++;
     owners[o].files+=(c.files||[]).length;
+    owners[o].list.push(c);
   });
-  var list=Object.keys(owners).map(function(k){return{name:k,data:owners[k]}});
-  list.sort(function(a,b){return b.data[sort.replace('Size','').toLowerCase()||'download']-a.data[sort.replace('Size','').toLowerCase()||'download']});
-  if(!list.length){
-    document.getElementById('ownershipChart').innerHTML='<div class="no-results">No ownership data available</div>';
-    document.getElementById('ownerSelect').innerHTML='<option value="">No owners</option>';
+  var list=Object.keys(owners).map(function(k){return {name:k,data:owners[k]};});
+  list.sort(function(a,b){return b.data[sortBy==='installSize'?'install':'download']-a.data[sortBy==='installSize'?'install':'download'];});
+  return list;
+}
+
+function renderOwnershipChart(){
+  var chart=document.getElementById('ownershipChart');
+  if(!ownershipData.length){
+    chart.innerHTML='<div class="no-results"><p>No ownership data available.</p></div>';
     return;
   }
-  var max=list[0].data[sort.replace('Size','').toLowerCase()||'download'];
-  var chartHtml='';
-  for(var i=0;i<list.length;i++){
-    var val=list[i].data[sort.replace('Size','').toLowerCase()||'download'];
-    var pct=max>0?val/max*100:0;
-    chartHtml+='<div class="ownership-bar"><div class="ownership-bar-label"><span>'+esc(list[i].name)+'</span><span>'+formatBytes(val)+'</span></div>'+
-      '<div class="ownership-bar-fill"><div class="ownership-bar-progress" style="width:'+pct+'%"></div></div></div>';
-  }
-  document.getElementById('ownershipChart').innerHTML=chartHtml;
+  var max=Math.max.apply(null,ownershipData.map(function(o){
+    return Math.max(o.data.download,o.data.install);
+  }));
+  var html='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:16px;align-items:end">';
+  ownershipData.forEach(function(o){
+    var dh=max>0?(o.data.download/max*100):0,ih=max>0?(o.data.install/max*100):0;
+    html+='<div class="owner-bar-group"><div class="owner-bar-label" title="'+esc(o.name)+'">'+esc(o.name.length>12?o.name.substring(0,12)+'...':o.name)+'</div>'+
+      '<div class="owner-bar-pair"><div class="owner-bar-col"><div class="owner-bar download" style="height:'+dh+'%" title="Download: '+formatBytes(o.data.download)+'"></div>'+
+      '<div class="owner-bar-caption">DL</div></div><div class="owner-bar-col"><div class="owner-bar install" style="height:'+ih+'%" title="Install: '+formatBytes(o.data.install)+'"></div>'+
+      '<div class="owner-bar-caption">INS</div></div></div></div>';
+  });
+  html+='</div><div class="owner-legend"><span><i style="background:#063773"></i>Download size</span><span><i style="background:#2ecc71"></i>Install size</span></div>';
+  chart.innerHTML=html;
+}
+
+function renderOwnership(){
+  var sort=document.getElementById('ownershipSortSelect').value;
+  ownershipData=prepareOwnershipData(sort);
+  renderOwnershipChart();
   var sel=document.getElementById('ownerSelect');
   sel.innerHTML='<option value="">Select an owner...</option>';
-  for(var j=0;j<list.length;j++){
-    sel.innerHTML+='<option value="'+esc(list[j].name)+'">'+esc(list[j].name)+' ('+formatBytes(list[j].data[sort.replace('Size','').toLowerCase()||'download'])+')</option>';
-  }
+  ownershipData.forEach(function(o,i){
+    var opt=document.createElement('option');
+    opt.value=i;
+    opt.textContent=o.name+' ('+formatBytes(o.data[sort==='installSize'?'install':'download'])+')';
+    sel.appendChild(opt);
+  });
 }
-document.querySelectorAll('#ownership .filter-chip').forEach(function(chip){
+
+function renderOwnerDetails(idx){
+  var section=document.getElementById('ownerDetailSection');
+  if(idx===''){section.style.display='none';return;}
+  var owner=ownershipData[parseInt(idx,10)];
+  if(!owner){section.style.display='none';return;}
+  section.style.display='block';
+  document.getElementById('ownerDetailSummary').innerHTML=
+    '<div class="owner-stat"><div class="num">'+owner.data.components+'</div><div class="lbl">Component(s)</div></div>'+
+    '<div class="owner-stat"><div class="num">'+owner.data.files+'</div><div class="lbl">File(s)</div></div>'+
+    '<div class="owner-stat"><div class="num blue">'+formatBytes(owner.data.download)+'</div><div class="lbl">Download size</div></div>'+
+    '<div class="owner-stat"><div class="num green">'+formatBytes(owner.data.install)+'</div><div class="lbl">Install size</div></div>';
+  var label=currentSort==='installSize'?'Install':'Download';
+  document.getElementById('ownerModulesGrid').innerHTML=owner.data.list.slice().sort(function(a,b){
+    return (b.installSize||0)-(a.installSize||0);
+  }).map(function(c,i){return renderModuleCard(c,i,'o'+idx,label);}).join('');
+}
+
+document.querySelectorAll('#ownershipFilters .filter-chip').forEach(function(chip){
   chip.addEventListener('click',function(){
-    var f=chip.dataset.filter;
-    ownershipFilters[f]=!ownershipFilters[f];
-    chip.classList.toggle('active',ownershipFilters[f]);
+    ownershipFilters[chip.dataset.filter]=!ownershipFilters[chip.dataset.filter];
+    chip.classList.toggle('active',ownershipFilters[chip.dataset.filter]);
     renderOwnership();
+    document.getElementById('ownerSelect').value='';
+    document.getElementById('ownerDetailSection').style.display='none';
   });
 });
-document.getElementById('ownershipSortSelect').addEventListener('change',renderOwnership);
-document.getElementById('ownerSelect').addEventListener('change',function(){
-  var name=this.value;
-  if(!name){document.getElementById('ownerDetail').style.display='none';return;}
-  currentOwner=name;
-  var comps=report.components.filter(function(c){return c.owner===name});
-  var down=comps.reduce(function(s,c){return s+c.downloadSize},0);
-  var up=comps.reduce(function(s,c){return s+c.installSize},0);
-  var files=comps.reduce(function(s,c){return s+(c.files||[]).length},0);
-  document.getElementById('ownerDetail').style.display='block';
-  document.getElementById('ownerSummary').innerHTML=
-    '<div class="summary-card"><h3>Components</h3><div class="value">'+comps.length+'</div></div>'+
-    '<div class="summary-card"><h3>Files</h3><div class="value">'+files+'</div></div>'+
-    '<div class="summary-card"><h3>Download</h3><div class="value">'+formatBytes(down)+'</div></div>'+
-    '<div class="summary-card"><h3>Install</h3><div class="value">'+formatBytes(up)+'</div></div>';
-  var grid=document.getElementById('ownerModules');
-  grid.innerHTML=comps.sort(function(a,b){return b[sizeType]-a[sizeType]}).map(function(c,i){
-    var f=(c.files||[]).sort(function(a,b){return b[sizeType]-a[sizeType]});
-    var fh=f.length?'<div class="files-table"><div class="files-header"><div>Name</div><div>Size</div></div>'+
-      f.map(function(x){return '<div class="file-row"><div class="file-name">'+esc(x.name)+'</div><div class="file-size">'+formatBytes(x[sizeType])+'</div></div>'}).join('')+'</div>':'';
-    return '<div class="module-card"><div class="module-header" onclick="toggleOwnerMod('+i+')"><div class="module-info"><span class="module-name">'+esc(c.name)+'</span></div>'+
-      '<div style="display:flex;align-items:center;gap:12px"><span class="module-size">'+formatBytes(c[sizeType])+'</span>'+
-      '<span class="expand-icon" id="oicon-'+i+'">&#9660;</span></div></div>'+
-      '<div class="module-details" id="omod-'+i+'">'+fh+'</div></div>';
-  }).join('');
+document.getElementById('ownershipSortSelect').addEventListener('change',function(){
+  renderOwnership();
+  document.getElementById('ownerSelect').value='';
+  document.getElementById('ownerDetailSection').style.display='none';
 });
-window.toggleOwnerMod=function(i){
-  document.getElementById('omod-'+i).classList.toggle('open');
-  document.getElementById('oicon-'+i).classList.toggle('open');
-};
+document.getElementById('ownerSelect').addEventListener('change',function(){renderOwnerDetails(this.value);});
 
-// ── Dynamic Features ──
-if(report.dynamicFeatures.length){
-  var dl=document.getElementById('dynamicList');
-  dl.innerHTML=report.dynamicFeatures.map(function(f){
-    var files=(f.files||[]).sort(function(a,b){return b[sizeType]-a[sizeType]});
-    var fh=files.length?'<div class="files-table" style="margin-top:12px"><div class="files-header"><div>Name</div><div>Size</div></div>'+
-      files.map(function(x){return '<div class="file-row"><div class="file-name">'+esc(x.name)+'</div><div class="file-size">'+formatBytes(x[sizeType])+'</div></div>'}).join('')+'</div>':'';
-    return '<div class="dynamic-item" style="flex-direction:column;align-items:stretch"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>'+esc(f.name)+'</strong>'+(f.owner?' <span class="owner-badge">'+esc(f.owner)+'</span>':'')+'</div><span class="module-size">'+formatBytes(f[sizeType])+'</span></div>'+fh+'</div>';
+// Dynamic features
+if(report.dynamicFeatures&&report.dynamicFeatures.length){
+  document.getElementById('dynamicList').innerHTML=report.dynamicFeatures.map(function(f,i){
+    var comp={name:f.name,owner:f.owner,type:'INTERNAL',downloadSize:f.downloadSize,installSize:f.installSize,files:f.files||[]};
+    return renderModuleCard(comp,i,'d','Install');
   }).join('');
 }
 
