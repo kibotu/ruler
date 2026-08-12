@@ -1,6 +1,11 @@
 Ruler
 =====
 
+[![CI](https://github.com/kibotu/ruler/actions/workflows/ci.yaml/badge.svg)](https://github.com/kibotu/ruler/actions/workflows/ci.yaml)
+[![Maven Central Version](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://central.sonatype.com/artifact/net.kibotu/ruler)
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/net.kibotu.ruler)](https://plugins.gradle.org/plugin/net.kibotu.ruler)
+[![License](https://img.shields.io/github/license/kibotu/ruler)](https://github.com/kibotu/ruler/blob/main/LICENSE)
+
 A Gradle plugin that measures the size of your Android app, file by file.
 
 Ruler builds your app bundle, splits it for one device, and reads every entry in the
@@ -266,12 +271,24 @@ To view the HTML report without an Android build:
 ```
 
 
+Support
+-------
+
+Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
+maintenance for over a year. This fork keeps the Android size analysis workflow alive,
+replaces the multi-module Kotlin/React frontend with a single HTML template (the same
+approach as [Caliper][caliper]), and produces matching `report.html` and `report.json`
+reports. For the iOS equivalent with the same report format, see [Caliper][caliper].
+
+If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
+consider [buying me a coffee](https://buymeacoffee.com/kibotu).
+
+
 License
 -------
 
 Apache License 2.0. See [LICENSE](LICENSE).
 
-Ruler is a fork of [Spotify's Ruler][upstream].
-
  [bloaty]: https://github.com/google/bloaty
  [upstream]: https://github.com/spotify/ruler
+ [caliper]: https://github.com/kibotu/caliper
