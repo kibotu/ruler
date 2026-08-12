@@ -1,6 +1,8 @@
 Ruler
 =====
 
+<img src="docs/logo.png" width="50%" />
+
 [![CI](https://github.com/kibotu/ruler/actions/workflows/ci.yml/badge.svg)](https://github.com/kibotu/ruler/actions/workflows/ci.yml)
 [![Maven Central Version](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://central.sonatype.com/artifact/net.kibotu/ruler)
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/net.kibotu.ruler)](https://plugins.gradle.org/plugin/net.kibotu.ruler)
