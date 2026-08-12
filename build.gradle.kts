@@ -1,80 +1,11 @@
-/*
- * Copyright 2021 Spotify AB
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import io.github.gradlenexus.publishplugin.NexusPublishExtension
-
-buildscript {
-    repositories {
-        mavenLocal {
-            content {
-                // Only load Ruler plugin from local Maven (required for the sample project)
-                includeGroup(RULER_PLUGIN_GROUP)
-            }
-        }
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-    dependencies {
-        classpath(Dependencies.ANDROID_GRADLE_PLUGIN)
-        classpath(Dependencies.KOTLIN_GRADLE_PLUGIN)
-        classpath(Dependencies.KOTLINX_SERIALIZATION_GRADLE_PLUGIN)
-        classpath(Dependencies.DETEKT_GRADLE_PLUGIN)
-        classpath(Dependencies.NEXUS_PUBLISH_GRADLE_PLUGIN)
-        classpath(Dependencies.SHADOW_GRADLE_PLUGIN)
-
-        if (!properties.containsKey("withoutSample")) {
-            classpath(Dependencies.RULER_GRADLE_PLUGIN)
-        }
-    }
-}
-
-apply(plugin = "io.github.gradle-nexus.publish-plugin")
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-group = RULER_PLUGIN_GROUP
-version = findProperty("version")?.toString() ?: RULER_PLUGIN_VERSION
-
-extensions.configure(NexusPublishExtension::class) {
-    repositories {
-        sonatype {
-            // Use the new Sonatype Central Portal (OSSRH is deprecated and EOL June 30, 2025)
-            // See: https://github.com/gradle-nexus/publish-plugin#publishing-to-maven-central-via-sonatype-central
-            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
-            
-            val username = System.getenv(ENV_SONATYPE_USERNAME)
-            val password = System.getenv(ENV_SONATYPE_PASSWORD)
-            if (username != null && password != null) {
-                this.username.set(username)
-                this.password.set(password)
-            }
-        }
-    }
+plugins {
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.shadow) apply false
+    alias(libs.plugins.pluginPublish) apply false
 }
 
 allprojects {
-    tasks.withType<AbstractPublishToMaven>().configureEach {
-        val signingTasks = tasks.withType<Sign>()
-        mustRunAfter(signingTasks)
-    }
+    group = "net.kibotu"
+    version = "3.0.0"
 }
