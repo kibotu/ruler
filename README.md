@@ -1,7 +1,6 @@
-Ruler
-=====
-
 <img src="docs/logo.png" width="50%" />
+
+A Gradle plugin that measures the size of your Android app, file by file.
 
 [![CI](https://github.com/kibotu/ruler/actions/workflows/ci.yml/badge.svg)](https://github.com/kibotu/ruler/actions/workflows/ci.yml)
 [![Maven Central Version](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://central.sonatype.com/artifact/net.kibotu/ruler)
@@ -9,8 +8,6 @@ Ruler
 [![](https://jitpack.io/v/kibotu/ruler.svg)](https://jitpack.io/#kibotu/ruler)
 [![AGP 9.3.1](https://img.shields.io/badge/AGP-9.3.1-blue?logo=android)](https://developer.android.com/build/releases/agp-9-3-0-release-notes)
 [![License](https://img.shields.io/github/license/kibotu/ruler)](https://github.com/kibotu/ruler/blob/main/LICENSE)
-
-A Gradle plugin that measures the size of your Android app, file by file.
 
 Ruler builds your app bundle, splits it for one device, and reads every entry in the
 resulting APKs. It attributes each class, resource, asset, and native library to the Gradle
