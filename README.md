@@ -7,7 +7,6 @@ A Gradle plugin that measures the size of your Android app, file by file.
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/net.kibotu.ruler)](https://plugins.gradle.org/plugin/net.kibotu.ruler)
 [![](https://jitpack.io/v/kibotu/ruler.svg)](https://jitpack.io/#kibotu/ruler)
 [![AGP 9.3.1](https://img.shields.io/badge/AGP-9.3.1-blue?logo=android)](https://developer.android.com/build/releases/agp-9-3-0-release-notes)
-[![License](https://img.shields.io/github/license/kibotu/ruler)](https://github.com/kibotu/ruler/blob/main/LICENSE)
 
 Ruler builds your app bundle, splits it for one device, and reads every entry in the
 resulting APKs. It attributes each class, resource, asset, and native library to the Gradle
@@ -26,8 +25,8 @@ Support
 Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
 maintenance for over a year. This fork keeps the Android size analysis workflow alive,
 replaces the multi-module Kotlin/React frontend with a single HTML template (the same
-approach as [Caliper][caliper]), and produces matching `report.html` and `report.json`
-reports. For the iOS equivalent with the same report format, see [Caliper][caliper].
+approach as for the iOS equivalent with the same report format [Caliper][caliper]), and produces matching `report.html` and `report.json`
+reports.
 
 If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
 consider [buying me a coffee](https://buymeacoffee.com/kibotu).
