@@ -16,14 +16,14 @@ class HtmlReporterTest {
     private val reporter = HtmlReporter()
 
     private fun createTestReport() = AppReport(
-        name = "com.spotify.music",
+        name = "com.kibotu.ruler.sample",
         version = "1.2.3",
         variant = "release",
         downloadSize = 2900,
         installSize = 4800,
         components = listOf(
             AppComponent(":app", ComponentType.INTERNAL, 250, 450, listOf(
-                AppFile("com.spotify.MainActivity", FileType.CLASS, 100, 200),
+                AppFile("com.kibotu.sample.MainActivity", FileType.CLASS, 100, 200),
                 AppFile("/res/layout/main.xml", FileType.RESOURCE, 150, 250, resourceType = ResourceType.LAYOUT),
             ), "app-team"),
             AppComponent("com.ext:lib", ComponentType.EXTERNAL, 300, 500, listOf(
@@ -79,7 +79,7 @@ class HtmlReporterTest {
 
         assertThat(content).contains("ruler-report")
         assertThat(content).contains("ruler-insights")
-        assertThat(content).contains("com.spotify.music")
+        assertThat(content).contains("com.kibotu.ruler.sample")
     }
 
     @Test

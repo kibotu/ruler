@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ruler"
+rootProject.name = "ruler-overhaul"
 
 include(":ruler")
 include(":sample:app")

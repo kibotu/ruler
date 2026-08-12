@@ -10,7 +10,7 @@ data class RulerConfig(
     val ownershipFile: File?,
     val staticDependenciesFile: File?,
     val appInfo: AppInfo,
-    val deviceSpec: DeviceSpec?,
+    val deviceSpec: DeviceSpec,
     val defaultOwner: String,
     val omitFileBreakdown: Boolean,
     val verificationConfig: VerificationConfig,

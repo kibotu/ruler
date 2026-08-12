@@ -1,5 +1,5 @@
 {
-  "name": "com.spotify.music",
+  "name": "com.kibotu.ruler.sample",
   "version": "1.2.3",
   "variant": "release",
   "downloadSize": 2900,
@@ -37,7 +37,7 @@
           "resourceType": "LAYOUT"
         },
         {
-          "name": "com.spotify.MainActivity",
+          "name": "com.kibotu.sample.MainActivity",
           "type": "CLASS",
           "downloadSize": 100,
           "installSize": 200,
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "name": "com.spotify:sample:1.0.0",
+      "name": "com.kibotu.sample:sample:1.0.0",
       "type": "EXTERNAL",
       "downloadSize": 100,
       "installSize": 200,
@@ -86,7 +86,7 @@
       "owner": "search-team",
       "files": [
         {
-          "name": "com.spotify.SearchFragment",
+          "name": "com.kibotu.sample.SearchFragment",
           "type": "CLASS",
           "downloadSize": 200,
           "installSize": 400,
@@ -150,7 +150,7 @@
       "owner": "logging-team",
       "files": [
         {
-          "name": "com.spotify.Logger",
+          "name": "com.kibotu.sample.Logger",
           "type": "CLASS",
           "downloadSize": 200,
           "installSize": 700,
@@ -183,7 +183,7 @@
       "owner": "core-team",
       "files": [
         {
-          "name": "com.spotify.Core",
+          "name": "com.kibotu.sample.Core",
           "type": "CLASS",
           "downloadSize": 200,
           "installSize": 350,
@@ -199,7 +199,7 @@
       "owner": "performance-team",
       "files": [
         {
-          "name": "com.spotify.Benchmark",
+          "name": "com.kibotu.sample.Benchmark",
           "type": "CLASS",
           "downloadSize": 100,
           "installSize": 200,
@@ -215,7 +215,7 @@
       "owner": "playback-team",
       "files": [
         {
-          "name": "com.spotify.Playback",
+          "name": "com.kibotu.sample.Playback",
           "type": "CLASS",
           "downloadSize": 200,
           "installSize": 350,
@@ -232,7 +232,7 @@
       "owner": "dynamic-team",
       "files": [
         {
-          "name": "com.spotify.DynamicActivity",
+          "name": "com.kibotu.sample.DynamicActivity",
           "type": "CLASS",
           "downloadSize": 300,
           "installSize": 500,

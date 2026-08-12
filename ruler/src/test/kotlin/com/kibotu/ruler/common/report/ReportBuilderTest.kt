@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test
 class ReportBuilderTest {
     private val builder = ReportBuilder()
 
-    private val appInfo = AppInfo("release", "com.spotify.music", "1.2.3")
+    private val appInfo = AppInfo("release", "com.kibotu.ruler.sample", "1.2.3")
     private val components = mapOf(
         DependencyComponent(":app", ComponentType.INTERNAL) to listOf(
-            AppFile("com.spotify.MainActivity", FileType.CLASS, 100, 200),
+            AppFile("com.kibotu.sample.MainActivity", FileType.CLASS, 100, 200),
             AppFile("/res/layout/activity_main.xml", FileType.RESOURCE, 150, 250, resourceType = ResourceType.LAYOUT),
         ),
         DependencyComponent(":lib", ComponentType.INTERNAL) to listOf(
@@ -26,7 +26,7 @@ class ReportBuilderTest {
     )
     private val features = mapOf(
         "dynamic" to listOf(
-            AppFile("com.spotify.DynamicActivity", FileType.CLASS, 200, 300),
+            AppFile("com.kibotu.sample.DynamicActivity", FileType.CLASS, 200, 300),
             AppFile("/res/layout/activity_dynamic.xml", FileType.RESOURCE, 100, 250, resourceType = ResourceType.LAYOUT),
         ),
     )
@@ -37,7 +37,7 @@ class ReportBuilderTest {
     fun `report is built correctly with ownership`() {
         val report = builder.build(appInfo, components, features, ownershipInfo, omitFileBreakdown = false)
 
-        assertThat(report.name).isEqualTo("com.spotify.music")
+        assertThat(report.name).isEqualTo("com.kibotu.ruler.sample")
         assertThat(report.version).isEqualTo("1.2.3")
         assertThat(report.variant).isEqualTo("release")
         assertThat(report.downloadSize).isEqualTo(750L)
@@ -56,7 +56,7 @@ class ReportBuilderTest {
         // Files within :app are sorted descending
         val appFiles = report.components[1].files!!
         assertThat(appFiles[0].name).isEqualTo("/res/layout/activity_main.xml")
-        assertThat(appFiles[1].name).isEqualTo("com.spotify.MainActivity")
+        assertThat(appFiles[1].name).isEqualTo("com.kibotu.sample.MainActivity")
 
         // Dynamic feature ownership
         assertThat(report.dynamicFeatures[0].owner).isEqualTo("dynamic-team")

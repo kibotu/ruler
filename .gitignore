@@ -33,6 +33,7 @@ render.experimental.xml
 # Keystore files
 *.jks
 *.keystore
+!ruler/src/main/resources/rulerDebug.keystore
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

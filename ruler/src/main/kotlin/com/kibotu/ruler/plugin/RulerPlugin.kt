@@ -54,6 +54,7 @@ class RulerPlugin : Plugin<Project> {
                     task.staticDependenciesFile.set(rulerExtension.staticDependenciesFile)
                     task.omitFileBreakdown.set(rulerExtension.omitFileBreakdown)
                     task.unstrippedNativeFiles.set(rulerExtension.unstrippedNativeFiles)
+                    task.bloatyPath.set(rulerExtension.bloatyPath)
 
                     task.verificationConfig.set(getVerificationConfig(rulerVerificationExtension))
 

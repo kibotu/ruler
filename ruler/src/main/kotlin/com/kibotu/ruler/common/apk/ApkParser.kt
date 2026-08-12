@@ -14,7 +14,6 @@ class ApkParser(
 
     /** Parses and returns the list of entries contained in the given [apkFile]. */
     fun parse(apkFile: File) : List<ApkEntry> {
-        println(unstrippedNativeLibraryPaths.map { it.path }.joinToString { ", " })
         val sizeCalculator = ApkSizeCalculator.getDefault()
         val downloadSizePerFile = sizeCalculator.getDownloadSizePerFile(apkFile.toPath())
         val installSizePerFile = sizeCalculator.getInfoPerFile(apkFile.toPath())
@@ -77,10 +76,8 @@ class ApkParser(
     /** Get the file containing the Unstripped file names to properly parse the native library. */
     private fun debugFileForNativeLibrary(entryName: String): File? {
         val entryFileName = File(entryName).nameWithoutExtension
-        val result = unstrippedNativeLibraryPaths.find {
+        return unstrippedNativeLibraryPaths.find {
             it.name.contains(entryFileName)
         }
-        println("Looking for unstripped file for $entryName. Matched: $result")
-        return result
     }
 }

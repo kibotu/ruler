@@ -18,6 +18,7 @@ open class RulerExtension(objects: ObjectFactory) {
 
     val omitFileBreakdown: Property<Boolean> = objects.property(Boolean::class.java)
     val unstrippedNativeFiles: ListProperty<RegularFile> = objects.listProperty(RegularFile::class.java)
+    val bloatyPath: Property<String> = objects.property(String::class.java)
 
     init {
         defaultOwner.convention("")

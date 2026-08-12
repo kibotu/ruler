@@ -48,7 +48,6 @@ dependencies {
     compileOnly(Dependencies.ANDROID_TOOLS_SDKLIB)
     compileOnly(Dependencies.DEXLIB)
 
-    // These will be included in the fat JAR
     implementation(Dependencies.APK_ANALYZER) {
         exclude(group = "com.android.tools.lint")
     }
@@ -87,7 +86,6 @@ tasks.withType<Test> {
     )
     testLogging {
         events("passed", "skipped", "failed")
-        showStandardStreams = false
     }
 }
 
@@ -102,34 +100,23 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     }
 }
 
-// Configure Shadow plugin to create fat JAR
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     archiveClassifier.set("")
-
-    // Relocate packages to avoid conflicts
     relocate("kotlinx.serialization", "com.kibotu.ruler.shadow.kotlinx.serialization")
     relocate("org.yaml.snakeyaml", "com.kibotu.ruler.shadow.org.yaml.snakeyaml")
-
-    // Exclude unnecessary files
     exclude("META-INF/maven/**")
     exclude("META-INF/*.SF")
     exclude("META-INF/*.DSA")
     exclude("META-INF/*.RSA")
-
-    // Keep the plugin descriptor
     mergeServiceFiles()
-
-    // Ensure dependencies are included
     configurations = listOf(project.configurations.runtimeClasspath.get())
 }
 
-// Replace the default JAR with the shadow JAR
 tasks.named("jar") {
     dependsOn("shadowJar")
     enabled = false
 }
 
-// Ensure shadowJar runs before assemble
 tasks.named("assemble") {
     dependsOn("shadowJar")
 }

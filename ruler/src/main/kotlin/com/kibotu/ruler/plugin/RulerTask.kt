@@ -83,6 +83,10 @@ abstract class RulerTask : DefaultTask() {
     abstract val unstrippedNativeFiles: ListProperty<RegularFile>
 
     @get:Optional
+    @get:Input
+    abstract val bloatyPath: Property<String>
+
+    @get:Optional
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val staticDependenciesFile: RegularFileProperty
@@ -114,6 +118,7 @@ abstract class RulerTask : DefaultTask() {
             it.defaultOwner.set(defaultOwner)
             it.omitFileBreakdown.set(omitFileBreakdown)
             it.unstrippedNativeFiles.set(unstrippedNativeFiles)
+            it.bloatyPath.set(bloatyPath)
             it.staticDependenciesFile.set(staticDependenciesFile)
             it.verificationConfig.set(verificationConfig)
             it.workingDir.set(workingDir)
@@ -134,6 +139,7 @@ abstract class RulerTask : DefaultTask() {
         abstract val defaultOwner: Property<String>
         abstract val omitFileBreakdown: Property<Boolean>
         abstract val unstrippedNativeFiles: ListProperty<RegularFile>
+        abstract val bloatyPath: Property<String>
         abstract val staticDependenciesFile: RegularFileProperty
         abstract val verificationConfig: Property<VerificationConfig>
         abstract val workingDir: DirectoryProperty
@@ -176,7 +182,7 @@ abstract class RulerTask : DefaultTask() {
             it.asFile
         }
 
-        override fun provideBloatyPath() = null
+        override fun provideBloatyPath(): String? = parameters.bloatyPath.orNull
 
         private fun createApkFile(): Map<String, List<File>> {
             val apkCreator = ApkCreator(parameters.sdkDirectory.asFile.get())

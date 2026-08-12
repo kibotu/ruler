@@ -6,9 +6,4 @@ interface Measurable {
     val installSize: Long
 
     enum class SizeType { DOWNLOAD, INSTALL }
-
-    fun getSize(sizeType: SizeType) = when (sizeType) {
-        SizeType.DOWNLOAD -> downloadSize
-        SizeType.INSTALL -> installSize
-    }
 }

@@ -1,5 +1,6 @@
 package com.kibotu.ruler.common
 
+import com.kibotu.ruler.common.apk.ApkCreator.Companion.BASE_FEATURE_NAME
 import com.kibotu.ruler.common.apk.ApkParser
 import com.kibotu.ruler.common.apk.ApkSanitizer
 import com.kibotu.ruler.common.attribution.Attributor
@@ -21,8 +22,6 @@ import com.kibotu.ruler.models.ComponentType
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
-
-const val FEATURE_NAME = "base"
 
 /** Fallback component for Kotlin stdlib classes not present in the dependency graph. */
 private const val KOTLIN_STDLIB_COMPONENT = "kotlin"
@@ -58,8 +57,8 @@ interface BaseRulerTask {
                 DependencyComponent(KOTLIN_STDLIB_COMPONENT, ComponentType.INTERNAL),
             ),
         )
-        val mainFiles = files.getValue(FEATURE_NAME)
-        val featureFiles = files.filter { (feature, _) -> feature != FEATURE_NAME }
+        val mainFiles = files.getValue(BASE_FEATURE_NAME)
+        val featureFiles = files.filter { (feature, _) -> feature != BASE_FEATURE_NAME }
 
         val defaultComponent = dependencies.values.flatten()
             .firstOrNull { it.name == rulerConfig.projectPath }

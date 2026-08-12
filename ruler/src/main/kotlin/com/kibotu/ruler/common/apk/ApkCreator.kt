@@ -163,7 +163,7 @@ fun unzipFile(zipFile: File, destDirectory: Path) {
     zipInputStream.closeEntry()
     zipInputStream.close()
 
-    println("File successfully unzipped to $destDirectory")
+    logger.log(Level.INFO, "Unzipped to $destDirectory")
 }
 
 fun parseSplitApkDirectory(targetDir: File): Map<String, List<File>> {

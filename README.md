@@ -134,6 +134,16 @@ plugins {
 ```bash
 cd ruler-overhaul
 ./gradlew :ruler:publishToMavenLocal
+./gradlew :ruler:test
+./gradlew :sample:app:check
+```
+
+The sample app resolves the plugin from `mavenLocal` after publishing. Re-run `publishToMavenLocal` when you change plugin code.
+
+To use the published artifact in another project:
+
+```bash
+./gradlew :ruler:publishToMavenLocal
 ```
 
 Then in your project:
@@ -178,6 +188,7 @@ ruler {
     unstrippedNativeFiles.set(listOf(
         project.layout.projectDirectory.file("libs/arm64-v8a/libfoo.so")
     ))
+    bloatyPath.set("/usr/local/bin/bloaty") // Optional: path to Bloaty CLI
 
     // Optional: size verification thresholds
     verification {
@@ -200,6 +211,7 @@ ruler {
 | `staticDependenciesFile` | `RegularFileProperty` | No | `null` | Path to static dependency overrides JSON |
 | `omitFileBreakdown` | `Property<Boolean>` | No | `false` | Omit per-file lists from report |
 | `unstrippedNativeFiles` | `ListProperty<RegularFile>` | No | `[]` | Unstripped `.so` files for Bloaty |
+| `bloatyPath` | `Property<String>` | No | unset | Path to the Bloaty CLI binary |
 | `verification.downloadSizeThreshold` | `Property<Long>` | No | `Long.MAX_VALUE` | Max download size in bytes |
 | `verification.installSizeThreshold` | `Property<Long>` | No | `Long.MAX_VALUE` | Max install size in bytes |
 
@@ -458,8 +470,8 @@ graph TD
 
 ## Requirements
 
-- **Gradle** 8.x+
-- **Android Gradle Plugin** 8.x+
+- **Gradle** 9.x+
+- **Android Gradle Plugin** 9.x+
 - **JVM** 17+ (for running Gradle)
 - **Android SDK** with build-tools installed
 
@@ -477,14 +489,17 @@ cd ruler/ruler-overhaul
 # Run tests
 ./gradlew :ruler:test
 
+# Run sample end-to-end check (analyze + verify)
+./gradlew :sample:app:check
+
 # Preview HTML report from fixture JSON (no Android build required)
 ./gradlew :ruler:previewReport
 ./gradlew :ruler:previewReport -Pjson=path/to/report.json
 
-# Publish to mavenLocal for local testing
+# Publish to mavenLocal for use in external projects
 ./gradlew :ruler:publishToMavenLocal
 
-# Build sample app (after publishing to mavenLocal)
+# Build sample APK only
 ./gradlew :sample:app:assembleDebug
 ```
 
