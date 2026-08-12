@@ -20,6 +20,17 @@ Wrote JSON report to file:///.../app/build/reports/ruler/release/report.json
 Wrote HTML report to file:///.../app/build/reports/ruler/release/report.html
 ```
 
+Support
+-------
+
+Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
+maintenance for over a year. This fork keeps the Android size analysis workflow alive,
+replaces the multi-module Kotlin/React frontend with a single HTML template (the same
+approach as [Caliper][caliper]), and produces matching `report.html` and `report.json`
+reports. For the iOS equivalent with the same report format, see [Caliper][caliper].
+
+If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
+consider [buying me a coffee](https://buymeacoffee.com/kibotu).
 
 Features
 --------
@@ -270,20 +281,6 @@ To view the HTML report without an Android build:
 ./gradlew :ruler:previewReport
 ./gradlew :ruler:previewReport -Pjson=path/to/report.json
 ```
-
-
-Support
--------
-
-Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
-maintenance for over a year. This fork keeps the Android size analysis workflow alive,
-replaces the multi-module Kotlin/React frontend with a single HTML template (the same
-approach as [Caliper][caliper]), and produces matching `report.html` and `report.json`
-reports. For the iOS equivalent with the same report format, see [Caliper][caliper].
-
-If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
-consider [buying me a coffee](https://buymeacoffee.com/kibotu).
-
 
 License
 -------
