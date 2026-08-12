@@ -1,92 +1,17 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.time.Duration
 
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath(Dependencies.SHADOW_GRADLE_PLUGIN)
-        classpath(Dependencies.PLUGIN_PUBLISH_GRADLE_PLUGIN)
-        classpath(Dependencies.ANDROID_GRADLE_PLUGIN)
-    }
-}
-
 plugins {
-    id("org.jetbrains.kotlin.jvm")
-    id("org.jetbrains.kotlin.plugin.serialization")
-    id("java-gradle-plugin")
-    id("maven-publish")
-    id("signing")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.pluginPublish)
+    `java-gradle-plugin`
+    signing
 }
 
-gradlePlugin {
-    website.set("https://github.com/kibotu/ruler")
-    vcsUrl.set("https://github.com/kibotu/ruler.git")
-
-    plugins {
-        create("rulerPlugin") {
-            id = "net.kibotu.ruler"
-            displayName = "Ruler - Android App Size Analyzer"
-            description = "Gradle plugin for analyzing the size of your Android apps"
-            tags.set(listOf("android", "apk", "size", "analysis", "bundle"))
-            implementationClass = "com.kibotu.ruler.plugin.RulerPlugin"
-        }
-    }
-}
-
-apply(plugin = "com.gradle.plugin-publish")
-apply(plugin = "com.gradleup.shadow")
-
-dependencies {
-    compileOnly(gradleApi())
-    compileOnly(Dependencies.ANDROID_GRADLE_PLUGIN)
-    compileOnly(Dependencies.BUNDLETOOL)
-    compileOnly(Dependencies.PROTOBUF_CORE)
-    compileOnly(Dependencies.ANDROID_TOOLS_COMMON)
-    compileOnly(Dependencies.ANDROID_TOOLS_SDKLIB)
-    compileOnly(Dependencies.DEXLIB)
-
-    implementation(Dependencies.APK_ANALYZER) {
-        exclude(group = "com.android.tools.lint")
-    }
-    implementation(Dependencies.KOTLINX_SERIALIZATION_JSON)
-    implementation(Dependencies.SNAKE_YAML)
-
-    testRuntimeOnly(Dependencies.JUNIT_ENGINE)
-    testRuntimeOnly(Dependencies.JUNIT_PLATFORM_LAUNCHER)
-    testImplementation(gradleTestKit())
-    testImplementation(Dependencies.JUNIT_API)
-    testImplementation(Dependencies.JUNIT_PARAMS)
-    testImplementation(Dependencies.GOOGLE_TRUTH)
-    testImplementation(Dependencies.ANDROID_GRADLE_PLUGIN)
-}
-
-tasks.register<JavaExec>("previewReport") {
-    group = "ruler"
-    description = "Generate an HTML preview from report.json (defaults to the test fixture)"
-    classpath(sourceSets["main"].runtimeClasspath)
-    mainClass.set("com.kibotu.ruler.common.report.PreviewReportKt")
-    if (project.hasProperty("json")) {
-        args(project.property("json").toString())
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-    timeout.set(Duration.ofMinutes(10))
-    jvmArgs("-Xmx2g")
-    dependsOn(tasks.pluginUnderTestMetadata)
-    systemProperty(
-        "pluginClasspath",
-        provider {
-            tasks.pluginUnderTestMetadata.get().pluginClasspath.joinToString(File.pathSeparator) { it.absolutePath }
-        },
-    )
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
+kotlin {
+    jvmToolchain(17)
 }
 
 java {
@@ -94,14 +19,59 @@ java {
     withJavadocJar()
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-        freeCompilerArgs.add("-Xskip-metadata-version-check")
+gradlePlugin {
+    website = "https://github.com/kibotu/ruler"
+    vcsUrl = "https://github.com/kibotu/ruler.git"
+
+    plugins {
+        create("ruler") {
+            id = "net.kibotu.ruler"
+            displayName = "Ruler"
+            description = "Measures the size of your Android app, file by file."
+            tags = listOf("android", "apk", "aab", "size", "analysis")
+            implementationClass = "com.kibotu.ruler.plugin.RulerPlugin"
+        }
     }
 }
 
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
+// TestKit injects a single classpath into the build under test. AGP has to travel with the
+// plugin, so that both land in the same classloader and Ruler can see the Android variant API.
+// AGP 9 builds Kotlin itself, so the Kotlin plugin and its daemon come along too.
+val functionalTestClasspath: Configuration by configurations.creating
+
+dependencies {
+    functionalTestClasspath(libs.android.gradlePlugin)
+    functionalTestClasspath(libs.kotlin.gradlePlugin)
+    functionalTestClasspath(libs.kotlin.daemonClient)
+    functionalTestClasspath(libs.kotlin.daemonEmbeddable)
+
+    compileOnly(gradleApi())
+    compileOnly(libs.android.gradlePlugin)
+    compileOnly(libs.bundletool)
+    compileOnly(libs.protobuf)
+    compileOnly(libs.android.tools.common)
+    compileOnly(libs.android.tools.sdklib)
+    compileOnly(libs.dexlib)
+
+    implementation(libs.android.tools.apkanalyzer) {
+        exclude(group = "com.android.tools.lint")
+    }
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.snakeyaml)
+
+    testImplementation(gradleTestKit())
+    testImplementation(libs.junit.api)
+    testImplementation(libs.junit.params)
+    testImplementation(libs.truth)
+    testImplementation(libs.android.gradlePlugin)
+    testRuntimeOnly(libs.junit.engine)
+    testRuntimeOnly(libs.junit.platformLauncher)
+}
+
+// Relocate the runtime dependencies. Gradle plugins share a classpath, so an
+// unshaded snakeyaml or kotlinx-serialization would collide with other plugins.
+val shadowJar = tasks.named<ShadowJar>("shadowJar") {
+    archiveClassifier = ""
     relocate("kotlinx.serialization", "com.kibotu.ruler.shadow.kotlinx.serialization")
     relocate("org.yaml.snakeyaml", "com.kibotu.ruler.shadow.org.yaml.snakeyaml")
     exclude("META-INF/maven/**")
@@ -112,32 +82,91 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
     configurations = listOf(project.configurations.runtimeClasspath.get())
 }
 
-tasks.named("jar") {
-    dependsOn("shadowJar")
-    enabled = false
+// Hand the relocated jar to every consumer, including project dependencies from
+// the sample's composite build. Disabling the `jar` task instead would leave the
+// outgoing artifact pointing at a file that is never produced.
+tasks.named<Jar>("jar") {
+    archiveClassifier = "plain"
 }
 
-tasks.named("assemble") {
-    dependsOn("shadowJar")
+listOf("apiElements", "runtimeElements").forEach { name ->
+    configurations.named(name) {
+        outgoing.artifacts.clear()
+        outgoing.artifact(shadowJar)
+    }
+}
+
+// Apache 2.0 requires the license and the attribution notice to travel with the artifact.
+tasks.withType<Jar>().configureEach {
+    from(rootDir) {
+        include("LICENSE", "NOTICE")
+        into("META-INF")
+    }
+}
+
+tasks.register<JavaExec>("previewReport") {
+    group = "ruler"
+    description = "Renders report.html from a report.json (defaults to the test fixture)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass = "com.kibotu.ruler.report.PreviewReportKt"
+    if (project.hasProperty("json")) {
+        args(project.property("json").toString())
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    timeout = Duration.ofMinutes(10)
+    jvmArgs("-Xmx2g")
+    dependsOn(tasks.pluginUnderTestMetadata)
+    systemProperty(
+        "pluginClasspath",
+        provider {
+            val plugin = tasks.pluginUnderTestMetadata.get().pluginClasspath
+            (plugin + functionalTestClasspath).joinToString(File.pathSeparator) { it.absolutePath }
+        },
+    )
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 publishing {
-    configurePublications(project)
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            named<MavenPublication>("pluginMaven") {
-                artifacts.removeIf { it.classifier == null || it.classifier == "" }
-                artifact(tasks.named("shadowJar")) {
-                    classifier = ""
+    publications.withType<MavenPublication>().configureEach {
+        pom {
+            name = "Ruler"
+            description = "Measures the size of your Android app, file by file."
+            url = "https://github.com/kibotu/ruler"
+            inceptionYear = "2021"
+            licenses {
+                license {
+                    name = "The Apache License, Version 2.0"
+                    url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    distribution = "repo"
                 }
+            }
+            developers {
+                developer {
+                    id = "kibotu"
+                    name = "Jan Rabe"
+                    url = "https://github.com/kibotu"
+                }
+            }
+            scm {
+                url = "https://github.com/kibotu/ruler"
+                connection = "scm:git:https://github.com/kibotu/ruler.git"
+                developerConnection = "scm:git:ssh://git@github.com/kibotu/ruler.git"
             }
         }
     }
 }
 
 signing {
-    configureSigning(publishing.publications)
+    val key = System.getenv("PGP_SIGNING_KEY")
+    val password = System.getenv("PGP_SIGNING_PASSWORD")
+    isRequired = key != null && password != null
+    if (isRequired) {
+        useInMemoryPgpKeys(key, password)
+        sign(publishing.publications)
+    }
 }

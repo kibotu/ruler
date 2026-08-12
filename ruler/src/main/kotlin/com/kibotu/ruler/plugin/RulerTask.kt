@@ -1,15 +1,12 @@
 package com.kibotu.ruler.plugin
 
-import com.kibotu.ruler.common.BaseRulerTask
-import com.kibotu.ruler.common.apk.ApkCreator
-import com.kibotu.ruler.common.dependency.DependencyComponent
-import com.kibotu.ruler.common.dependency.DependencyEntry
-import com.kibotu.ruler.common.dependency.DependencySanitizer
-import com.kibotu.ruler.common.models.AppInfo
-import com.kibotu.ruler.common.models.DeviceSpec
-import com.kibotu.ruler.common.models.RulerConfig
-import com.kibotu.ruler.common.sanitizer.ClassNameSanitizer
-import com.kibotu.ruler.common.verification.VerificationConfig
+import com.kibotu.ruler.analysis.AppInfo
+import com.kibotu.ruler.analysis.DeviceSpec
+import com.kibotu.ruler.analysis.RulerConfig
+import com.kibotu.ruler.analysis.SizeAnalysis
+import com.kibotu.ruler.analysis.apk.ApkCreator
+import com.kibotu.ruler.analysis.dependency.DependencyEntry
+import com.kibotu.ruler.analysis.verification.VerificationConfig
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
@@ -22,17 +19,14 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.workers.WorkAction
-import org.gradle.workers.WorkParameters
-import org.gradle.workers.WorkerExecutor
 import java.io.File
-import javax.inject.Inject
 
+/** Measures one application variant and writes its reports. */
 @CacheableTask
 abstract class RulerTask : DefaultTask() {
 
@@ -100,103 +94,36 @@ abstract class RulerTask : DefaultTask() {
     @get:OutputDirectory
     abstract val reportDir: DirectoryProperty
 
-    @get:Inject
-    abstract val workerExecutor: WorkerExecutor
-
     @TaskAction
     fun analyze() {
-        workerExecutor.noIsolation().submit(RulerTaskAction::class.java) {
-            it.dependencyEntries.set(dependencyEntries)
-            it.projectPath.set(projectPath)
-            it.sdkDirectory.set(sdkDirectory)
-            it.appInfo.set(appInfo)
-            it.deviceSpec.set(deviceSpec)
-            it.bundleFile.set(bundleFile)
-            it.mappingFile.set(mappingFile)
-            it.resourceMappingFile.set(resourceMappingFile)
-            it.ownershipFile.set(ownershipFile)
-            it.defaultOwner.set(defaultOwner)
-            it.omitFileBreakdown.set(omitFileBreakdown)
-            it.unstrippedNativeFiles.set(unstrippedNativeFiles)
-            it.bloatyPath.set(bloatyPath)
-            it.staticDependenciesFile.set(staticDependenciesFile)
-            it.verificationConfig.set(verificationConfig)
-            it.workingDir.set(workingDir)
-            it.reportDir.set(reportDir)
-        }
+        SizeAnalysis(
+            config = RulerConfig(
+                projectPath = projectPath.get(),
+                apkFilesMap = splitApks(),
+                reportDir = reportDir.asFile.get(),
+                ownershipFile = ownershipFile.asFile.orNull,
+                staticDependenciesFile = staticDependenciesFile.asFile.orNull,
+                appInfo = appInfo.get(),
+                defaultOwner = defaultOwner.get(),
+                omitFileBreakdown = omitFileBreakdown.get(),
+                verificationConfig = verificationConfig.get(),
+            ),
+            dependencyEntries = dependencyEntries.get().values.flatten(),
+            mappingFile = mappingFile.asFile.orNull,
+            resourceMappingFile = resourceMappingFile.asFile.orNull,
+            unstrippedNativeFiles = unstrippedNativeFiles.get().map(RegularFile::getAsFile),
+            bloatyPath = bloatyPath.orNull,
+            log = logger::lifecycle,
+        ).run()
     }
 
-    abstract class Params : WorkParameters {
-        abstract val dependencyEntries: MapProperty<String, List<DependencyEntry>>
-        abstract val projectPath: Property<String>
-        abstract val sdkDirectory: DirectoryProperty
-        abstract val appInfo: Property<AppInfo>
-        abstract val deviceSpec: Property<DeviceSpec>
-        abstract val bundleFile: RegularFileProperty
-        abstract val mappingFile: RegularFileProperty
-        abstract val resourceMappingFile: RegularFileProperty
-        abstract val ownershipFile: RegularFileProperty
-        abstract val defaultOwner: Property<String>
-        abstract val omitFileBreakdown: Property<Boolean>
-        abstract val unstrippedNativeFiles: ListProperty<RegularFile>
-        abstract val bloatyPath: Property<String>
-        abstract val staticDependenciesFile: RegularFileProperty
-        abstract val verificationConfig: Property<VerificationConfig>
-        abstract val workingDir: DirectoryProperty
-        abstract val reportDir: DirectoryProperty
-    }
-
-    abstract class RulerTaskAction : WorkAction<Params>, BaseRulerTask {
-
-        override fun execute() {
-            run()
+    /** Splits the bundle for the target device. An APK handed in directly is used as-is. */
+    private fun splitApks(): Map<String, List<File>> {
+        val bundle = bundleFile.asFile.get()
+        if (bundle.extension == "apk") {
+            return mapOf(ApkCreator.BASE_FEATURE_NAME to listOf(bundle))
         }
-
-        private val config by lazy {
-            RulerConfig(
-                projectPath = parameters.projectPath.get(),
-                apkFilesMap = createApkFile(),
-                reportDir = parameters.reportDir.asFile.get(),
-                ownershipFile = parameters.ownershipFile.asFile.orNull,
-                staticDependenciesFile = parameters.staticDependenciesFile.asFile.orNull,
-                appInfo = parameters.appInfo.get(),
-                deviceSpec = parameters.deviceSpec.get(),
-                defaultOwner = parameters.defaultOwner.get(),
-                omitFileBreakdown = parameters.omitFileBreakdown.get(),
-                verificationConfig = parameters.verificationConfig.get(),
-            )
-        }
-
-        override fun rulerConfig(): RulerConfig = config
-
-        override fun provideDependencies(): Map<String, List<DependencyComponent>> {
-            val classNameSanitizer = ClassNameSanitizer(provideMappingFile())
-            val dependencySanitizer = DependencySanitizer(classNameSanitizer)
-            return dependencySanitizer.sanitize(parameters.dependencyEntries.get().values.flatten())
-        }
-
-        override fun print(content: String) = println(content)
-        override fun provideMappingFile(): File? = parameters.mappingFile.asFile.orNull
-        override fun provideResourceMappingFile(): File? = parameters.resourceMappingFile.asFile.orNull
-        override fun provideUnstrippedLibraryFiles(): List<File> = parameters.unstrippedNativeFiles.get().map {
-            it.asFile
-        }
-
-        override fun provideBloatyPath(): String? = parameters.bloatyPath.orNull
-
-        private fun createApkFile(): Map<String, List<File>> {
-            val apkCreator = ApkCreator(parameters.sdkDirectory.asFile.get())
-
-            val apkFile = parameters.bundleFile.asFile.get()
-            return if (apkFile.extension == "apk") {
-                mapOf(ApkCreator.BASE_FEATURE_NAME to listOf(apkFile))
-            } else {
-                apkCreator.createSplitApks(
-                    apkFile,
-                    parameters.deviceSpec.get(),
-                    parameters.workingDir.asFile.get(),
-                )
-            }
-        }
+        return ApkCreator(sdkDirectory.asFile.get())
+            .createSplitApks(bundle, deviceSpec.get(), workingDir.asFile.get())
     }
 }

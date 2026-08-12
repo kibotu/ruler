@@ -9,20 +9,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
 
-      - name: Publish plugin locally
-        run: ./gradlew :ruler:publishToMavenLocal
+      - uses: gradle/actions/setup-gradle@v4
 
-      - name: Run tests and sample check
-        run: ./gradlew :ruler:test :sample:app:check --stacktrace
+      - name: Test the plugin
+        run: ./gradlew :ruler:build --stacktrace
+
+      - name: Analyze the sample app
+        run: ./gradlew -p sample check --stacktrace
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            ruler/build/reports/
+            sample/*/build/reports/

@@ -1,9 +1,12 @@
-- identifier: :sample:app
+- identifier: :app
   owner: app-team
 
-- identifier: :sample:lib
+- identifier: :lib
   owner: lib-team
 
 - identifier: androidx.constraintlayout:constraintlayout
   owner: google
   internal: true
+
+- identifier: "androidx.*"
+  owner: android-team

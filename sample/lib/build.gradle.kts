@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 android {
@@ -14,7 +14,7 @@ android {
 }
 
 dependencies {
-    implementation(Dependencies.CONSTRAINTLAYOUT)
+    implementation(libs.androidx.constraintlayout)
 }
 
 kotlin {

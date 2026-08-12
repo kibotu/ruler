@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application")
+    alias(libs.plugins.android.application)
     id("net.kibotu.ruler")
 }
 
@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":sample:lib"))
+    implementation(project(":lib"))
 }
 
 ruler {

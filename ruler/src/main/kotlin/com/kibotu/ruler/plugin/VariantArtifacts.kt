@@ -5,83 +5,78 @@ import com.android.build.api.variant.ApplicationVariant
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
+import java.io.File
 
 /**
- * Returns the bundle file that's going to be analyzed. DexGuard produces a separate bundle instead of overriding
- * the default one, so we have to handle that separately.
+ * Third-party obfuscators write their bundle and mapping files to their own directories, instead
+ * of replacing the standard ones.
  */
-internal fun Project.getBundleFile(
-    variant: ApplicationVariant
-): Provider<RegularFile> {
-    val defaultBundleFile = variant.artifacts.get(SingleArtifact.BUNDLE)
-    if (!hasDexGuard(project)) {
-        return defaultBundleFile
+internal enum class Obfuscator(val pluginId: String) {
+    DEXGUARD("dexguard"),
+    PROGUARD("com.guardsquare.proguard"),
+    ;
+
+    /** Path of the mapping file, relative to the build directory. */
+    fun mappingPath(variant: String): String = when (this) {
+        DEXGUARD -> "outputs/dexguard/mapping/bundle/$variant/mapping.txt"
+        PROGUARD -> "outputs/proguard/$variant/mapping/mapping.txt"
     }
 
-    return defaultBundleFile.flatMap { bundle ->
-        val dexGuardBundle =
-            bundle.asFile.parentFile.resolve("${bundle.asFile.nameWithoutExtension}-protected.aab")
-        if (dexGuardBundle.exists()) {
-            project.layout.buildDirectory.file(dexGuardBundle.absolutePath)
-        } else {
-            defaultBundleFile
-        }
-    }
-}
-
-/**
- * Returns the mapping file used for de-obfuscation. Different obfuscation tools like DexGuard and ProGuard place
- * their mapping files in different directories, so we have to handle those separately.
- */
-internal fun Project.getMappingFile(
-    variant: ApplicationVariant
-): Provider<RegularFile> {
-    val defaultMappingFile = variant.artifacts.get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
-    val mappingFilePath = when {
-        hasDexGuard(project) -> "outputs/dexguard/mapping/bundle/${variant.name}/mapping.txt"
-        hasProGuard(project) -> "outputs/proguard/${variant.name}/mapping/mapping.txt"
-        else -> return defaultMappingFile
+    /** Path of the resource name mapping file, or null when the obfuscator has none. */
+    fun resourceMappingPath(variant: String): String? = when (this) {
+        DEXGUARD -> "outputs/dexguard/mapping/bundle/$variant/resourcefilenamemapping.txt"
+        PROGUARD -> null
     }
 
-    val mappingFileProvider = project.layout.buildDirectory.file(mappingFilePath)
-    return mappingFileProvider.flatMap { mappingFile ->
-        if (mappingFile.asFile.exists()) {
-            mappingFileProvider
-        } else {
-            defaultMappingFile
-        }
+    /** The separate bundle that the obfuscator writes, or null when it replaces the standard one. */
+    fun protectedBundle(bundle: File): File? = when (this) {
+        DEXGUARD -> bundle.parentFile.resolve("${bundle.nameWithoutExtension}-protected.aab")
+        PROGUARD -> null
+    }
+
+    companion object {
+        fun of(project: Project): Obfuscator? =
+            entries.firstOrNull { project.pluginManager.hasPlugin(it.pluginId) }
     }
 }
 
 /**
- * Returns a mapping file to de-obfuscate resource names. DexGuard supports this feature by default, so we need to
- * handle it accordingly.
+ * The bundle to analyze.
+ *
+ * The obfuscator has not run at configuration time, so its output may appear later. Every lookup
+ * below therefore resolves lazily and falls back when the file never appears.
  */
-internal fun Project.getResourceMappingFile(
-    variant: ApplicationVariant
-): Provider<RegularFile> {
-    val defaultResourceMappingFile = project.objects.fileProperty()
+internal fun Project.getBundleFile(variant: ApplicationVariant): Provider<RegularFile> {
+    val defaultBundle = variant.artifacts.get(SingleArtifact.BUNDLE)
+    val obfuscator = Obfuscator.of(this) ?: return defaultBundle
+    val buildDirectory = layout.buildDirectory
 
-    val resourceMappingFilePath = when {
-        hasDexGuard(project) -> "outputs/dexguard/mapping/bundle/${variant.name}/resourcefilenamemapping.txt"
-        else -> return defaultResourceMappingFile
-    }
-
-    val resourceMappingFileProvider =
-        project.layout.buildDirectory.file(resourceMappingFilePath)
-    return resourceMappingFileProvider.flatMap { resourceMappingFile ->
-        if (resourceMappingFile.asFile.exists()) {
-            resourceMappingFileProvider
+    return defaultBundle.flatMap { bundle ->
+        val protectedBundle = obfuscator.protectedBundle(bundle.asFile)
+        if (protectedBundle?.exists() == true) {
+            buildDirectory.file(protectedBundle.absolutePath)
         } else {
-            defaultResourceMappingFile
+            defaultBundle
         }
     }
 }
 
-private fun hasDexGuard(project: Project): Boolean {
-    return project.pluginManager.hasPlugin("dexguard")
+/** The mapping file that de-obfuscates class names. */
+internal fun Project.getMappingFile(variant: ApplicationVariant): Provider<RegularFile> {
+    val defaultMapping = variant.artifacts.get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
+    val obfuscator = Obfuscator.of(this) ?: return defaultMapping
+
+    val obfuscatorMapping = layout.buildDirectory.file(obfuscator.mappingPath(variant.name))
+    return obfuscatorMapping.flatMap { file ->
+        if (file.asFile.exists()) obfuscatorMapping else defaultMapping
+    }
 }
 
-private fun hasProGuard(project: Project): Boolean {
-    return project.pluginManager.hasPlugin("com.guardsquare.proguard")
+/** The mapping file that de-obfuscates resource names. Only DexGuard writes one. */
+internal fun Project.getResourceMappingFile(variant: ApplicationVariant): Provider<RegularFile> {
+    val none = objects.fileProperty()
+    val path = Obfuscator.of(this)?.resourceMappingPath(variant.name) ?: return none
+
+    val mapping = layout.buildDirectory.file(path)
+    return mapping.flatMap { file -> if (file.asFile.exists()) mapping else none }
 }
