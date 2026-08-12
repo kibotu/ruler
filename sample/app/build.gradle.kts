@@ -52,7 +52,6 @@ ruler {
     sdkVersion.set(36)
 
     ownershipFile.set(project.layout.projectDirectory.file("ownership.yaml"))
-    defaultOwner.set("default-team")
 
     verification {
         downloadSizeThreshold = 20 * 1000 * 1000

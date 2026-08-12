@@ -281,11 +281,19 @@ function fileSize(file,key){return file[key]||0;}
 
 function isInternal(c){return c.type==='INTERNAL';}
 
+// Match Caliper: sentinel/default owners are unowned (no badge; filter via Owned/Unowned chips).
+function isOwned(c){
+  if(!c||!c.owner)return false;
+  var o=String(c.owner).toLowerCase();
+  return o!=='unknown'&&o!=='others'&&o!=='other'&&o!=='unassigned';
+}
+function displayOwner(c){return isOwned(c)?c.owner:null;}
+
 function matchesBreakdownFilters(c){
   var int=isInternal(c);
   if(!breakdownFilters.internal&&int)return false;
   if(!breakdownFilters.external&&!int)return false;
-  var owned=!!c.owner;
+  var owned=isOwned(c);
   if(!breakdownFilters.owned&&owned)return false;
   if(!breakdownFilters.unowned&&!owned)return false;
   return true;
@@ -417,9 +425,10 @@ function renderModuleCard(component,index,prefix,displayLabel){
   var maxRef=breakdown.totalSize||component.installSize||displaySize;
   var files=component.files||[];
   var id=prefix+'-'+index;
+  var owner=displayOwner(component);
   return '<div class="module-card"><div class="module-header" onclick="toggleModule(\''+id+'\')">'+
     '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
-    (component.owner?'<span class="owner-badge">'+esc(component.owner)+'</span>':'')+
+    (owner?'<span class="owner-badge">'+esc(owner)+'</span>':'')+
     (isInternal(component)?'<span class="internal-badge">Internal</span>':'')+'</div>'+
     '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">'+displayLabel+'</span>'+
     '<span class="module-size">'+formatBytes(displaySize)+'</span></div>'+
@@ -637,7 +646,7 @@ document.querySelectorAll('#insightsFilters .filter-chip').forEach(function(chip
 function prepareOwnershipData(sortBy){
   var owners={};
   report.components.filter(matchesOwnershipFilters).forEach(function(c){
-    var o=c.owner||'unassigned';
+    var o=displayOwner(c)||'others';
     if(!owners[o])owners[o]={download:0,install:0,components:0,files:0,list:[]};
     owners[o].download+=c.downloadSize;
     owners[o].install+=c.installSize;

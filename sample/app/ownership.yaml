@@ -1,11 +1,9 @@
-- identifier: com.spotify.ruler.sample.app.MainActivity
-  owner: main-team
-
-- identifier: /res/layout/activity_main.xml
-  owner: main-team
-
-- identifier: /res/layout/test_drawable.xml
-  owner: main-team
+- identifier: :sample:app
+  owner: app-team
 
 - identifier: :sample:lib
   owner: lib-team
+
+- identifier: androidx.*
+  owner: google
+  internal: true
