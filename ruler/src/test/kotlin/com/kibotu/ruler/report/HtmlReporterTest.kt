@@ -83,6 +83,18 @@ class HtmlReporterTest {
     }
 
     @Test
+    fun `ownership chart CSS uses definite column height`(@TempDir targetDir: File) {
+        val content = reporter.write(createTestReport(), ReportInsights.from(createTestReport()), targetDir).readText()
+        assertThat(content).contains(".owner-bar-track{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;min-height:0}")
+        assertThat(content).contains(".owner-bar-grid{display:flex;flex-wrap:wrap;gap:24px 32px;align-items:flex-end;justify-content:center}")
+        assertThat(content).contains(".owner-bar-col{width:28px;")
+        assertThat(content).contains("className='ruler-tip'")
+        assertThat(content).contains("function tipAttr(")
+        assertThat(content).contains("sel.value='0'")
+        assertThat(content).contains("renderOwnerDetails('0')")
+    }
+
+    @Test
     fun `report data round-trips through JSON parsing`(@TempDir targetDir: File) {
         val report = createTestReport()
         val insights = ReportInsights.from(report)

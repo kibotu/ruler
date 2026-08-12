@@ -24,7 +24,8 @@ header p{opacity:.9;font-size:14px}
 .summary-card .internal-info{font-size:12px;color:#9b59b6;margin-top:8px;font-weight:600}
 .controls{padding:20px 30px;background:#fff;border-bottom:1px solid #e0e0e0;display:flex;gap:15px;flex-wrap:wrap;align-items:center}
 .controls input{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;flex:1;min-width:200px}
-.controls select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff;cursor:pointer}
+select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff;cursor:pointer;font-family:inherit;color:inherit;line-height:1.4}
+.controls select{flex-shrink:0}
 .filter-chips{display:flex;gap:10px;flex-wrap:wrap}
 .filter-chip{padding:8px 16px;border:2px solid #e0e0e0;border-radius:20px;font-size:13px;font-weight:600;color:#666;background:#fff;cursor:pointer;transition:all .2s;user-select:none}
 .filter-chip:hover{border-color:#063773;color:#063773;background:#f0f6ff}
@@ -105,7 +106,7 @@ header p{opacity:.9;font-size:14px}
 .chart-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
 .chart-grid-3>div{min-width:0;overflow:hidden}
 .chart-grid-3 h3{font-size:16px;color:#666;margin-bottom:15px}
-.hbar-row{margin-bottom:10px}
+.hbar-row{margin-bottom:10px;cursor:default}
 .hbar-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;color:#333}
 .hbar-label span:last-child{color:#666;font-weight:600}
 .hbar-track{height:22px;background:#f0f0f0;border-radius:3px;overflow:hidden}
@@ -115,18 +116,22 @@ header p{opacity:.9;font-size:14px}
 .legend-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8f9fa;border-radius:6px;font-size:13px}
 .legend-swatch{width:16px;height:16px;border-radius:3px;flex-shrink:0}
 .ownership-chart{padding:10px 0}
-.owner-bar-group{margin-bottom:24px}
-.owner-bar-label{font-size:13px;font-weight:600;color:#333;margin-bottom:8px}
-.owner-bar-pair{display:flex;gap:6px;align-items:flex-end;height:120px}
-.owner-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.owner-bar{flex:1;width:100%;max-width:40px;border-radius:3px 3px 0 0;transition:height .8s ease}
+.owner-bar-grid{display:flex;flex-wrap:wrap;gap:24px 32px;align-items:flex-end;justify-content:center}
+.owner-bar-group{display:flex;flex-direction:column;align-items:center;min-width:72px}
+.owner-bar-label{font-size:13px;font-weight:600;color:#333;margin-bottom:8px;text-align:center;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.owner-bar-pair{display:flex;gap:4px;align-items:stretch;height:120px}
+.owner-bar-col{width:28px;display:flex;flex-direction:column;align-items:center;height:100%;gap:4px;flex-shrink:0}
+.owner-bar-track{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;min-height:0}
+.owner-bar{width:100%;min-height:1px;border-radius:3px 3px 0 0;transition:height .8s ease}
 .owner-bar.download{background:#063773}
 .owner-bar.install{background:#2ecc71}
 .owner-bar-caption{font-size:10px;color:#666;text-align:center}
 .owner-legend{display:flex;justify-content:center;gap:30px;margin-top:16px;font-size:12px}
 .owner-legend span{display:flex;align-items:center;gap:6px}
 .owner-legend i{display:inline-block;width:20px;height:12px;border-radius:2px}
-.owner-select{width:100%;padding:12px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff;cursor:pointer}
+.ruler-tip{position:fixed;z-index:10000;pointer-events:none;padding:6px 10px;background:#1a1a1a;color:#fff;border-radius:4px;font-size:12px;line-height:1.3;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:0;transform:translateY(4px);transition:opacity .08s ease,transform .08s ease}
+.ruler-tip.show{opacity:1;transform:translateY(0)}
+.owner-select{width:100%;max-width:480px;display:block;margin-top:4px}
 .owner-detail-summary{padding:30px;background:#fff;border-top:1px solid #e0e0e0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:30px}
 .owner-stat{text-align:center}
 .owner-stat .num{font-size:36px;font-weight:bold;color:#333}
@@ -218,23 +223,19 @@ header p{opacity:.9;font-size:14px}
   </div>
 
   <div id="ownership" class="tab-content">
-    <div class="section-block">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px;margin-bottom:30px">
-        <div>
-          <h2 class="section-title" style="margin-bottom:10px">Ownership overview</h2>
-          <p style="color:#666;font-size:14px">Shows how much of the overall app size is owned by each owner.</p>
-        </div>
-        <div style="display:flex;gap:15px;align-items:center">
-          <div class="filter-chips" id="ownershipFilters">
-            <div class="filter-chip active" data-filter="internal">Internal</div>
-            <div class="filter-chip active" data-filter="external">External</div>
-          </div>
-          <select id="ownershipSortSelect">
-            <option value="downloadSize">Sort by: Download Size</option>
-            <option value="installSize">Sort by: Install Size</option>
-          </select>
-        </div>
+    <div class="controls">
+      <div class="filter-chips" id="ownershipFilters">
+        <div class="filter-chip active" data-filter="internal">Internal</div>
+        <div class="filter-chip active" data-filter="external">External</div>
       </div>
+      <select id="ownershipSortSelect">
+        <option value="downloadSize">Sort by: Download Size</option>
+        <option value="installSize">Sort by: Install Size</option>
+      </select>
+    </div>
+    <div class="section-block">
+      <h2 class="section-title">Ownership overview</h2>
+      <p class="section-subtitle">Shows how much of the overall app size is owned by each owner.</p>
       <div class="ownership-chart" id="ownershipChart"></div>
     </div>
     <div class="section-block alt">
@@ -278,6 +279,46 @@ function formatBytes(bytes){
 }
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function fileSize(file,key){return file[key]||0;}
+function tipAttr(text){return 'data-tip="'+esc(text).replace(/"/g,'&quot;')+'"';}
+
+(function setupFastTip(){
+  var tip=document.createElement('div');
+  tip.className='ruler-tip';
+  tip.setAttribute('role','tooltip');
+  document.body.appendChild(tip);
+  var active=null;
+  function place(e){
+    var pad=12,x=e.clientX+pad,y=e.clientY+pad;
+    var w=tip.offsetWidth||0,h=tip.offsetHeight||0;
+    if(x+w>window.innerWidth-8)x=e.clientX-w-pad;
+    if(y+h>window.innerHeight-8)y=e.clientY-h-pad;
+    tip.style.left=Math.max(8,x)+'px';
+    tip.style.top=Math.max(8,y)+'px';
+  }
+  function hide(){
+    active=null;
+    tip.classList.remove('show');
+  }
+  function show(el,e){
+    active=el;
+    tip.textContent=el.getAttribute('data-tip')||'';
+    tip.classList.add('show');
+    place(e);
+  }
+  document.addEventListener('pointerover',function(e){
+    var el=e.target&&e.target.closest?e.target.closest('[data-tip]'):null;
+    if(!el){if(active)hide();return;}
+    if(active===el){place(e);return;}
+    show(el,e);
+  });
+  document.addEventListener('pointermove',function(e){
+    if(!active)return;
+    var el=e.target&&e.target.closest?e.target.closest('[data-tip]'):null;
+    if(!el){hide();return;}
+    if(el!==active)show(el,e);
+    else place(e);
+  });
+})();
 
 function isInternal(c){
   if(c.internal===true)return true;
@@ -516,7 +557,8 @@ function hBarChart(el,items,color){
   el.innerHTML=items.map(function(d){
     var pct=max>0?(d.size/max*100):0;
     var name=d.name.length>28?d.name.substring(0,28)+'...':d.name;
-    return '<div class="hbar-row"><div class="hbar-label"><span title="'+esc(d.name)+'">'+esc(name)+'</span><span>'+formatBytes(d.size)+'</span></div>'+
+    return '<div class="hbar-row" '+tipAttr(d.name+': '+formatBytes(d.size))+'>'+
+      '<div class="hbar-label"><span>'+esc(name)+'</span><span>'+formatBytes(d.size)+'</span></div>'+
       '<div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
   }).join('');
 }
@@ -532,8 +574,8 @@ function donutChart(el,data,valueKey,labelKey){
     var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
     var x2=cx+r*Math.cos(angle+sweep),y2=cy+r*Math.sin(angle+sweep);
     var large=sweep>Math.PI?1:0;
-    svg+='<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+COLORS[i%COLORS.length]+'" opacity=".9"><title>'+
-      esc(d[labelKey])+': '+(valueKey==='size'?formatBytes(d[valueKey]):d[valueKey])+'</title></path>';
+    svg+='<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+COLORS[i%COLORS.length]+'" opacity=".9" '+
+      tipAttr(d[labelKey]+': '+(valueKey==='size'?formatBytes(d[valueKey]):d[valueKey]))+'></path>';
     angle+=sweep;
   });
   var centerVal=valueKey==='size'?formatBytes(total):total.toLocaleString();
@@ -553,8 +595,8 @@ function treemap(el,nodes){
   sorted.forEach(function(n,i){
     var nw=total>0?(n.installSize/total)*w:0;
     if(nw<2)return;
-    svg+='<rect x="'+x+'" y="0" width="'+nw+'" height="'+h+'" fill="'+COLORS[i%COLORS.length]+'" opacity=".85" stroke="#fff" stroke-width="2"><title>'+
-      esc(n.name)+': '+formatBytes(n.installSize)+'</title></rect>';
+    svg+='<rect x="'+x+'" y="0" width="'+nw+'" height="'+h+'" fill="'+COLORS[i%COLORS.length]+'" opacity=".85" stroke="#fff" stroke-width="2" '+
+      tipAttr(n.name+': '+formatBytes(n.installSize))+'></rect>';
     if(nw>70){
       svg+='<text x="'+(x+6)+'" y="22" font-size="11" font-weight="bold" fill="#fff" pointer-events="none">'+esc(n.name.length>18?n.name.substring(0,18)+'...':n.name)+'</text>';
       svg+='<text x="'+(x+6)+'" y="38" font-size="10" fill="rgba(255,255,255,.9)" pointer-events="none">'+formatBytes(n.installSize)+'</text>';
@@ -672,13 +714,14 @@ function renderOwnershipChart(){
   var max=Math.max.apply(null,ownershipData.map(function(o){
     return Math.max(o.data.download,o.data.install);
   }));
-  var html='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:16px;align-items:end">';
+  var html='<div class="owner-bar-grid">';
   ownershipData.forEach(function(o){
     var dh=max>0?(o.data.download/max*100):0,ih=max>0?(o.data.install/max*100):0;
-    html+='<div class="owner-bar-group"><div class="owner-bar-label" title="'+esc(o.name)+'">'+esc(o.name.length>12?o.name.substring(0,12)+'...':o.name)+'</div>'+
-      '<div class="owner-bar-pair"><div class="owner-bar-col"><div class="owner-bar download" style="height:'+dh+'%" title="Download: '+formatBytes(o.data.download)+'"></div>'+
-      '<div class="owner-bar-caption">DL</div></div><div class="owner-bar-col"><div class="owner-bar install" style="height:'+ih+'%" title="Install: '+formatBytes(o.data.install)+'"></div>'+
-      '<div class="owner-bar-caption">INS</div></div></div></div>';
+    html+='<div class="owner-bar-group"><div class="owner-bar-label" title="'+esc(o.name)+'">'+esc(o.name)+'</div>'+
+      '<div class="owner-bar-pair"><div class="owner-bar-col" '+tipAttr('Download: '+formatBytes(o.data.download))+'>'+
+      '<div class="owner-bar-track"><div class="owner-bar download" style="height:'+dh+'%"></div></div><div class="owner-bar-caption">DL</div></div>'+
+      '<div class="owner-bar-col" '+tipAttr('Install: '+formatBytes(o.data.install))+'>'+
+      '<div class="owner-bar-track"><div class="owner-bar install" style="height:'+ih+'%"></div></div><div class="owner-bar-caption">INS</div></div></div></div>';
   });
   html+='</div><div class="owner-legend"><span><i style="background:#063773"></i>Download size</span><span><i style="background:#2ecc71"></i>Install size</span></div>';
   chart.innerHTML=html;
@@ -696,6 +739,13 @@ function renderOwnership(){
     opt.textContent=o.name+' ('+formatBytes(o.data[sort==='installSize'?'install':'download'])+')';
     sel.appendChild(opt);
   });
+  if(ownershipData.length){
+    sel.value='0';
+    renderOwnerDetails('0');
+  }else{
+    sel.value='';
+    document.getElementById('ownerDetailSection').style.display='none';
+  }
 }
 
 function renderOwnerDetails(idx){
@@ -720,14 +770,10 @@ document.querySelectorAll('#ownershipFilters .filter-chip').forEach(function(chi
     ownershipFilters[chip.dataset.filter]=!ownershipFilters[chip.dataset.filter];
     chip.classList.toggle('active',ownershipFilters[chip.dataset.filter]);
     renderOwnership();
-    document.getElementById('ownerSelect').value='';
-    document.getElementById('ownerDetailSection').style.display='none';
   });
 });
 document.getElementById('ownershipSortSelect').addEventListener('change',function(){
   renderOwnership();
-  document.getElementById('ownerSelect').value='';
-  document.getElementById('ownerDetailSection').style.display='none';
 });
 document.getElementById('ownerSelect').addEventListener('change',function(){renderOwnerDetails(this.value);});
 
