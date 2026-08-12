@@ -112,7 +112,8 @@ interface BaseRulerTask {
             components,
             features,
             ownershipInfo,
-            rulerConfig.omitFileBreakdown
+            rulerConfig.omitFileBreakdown,
+            rulerConfig.projectPath,
         )
 
         val jsonReporter = JsonReporter()

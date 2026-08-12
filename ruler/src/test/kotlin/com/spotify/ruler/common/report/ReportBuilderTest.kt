@@ -10,8 +10,6 @@ import com.spotify.ruler.models.ComponentType
 import com.spotify.ruler.models.FileType
 import com.spotify.ruler.models.ResourceType
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
-import java.io.File
 
 class ReportBuilderTest {
     private val builder = ReportBuilder()
@@ -111,5 +109,102 @@ class ReportBuilderTest {
         assertThat(report.components[0].name).isEqualTo(":large")
         assertThat(report.components[1].name).isEqualTo(":medium")
         assertThat(report.components[2].name).isEqualTo(":small")
+    }
+
+    @Test
+    fun `internal flag is set from ownership entry`() {
+        val entries = listOf(
+            OwnershipEntry(":app", "app-team", internal = true),
+            OwnershipEntry(":lib", "lib-team", internal = false),
+        )
+        val info = OwnershipInfo(entries, "")
+        val report = builder.build(appInfo, components, features, info, omitFileBreakdown = false)
+
+        val appComponent = report.components.find { it.name == ":app" }!!
+        val libComponent = report.components.find { it.name == ":lib" }!!
+
+        assertThat(appComponent.internal).isTrue()
+        assertThat(libComponent.internal).isFalse()
+    }
+
+    @Test
+    fun `internal flag is null when not specified in ownership`() {
+        val entries = listOf(
+            OwnershipEntry(":app", "app-team"),
+        )
+        val info = OwnershipInfo(entries, "")
+        val report = builder.build(appInfo, components, features, info, omitFileBreakdown = false)
+
+        val appComponent = report.components.find { it.name == ":app" }!!
+        assertThat(appComponent.internal).isNull()
+    }
+
+    @Test
+    fun `app component auto-tagged when no ownership match`() {
+        val comps = mapOf(
+            DependencyComponent(":sample:app", ComponentType.INTERNAL) to listOf(
+                AppFile("MainActivity.class", FileType.CLASS, 100, 200),
+            ),
+        )
+        val report = builder.build(appInfo, comps, emptyMap(), null, omitFileBreakdown = false, appProjectPath = ":sample:app")
+
+        val appComponent = report.components[0]
+        assertThat(appComponent.owner).isEqualTo("App")
+        assertThat(appComponent.internal).isTrue()
+    }
+
+    @Test
+    fun `app component uses ownership over auto-tag`() {
+        val entries = listOf(
+            OwnershipEntry(":sample:app", "my-team", internal = false),
+        )
+        val info = OwnershipInfo(entries, "")
+        val comps = mapOf(
+            DependencyComponent(":sample:app", ComponentType.INTERNAL) to listOf(
+                AppFile("MainActivity.class", FileType.CLASS, 100, 200),
+            ),
+        )
+        val report = builder.build(appInfo, comps, emptyMap(), info, omitFileBreakdown = false, appProjectPath = ":sample:app")
+
+        val appComponent = report.components[0]
+        assertThat(appComponent.owner).isEqualTo("my-team")
+        assertThat(appComponent.internal).isFalse()
+    }
+
+    @Test
+    fun `non-app component not auto-tagged`() {
+        val comps = mapOf(
+            DependencyComponent(":lib", ComponentType.INTERNAL) to listOf(
+                AppFile("Util.class", FileType.CLASS, 100, 200),
+            ),
+        )
+        val report = builder.build(appInfo, comps, emptyMap(), null, omitFileBreakdown = false, appProjectPath = ":sample:app")
+
+        val libComponent = report.components[0]
+        assertThat(libComponent.owner).isNull()
+        assertThat(libComponent.internal).isNull()
+    }
+
+    @Test
+    fun `unmatched owner is null with empty defaultOwner`() {
+        val entries = listOf(
+            OwnershipEntry(":app", "app-team"),
+        )
+        val info = OwnershipInfo(entries, "")
+        val report = builder.build(appInfo, components, features, info, omitFileBreakdown = false)
+
+        val libComponent = report.components.find { it.name == ":lib" }!!
+        assertThat(libComponent.owner).isNull()
+    }
+
+    @Test
+    fun `dynamic feature internal flag is set from ownership`() {
+        val entries = listOf(
+            OwnershipEntry("dynamic", "dynamic-team", internal = true),
+        )
+        val info = OwnershipInfo(entries, "")
+        val report = builder.build(appInfo, components, features, info, omitFileBreakdown = false)
+
+        assertThat(report.dynamicFeatures[0].internal).isTrue()
     }
 }

@@ -1,5 +1,6 @@
 package com.spotify.ruler.models
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Dynamic feature contained in an app. */
@@ -10,4 +11,6 @@ data class DynamicFeature(
     override val installSize: Long,
     override val files: List<AppFile>?,
     override val owner: String? = null,
+    @SerialName("internal")
+    val internal: Boolean? = null,
 ) : FileContainer

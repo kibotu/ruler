@@ -279,7 +279,11 @@ function formatBytes(bytes){
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function fileSize(file,key){return file[key]||0;}
 
-function isInternal(c){return c.type==='INTERNAL';}
+function isInternal(c){
+  if(c.internal===true)return true;
+  if(c.internal===false)return false;
+  return c.type==='INTERNAL';
+}
 
 // Match Caliper: sentinel/default owners are unowned (no badge; filter via Owned/Unowned chips).
 function isOwned(c){

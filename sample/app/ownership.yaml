@@ -4,6 +4,6 @@
 - identifier: :sample:lib
   owner: lib-team
 
-- identifier: androidx.*
+- identifier: androidx.constraintlayout:constraintlayout
   owner: google
   internal: true

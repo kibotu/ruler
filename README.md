@@ -166,7 +166,7 @@ ruler {
 
     // Optional: ownership tracking
     ownershipFile.set(project.layout.projectDirectory.file("ownership.yaml"))
-    defaultOwner.set("my-team")    // Fallback owner (default: "unknown")
+    defaultOwner.set("my-team")    // Fallback owner for unmatched items (default: unset/no owner)
 
     // Optional: static dependency overrides
     staticDependenciesFile.set(project.layout.projectDirectory.file("static-deps.json"))
@@ -196,7 +196,7 @@ ruler {
 | `screenDensity` | `Property<Int>` | Yes | -- | Target screen density (`160`, `240`, `320`, `480`, `640`) |
 | `sdkVersion` | `Property<Int>` | Yes | -- | Target SDK version |
 | `ownershipFile` | `RegularFileProperty` | No | `null` | Path to YAML ownership file |
-| `defaultOwner` | `Property<String>` | No | `"unknown"` | Fallback owner when no match |
+| `defaultOwner` | `Property<String>` | No | `""` (unset) | Fallback owner when no entry matches. If empty, unmatched items have no owner. |
 | `staticDependenciesFile` | `RegularFileProperty` | No | `null` | Path to static dependency overrides JSON |
 | `omitFileBreakdown` | `Property<Boolean>` | No | `false` | Omit per-file lists from report |
 | `unstrippedNativeFiles` | `ListProperty<RegularFile>` | No | `[]` | Unstripped `.so` files for Bloaty |
@@ -253,6 +253,7 @@ app/build/reports/ruler/
 Define ownership with a YAML file mapping identifiers to team owners:
 
 ```yaml
+# Exact matches
 - identifier: com.mycompany.MainActivity
   owner: app-team
 
@@ -262,9 +263,33 @@ Define ownership with a YAML file mapping identifiers to team owners:
 - identifier: :feature:login
   owner: auth-team
 
+# Glob patterns with * and ?
+- identifier: "com.mycompany.*"
+  owner: core-team
+  internal: true
+
+- identifier: "androidx.*"
+  owner: google
+  internal: true
+
 - identifier: com.external:library
   owner: third-party
 ```
+
+### Entry fields
+
+| Field | Required | Description |
+|---|---|---|
+| `identifier` | Yes | Pattern to match component/file names. Supports glob-style `*` (any chars) and `?` (single char). |
+| `owner` | Yes | Team name to assign when matched. |
+| `internal` | No | Override for internal/external classification. When omitted, structural type is used. |
+
+### Pattern syntax
+
+- `*` matches any sequence of characters (e.g., `com.mycompany.*` matches `com.mycompany.Foo`)
+- `?` matches a single character (e.g., `Feature?` matches `FeatureA`, `FeatureB`)
+- Patterns are case-insensitive
+- Entries are checked in YAML order; first match wins
 
 ### Matching rules
 
@@ -274,9 +299,11 @@ Define ownership with a YAML file mapping identifiers to team owners:
 | Resource path | `/res/layout/activity_main.xml` | Exact resource file |
 | Module name | `:feature:login` | Gradle module |
 | Dependency coordinate | `com.external:library` | Maven dependency (group:name) |
-| Wildcard prefix | `com.mycompany.*` | Any class starting with prefix |
+| Glob pattern | `com.mycompany.*` | Any name matching the pattern |
 
-Explicit matches take priority over wildcard matches. Longest wildcard prefix wins.
+### Auto-tagging
+
+When no ownership file is provided, or when no entry matches the app module, Ruler automatically tags the app component with `owner: "App"` and `internal: true`. Explicit ownership entries override this default.
 
 ---
 
@@ -314,7 +341,8 @@ The JSON report follows this schema:
             "type": "INTERNAL",
             "downloadSize": 5000000,
             "installSize": 20000000,
-            "owner": "app-team",
+            "owner": "App",
+            "internal": true,
             "files": [
                 {
                     "name": "com.mycompany.MainActivity",
@@ -333,6 +361,7 @@ The JSON report follows this schema:
             "downloadSize": 2000000,
             "installSize": 8000000,
             "owner": "dynamic-team",
+            "internal": true,
             "files": []
         }
     ]
@@ -360,6 +389,7 @@ The JSON report follows this schema:
 | `name` | `String` | Module path (`:app`) or dependency coordinate (`com.ext:lib`) |
 | `type` | `ComponentType` | `INTERNAL` (project module) or `EXTERNAL` (library) |
 | `downloadSize` | `Long` | Component download size in bytes |
+| `internal` | `Boolean?` | Override from ownership file. When set, used for internal/external filtering instead of `type`. |
 | `installSize` | `Long` | Component install size in bytes |
 | `owner` | `String?` | Assigned owner from ownership file |
 | `files` | `List<AppFile>?` | Files sorted by download size (descending). `null` if `omitFileBreakdown` is true |

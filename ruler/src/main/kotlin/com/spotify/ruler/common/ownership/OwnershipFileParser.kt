@@ -8,11 +8,24 @@ class OwnershipFileParser {
 
     fun parse(ownershipFile: File): List<OwnershipEntry> = try {
         val yaml = Yaml()
-        val entries: List<Map<String, String>> = ownershipFile.inputStream().use(yaml::load)
+        val entries: List<Map<String, Any?>> = ownershipFile.inputStream().use(yaml::load)
         entries.map { entry ->
-            OwnershipEntry(entry.getValue("identifier"), entry.getValue("owner"))
+            OwnershipEntry(
+                identifier = entry["identifier"]?.toString()
+                    ?: throw IllegalArgumentException("Missing 'identifier' in ownership entry"),
+                owner = entry["owner"]?.toString()
+                    ?: throw IllegalArgumentException("Missing 'owner' in ownership entry"),
+                internal = parseBoolean(entry["internal"]),
+            )
         }
     } catch (@Suppress("TooGenericExceptionCaught") exception: Exception) {
         throw IllegalStateException("Could not parse ownership file", exception)
+    }
+
+    private fun parseBoolean(value: Any?): Boolean? = when (value) {
+        null -> null
+        is Boolean -> value
+        is String -> value.lowercase() == "true"
+        else -> null
     }
 }

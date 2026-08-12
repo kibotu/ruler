@@ -1,5 +1,6 @@
 package com.spotify.ruler.models
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Single component of an app. Can either be a Gradle module or a dependency. */
@@ -11,4 +12,6 @@ data class AppComponent(
     override val installSize: Long,
     override val files: List<AppFile>?,
     override val owner: String? = null,
+    @SerialName("internal")
+    val internal: Boolean? = null,
 ) : FileContainer

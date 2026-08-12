@@ -20,7 +20,7 @@ open class RulerExtension(objects: ObjectFactory) {
     val unstrippedNativeFiles: ListProperty<RegularFile> = objects.listProperty(RegularFile::class.java)
 
     init {
-        defaultOwner.convention("unknown")
+        defaultOwner.convention("")
         omitFileBreakdown.convention(false)
         unstrippedNativeFiles.set(emptyList())
     }
