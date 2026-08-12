@@ -296,3 +296,4 @@ hs_err_pid*
 kotlin-js-store
 CLAUDE.md
 gradle-daemon-jvm.properties
+.kotlin
