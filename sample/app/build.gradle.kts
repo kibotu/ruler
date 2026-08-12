@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.spotify.ruler.sample.app"
+    namespace = "com.kibotu.ruler.sample.app"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.spotify.ruler.sample"
+        applicationId = "com.kibotu.ruler.sample"
         minSdk = 23
         targetSdk = 37
         versionCode = 1

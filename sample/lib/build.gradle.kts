@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.spotify.ruler.sample.lib"
+    namespace = "com.kibotu.ruler.sample.lib"
     compileSdk = 37
     defaultConfig {
         minSdk = 23

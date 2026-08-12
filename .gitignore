@@ -4,7 +4,11 @@
 ### Android ###
 # Gradle files
 .gradle/
+.kotlin/
 build/
+
+# Agent instructions (local only)
+CLAUDE.md
 
 # Local configuration file (sdk path, etc)
 local.properties

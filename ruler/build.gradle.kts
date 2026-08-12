@@ -31,7 +31,7 @@ gradlePlugin {
             displayName = "Ruler - Android App Size Analyzer"
             description = "Gradle plugin for analyzing the size of your Android apps"
             tags.set(listOf("android", "apk", "size", "analysis", "bundle"))
-            implementationClass = "com.spotify.ruler.plugin.RulerPlugin"
+            implementationClass = "com.kibotu.ruler.plugin.RulerPlugin"
         }
     }
 }
@@ -64,10 +64,27 @@ dependencies {
     testImplementation(Dependencies.ANDROID_GRADLE_PLUGIN)
 }
 
+tasks.register<JavaExec>("previewReport") {
+    group = "ruler"
+    description = "Generate an HTML preview from report.json (defaults to the test fixture)"
+    classpath(sourceSets["main"].runtimeClasspath)
+    mainClass.set("com.kibotu.ruler.common.report.PreviewReportKt")
+    if (project.hasProperty("json")) {
+        args(project.property("json").toString())
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
     timeout.set(Duration.ofMinutes(10))
     jvmArgs("-Xmx2g")
+    dependsOn(tasks.pluginUnderTestMetadata)
+    systemProperty(
+        "pluginClasspath",
+        provider {
+            tasks.pluginUnderTestMetadata.get().pluginClasspath.joinToString(File.pathSeparator) { it.absolutePath }
+        },
+    )
     testLogging {
         events("passed", "skipped", "failed")
         showStandardStreams = false
@@ -77,10 +94,6 @@ tasks.withType<Test> {
 java {
     withSourcesJar()
     withJavadocJar()
-}
-
-kotlin {
-    jvmToolchain(17)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
@@ -94,8 +107,8 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
     archiveClassifier.set("")
 
     // Relocate packages to avoid conflicts
-    relocate("kotlinx.serialization", "com.spotify.ruler.shadow.kotlinx.serialization")
-    relocate("org.yaml.snakeyaml", "com.spotify.ruler.shadow.org.yaml.snakeyaml")
+    relocate("kotlinx.serialization", "com.kibotu.ruler.shadow.kotlinx.serialization")
+    relocate("org.yaml.snakeyaml", "com.kibotu.ruler.shadow.org.yaml.snakeyaml")
 
     // Exclude unnecessary files
     exclude("META-INF/maven/**")

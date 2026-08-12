@@ -39,7 +39,7 @@ ruler/
 │   ├── build.gradle.kts          # Shadow JAR, Gradle Plugin Portal publishing
 │   └── src/
 │       ├── main/
-│       │   ├── kotlin/com/spotify/ruler/
+│       │   ├── kotlin/com/kibotu/ruler/
 │       │   │   ├── models/       # Data classes (AppReport, AppComponent, AppFile, ...)
 │       │   │   ├── common/       # Core analysis engine
 │       │   │   │   ├── apk/      # APK parsing, sanitisation, bundletool integration
@@ -51,13 +51,13 @@ ruler/
 │       │   │   │   ├── models/       # Internal config models (AppInfo, DeviceSpec, RulerConfig)
 │       │   │   │   ├── bloaty/       # Native library size analysis
 │       │   │   │   ├── util/         # Regex utilities
-│       │   │   │   └── veritication/ # Size threshold verification
+│       │   │   │   └── verification/ # Size threshold verification
 │       │   │   └── plugin/       # Gradle plugin entry point
 │       │   │       ├── RulerPlugin.kt
 │       │   │       ├── RulerExtension.kt
 │       │   │       ├── RulerVerificationExtension.kt
 │       │   │       ├── RulerTask.kt
-│       │   │       ├── FileProvider.kt
+│       │   │       ├── VariantArtifacts.kt
 │       │   │       └── dependency/EntryParser.kt
 │       │   └── resources/
 │       │       ├── META-INF/gradle-plugins/net.kibotu.ruler.properties
@@ -65,7 +65,7 @@ ruler/
 │       │       └── rulerDebug.keystore  # Debug signing key for split APKs
 │       └── test/                 # Unit tests
 │
-└── sample/                       # Demo Android app (optional, gated behind -PwithSample)
+└── sample/                       # Demo Android app
     ├── app/
     └── lib/
 ```
@@ -231,7 +231,7 @@ tasks.named("check").configure {
 ### With the sample app
 
 ```bash
-./gradlew :sample:app:analyzeDebugBundle -PwithSample
+./gradlew :sample:app:analyzeDebugBundle
 ```
 
 ### Reports location
@@ -477,11 +477,15 @@ cd ruler/ruler-overhaul
 # Run tests
 ./gradlew :ruler:test
 
+# Preview HTML report from fixture JSON (no Android build required)
+./gradlew :ruler:previewReport
+./gradlew :ruler:previewReport -Pjson=path/to/report.json
+
 # Publish to mavenLocal for local testing
 ./gradlew :ruler:publishToMavenLocal
 
 # Build sample app (after publishing to mavenLocal)
-./gradlew :sample:app:assembleDebug -PwithSample
+./gradlew :sample:app:assembleDebug
 ```
 
 ---
