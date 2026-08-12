@@ -1,0 +1,50 @@
+[versions]
+agp = "9.3.1"
+kotlin = "2.4.10"
+shadow = "9.2.2"
+pluginPublish = "1.3.0"
+
+androidTools = "32.3.1"
+bundletool = "1.18.2"
+dexlib = "3.0.9"
+protobuf = "4.33.1"
+
+kotlinxSerialization = "1.11.0"
+snakeyaml = "2.5"
+
+constraintlayout = "2.2.1"
+
+junit = "5.12.2"
+junitPlatform = "1.12.2"
+truth = "1.4.4"
+
+[libraries]
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-daemonClient = { module = "org.jetbrains.kotlin:kotlin-daemon-client", version.ref = "kotlin" }
+kotlin-daemonEmbeddable = { module = "org.jetbrains.kotlin:kotlin-daemon-embeddable", version.ref = "kotlin" }
+android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+android-tools-apkanalyzer = { module = "com.android.tools.apkparser:apkanalyzer", version.ref = "androidTools" }
+android-tools-common = { module = "com.android.tools:common", version.ref = "androidTools" }
+android-tools-sdklib = { module = "com.android.tools:sdklib", version.ref = "androidTools" }
+bundletool = { module = "com.android.tools.build:bundletool", version.ref = "bundletool" }
+dexlib = { module = "com.android.tools.smali:smali-dexlib2", version.ref = "dexlib" }
+protobuf = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+junit-platformLauncher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatform" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+pluginPublish = { id = "com.gradle.plugin-publish", version.ref = "pluginPublish" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
