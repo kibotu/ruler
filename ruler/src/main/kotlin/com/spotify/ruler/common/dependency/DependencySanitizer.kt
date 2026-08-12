@@ -29,7 +29,7 @@ class DependencySanitizer(private val classNameSanitizer: ClassNameSanitizer) {
 
     /** Cleans the component name and potentially sanitizes the name for a given [entry]. */
     private fun sanitizeEntry(entry: DependencyEntry): DependencyEntry {
-        val component = entry.component.removePrefix("project ")
+        val component = normalizeComponentName(entry.component)
         return when(entry) {
             is DependencyEntry.Class -> {
                 val name = classNameSanitizer.sanitize(entry.name)
@@ -43,8 +43,19 @@ class DependencySanitizer(private val classNameSanitizer: ClassNameSanitizer) {
     }
 
     /**
+     * Normalizes Gradle component identifiers to a stable project path.
+     * Gradle reports project dependencies as `project ':sample:lib'`; we want `:sample:lib`.
+     */
+    private fun normalizeComponentName(raw: String): String {
+        return raw
+            .removePrefix("project ")
+            .trim()
+            .removeSurrounding("'")
+    }
+
+    /**
      * Determines the correct component type for a given [entry].
-     * After stripping the "project " prefix, Gradle subprojects look like ":foo" (internal),
+     * After normalization, Gradle subprojects look like ":foo" (internal),
      * while Maven dependencies look like "org.bar:bar:1.0.0" (external).
      */
     private fun getComponentType(entry: DependencyEntry): ComponentType = when {
