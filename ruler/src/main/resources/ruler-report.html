@@ -39,6 +39,10 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
 .module-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .module-name-row{font-size:16px;font-weight:600;color:#2d3748;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .owner-badge{display:inline-flex;align-items:center;padding:4px 10px;background:linear-gradient(135deg,#063773 0%,#0a5aa8 100%);color:#fff;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 2px 4px rgba(6,55,115,.2);flex-shrink:0}
+.owner-badge.additional{background:linear-gradient(135deg,#0a5aa8 0%,#3498db 100%)}
+.owner-badge.owner-badge-filter{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.owner-badge.owner-badge-filter:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(6,55,115,.3)}
+.owner-badge.selected{box-shadow:0 0 0 2px #fff,0 0 0 4px #063773}
 .internal-badge{display:inline-flex;align-items:center;padding:4px 10px;background:linear-gradient(135deg,#9b59b6 0%,#8e44ad 100%);color:#fff;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 2px 4px rgba(155,89,182,.2);flex-shrink:0}
 .module-stats{display:flex;align-items:center;gap:20px;flex-shrink:0}
 .module-stat{display:flex;flex-direction:column;align-items:flex-end}
@@ -173,6 +177,9 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
     <div class="summary" id="summary"></div>
     <div class="controls">
       <input type="text" id="searchInput" placeholder="Search modules...">
+      <select id="teamFilterSelect">
+        <option value="">All teams</option>
+      </select>
       <div class="filter-chips" id="breakdownFilters">
         <div class="filter-chip active" data-filter="internal">Internal</div>
         <div class="filter-chip active" data-filter="external">External</div>
@@ -264,9 +271,11 @@ var report = JSON.parse(document.getElementById('ruler-report').textContent);
 var insights = JSON.parse(document.getElementById('ruler-insights').textContent);
 var currentSort = 'downloadSize';
 var breakdownFilters = {internal:true,external:true,owned:true,unowned:true};
+var breakdownTeamFilter = '';
 var insightsFilters = {internal:true,external:true};
 var ownershipFilters = {internal:true,external:true};
-var ownershipData = [];
+var ownershipChartData = [];
+var ownerGroupData = [];
 var insightsRendered = false;
 
 var COLORS = ['#063773','#0a5aa8','#9b59b6','#2ecc71','#e74c3c','#f39c12','#3498db','#1abc9c','#e67e22','#95a5a6','#34495e','#8e44ad'];
@@ -333,6 +342,51 @@ function isOwned(c){
   return o!=='unknown'&&o!=='others'&&o!=='other'&&o!=='unassigned';
 }
 function displayOwner(c){return isOwned(c)?c.owner:null;}
+function allOwners(c){
+  var owners=[];
+  var primary=displayOwner(c);
+  if(primary)owners.push(primary);
+  (c.additionalOwners||[]).forEach(function(o){
+    if(o&&owners.indexOf(o)===-1)owners.push(o);
+  });
+  return owners;
+}
+function renderOwnerBadges(c){
+  var owners=allOwners(c);
+  if(!owners.length)return '';
+  return owners.map(function(o,i){
+    var selected=breakdownTeamFilter&&o===breakdownTeamFilter;
+    return '<span class="owner-badge owner-badge-filter'+(i>0?' additional':'')+(selected?' selected':'')+
+      '" data-owner="'+esc(o)+'">'+esc(o)+'</span>';
+  }).join('');
+}
+
+function collectAllTeams(){
+  var teams={};
+  report.components.forEach(function(c){
+    allOwners(c).forEach(function(o){teams[o]=true;});
+  });
+  return Object.keys(teams).sort(function(a,b){return a.localeCompare(b);});
+}
+
+function populateTeamFilterSelect(){
+  var sel=document.getElementById('teamFilterSelect');
+  var current=breakdownTeamFilter;
+  sel.innerHTML='<option value="">All teams</option>';
+  collectAllTeams().forEach(function(team){
+    var opt=document.createElement('option');
+    opt.value=team;
+    opt.textContent=team;
+    sel.appendChild(opt);
+  });
+  sel.value=current;
+}
+
+function selectTeamFilter(team){
+  breakdownTeamFilter=breakdownTeamFilter===team?'':(team||'');
+  document.getElementById('teamFilterSelect').value=breakdownTeamFilter;
+  renderBreakdown();
+}
 
 function matchesBreakdownFilters(c){
   var int=isInternal(c);
@@ -341,6 +395,7 @@ function matchesBreakdownFilters(c){
   var owned=isOwned(c);
   if(!breakdownFilters.owned&&owned)return false;
   if(!breakdownFilters.unowned&&!owned)return false;
+  if(breakdownTeamFilter&&allOwners(c).indexOf(breakdownTeamFilter)===-1)return false;
   return true;
 }
 function matchesInsightsFilters(c){
@@ -470,10 +525,9 @@ function renderModuleCard(component,index,prefix,displayLabel){
   var maxRef=breakdown.totalSize||component.installSize||displaySize;
   var files=component.files||[];
   var id=prefix+'-'+index;
-  var owner=displayOwner(component);
   return '<div class="module-card"><div class="module-header" onclick="toggleModule(\''+id+'\')">'+
     '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
-    (owner?'<span class="owner-badge">'+esc(owner)+'</span>':'')+
+    renderOwnerBadges(component)+
     (isInternal(component)?'<span class="internal-badge">Internal</span>':'')+'</div>'+
     '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">'+displayLabel+'</span>'+
     '<span class="module-size">'+formatBytes(displaySize)+'</span></div>'+
@@ -545,6 +599,17 @@ document.querySelectorAll('#breakdownFilters .filter-chip').forEach(function(chi
     renderBreakdown();
   });
 });
+document.getElementById('teamFilterSelect').addEventListener('change',function(){
+  breakdownTeamFilter=this.value;
+  renderBreakdown();
+});
+document.getElementById('modulesGrid').addEventListener('click',function(e){
+  var badge=e.target.closest('.owner-badge-filter');
+  if(!badge)return;
+  e.stopPropagation();
+  selectTeamFilter(badge.dataset.owner);
+});
+populateTeamFilterSelect();
 document.getElementById('searchInput').addEventListener('input',renderBreakdown);
 document.getElementById('sortSelect').addEventListener('change',renderBreakdown);
 renderBreakdown();
@@ -774,16 +839,32 @@ document.querySelectorAll('#insightsFilters .filter-chip').forEach(function(chip
 });
 
 // Ownership
-function prepareOwnershipData(sortBy){
+function prepareOwnershipChartData(sortBy){
   var owners={};
   report.components.filter(matchesOwnershipFilters).forEach(function(c){
     var o=displayOwner(c)||'others';
-    if(!owners[o])owners[o]={download:0,install:0,components:0,files:0,list:[]};
+    if(!owners[o])owners[o]={download:0,install:0};
     owners[o].download+=c.downloadSize;
     owners[o].install+=c.installSize;
-    owners[o].components++;
-    owners[o].files+=(c.files||[]).length;
-    owners[o].list.push(c);
+  });
+  var list=Object.keys(owners).map(function(k){return {name:k,data:owners[k]};});
+  list.sort(function(a,b){return b.data[sortBy==='installSize'?'install':'download']-a.data[sortBy==='installSize'?'install':'download'];});
+  return list;
+}
+
+function prepareOwnerGroupData(sortBy){
+  var owners={};
+  report.components.filter(matchesOwnershipFilters).forEach(function(c){
+    var names=allOwners(c);
+    if(!names.length)names=['others'];
+    names.forEach(function(o){
+      if(!owners[o])owners[o]={download:0,install:0,components:0,files:0,list:[]};
+      owners[o].download+=c.downloadSize;
+      owners[o].install+=c.installSize;
+      owners[o].components++;
+      owners[o].files+=(c.files||[]).length;
+      owners[o].list.push(c);
+    });
   });
   var list=Object.keys(owners).map(function(k){return {name:k,data:owners[k]};});
   list.sort(function(a,b){return b.data[sortBy==='installSize'?'install':'download']-a.data[sortBy==='installSize'?'install':'download'];});
@@ -792,15 +873,15 @@ function prepareOwnershipData(sortBy){
 
 function renderOwnershipChart(){
   var chart=document.getElementById('ownershipChart');
-  if(!ownershipData.length){
+  if(!ownershipChartData.length){
     chart.innerHTML='<div class="no-results"><p>No ownership data available.</p></div>';
     return;
   }
-  var max=Math.max.apply(null,ownershipData.map(function(o){
+  var max=Math.max.apply(null,ownershipChartData.map(function(o){
     return Math.max(o.data.download,o.data.install);
   }));
   var html='<div class="owner-bar-grid">';
-  ownershipData.forEach(function(o){
+  ownershipChartData.forEach(function(o){
     var dh=max>0?(o.data.download/max*100):0,ih=max>0?(o.data.install/max*100):0;
     html+='<div class="owner-bar-group"><div class="owner-bar-label" title="'+esc(o.name)+'">'+esc(o.name)+'</div>'+
       '<div class="owner-bar-pair"><div class="owner-bar-col" '+tipAttr('Download: '+formatBytes(o.data.download))+'>'+
@@ -814,17 +895,18 @@ function renderOwnershipChart(){
 
 function renderOwnership(){
   var sort=document.getElementById('ownershipSortSelect').value;
-  ownershipData=prepareOwnershipData(sort);
+  ownershipChartData=prepareOwnershipChartData(sort);
+  ownerGroupData=prepareOwnerGroupData(sort);
   renderOwnershipChart();
   var sel=document.getElementById('ownerSelect');
   sel.innerHTML='<option value="">Select an owner...</option>';
-  ownershipData.forEach(function(o,i){
+  ownerGroupData.forEach(function(o,i){
     var opt=document.createElement('option');
     opt.value=i;
     opt.textContent=o.name+' ('+formatBytes(o.data[sort==='installSize'?'install':'download'])+')';
     sel.appendChild(opt);
   });
-  if(ownershipData.length){
+  if(ownerGroupData.length){
     sel.value='0';
     renderOwnerDetails('0');
   }else{
@@ -836,7 +918,7 @@ function renderOwnership(){
 function renderOwnerDetails(idx){
   var section=document.getElementById('ownerDetailSection');
   if(idx===''){section.style.display='none';return;}
-  var owner=ownershipData[parseInt(idx,10)];
+  var owner=ownerGroupData[parseInt(idx,10)];
   if(!owner){section.style.display='none';return;}
   section.style.display='block';
   document.getElementById('ownerDetailSummary').innerHTML=
@@ -865,7 +947,7 @@ document.getElementById('ownerSelect').addEventListener('change',function(){rend
 // Dynamic features
 if(report.dynamicFeatures&&report.dynamicFeatures.length){
   document.getElementById('dynamicList').innerHTML=report.dynamicFeatures.map(function(f,i){
-    var comp={name:f.name,owner:f.owner,type:'INTERNAL',downloadSize:f.downloadSize,installSize:f.installSize,files:f.files||[]};
+    var comp={name:f.name,owner:f.owner,additionalOwners:f.additionalOwners,type:'INTERNAL',downloadSize:f.downloadSize,installSize:f.installSize,files:f.files||[]};
     return renderModuleCard(comp,i,'d','Install');
   }).join('');
 }

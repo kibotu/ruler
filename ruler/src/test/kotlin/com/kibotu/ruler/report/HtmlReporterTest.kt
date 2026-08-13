@@ -92,6 +92,9 @@ class HtmlReporterTest {
         assertThat(content).contains("function tipAttr(")
         assertThat(content).contains("sel.value='0'")
         assertThat(content).contains("renderOwnerDetails('0')")
+        assertThat(content).contains("id=\"teamFilterSelect\"")
+        assertThat(content).contains("function selectTeamFilter(")
+        assertThat(content).contains("owner-badge-filter")
     }
 
     @Test

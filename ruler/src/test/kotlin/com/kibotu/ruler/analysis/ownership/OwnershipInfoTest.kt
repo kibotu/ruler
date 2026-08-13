@@ -164,4 +164,15 @@ class OwnershipInfoTest {
         assertThat(regex.matches("com.foo[bar](baz)")).isTrue()
         assertThat(regex.matches("com.fooXbarYbazZ")).isFalse()
     }
+
+    @Test
+    fun `multiple owners returns all owners`() {
+        val entries = listOf(
+            OwnershipEntry(":app", listOf("core", "platform")),
+        )
+        val info = OwnershipInfo(entries, "")
+
+        assertThat(info.getOwners(":app", ComponentType.INTERNAL)).containsExactly("core", "platform")
+        assertThat(info.getOwner(":app", ComponentType.INTERNAL)).isEqualTo("core")
+    }
 }

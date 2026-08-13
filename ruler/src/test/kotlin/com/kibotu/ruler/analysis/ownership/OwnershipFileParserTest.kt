@@ -26,10 +26,10 @@ class OwnershipFileParserTest {
 
         assertThat(entries).hasSize(2)
         assertThat(entries[0].identifier).isEqualTo(":app")
-        assertThat(entries[0].owner).isEqualTo("app-team")
+        assertThat(entries[0].owners).containsExactly("app-team")
         assertThat(entries[0].internal).isNull()
         assertThat(entries[1].identifier).isEqualTo(":lib")
-        assertThat(entries[1].owner).isEqualTo("lib-team")
+        assertThat(entries[1].owners).containsExactly("lib-team")
     }
 
     @Test
@@ -106,5 +106,38 @@ class OwnershipFileParserTest {
         val entries = parser.parse(file)
 
         assertThat(entries.map { it.identifier }).containsExactly("first", "second", "third").inOrder()
+    }
+
+    @Test
+    fun `parses multiple owners`() {
+        val yaml = """
+            - identifier: :app
+              owners:
+                - core
+                - platform
+            - identifier: :lib
+              owner: lib-team
+        """.trimIndent()
+        val file = tempDir.resolve("ownership.yaml").apply { writeText(yaml) }
+
+        val entries = parser.parse(file)
+
+        assertThat(entries[0].owners).containsExactly("core", "platform").inOrder()
+        assertThat(entries[1].owners).containsExactly("lib-team")
+    }
+
+    @Test
+    fun `parses owner key with list value`() {
+        val yaml = """
+            - identifier: :lib
+              owner:
+                - app
+                - lib-team
+        """.trimIndent()
+        val file = tempDir.resolve("ownership.yaml").apply { writeText(yaml) }
+
+        val entries = parser.parse(file)
+
+        assertThat(entries.single().owners).containsExactly("app", "lib-team").inOrder()
     }
 }

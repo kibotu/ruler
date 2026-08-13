@@ -11,6 +11,7 @@ data class DynamicFeature(
     override val installSize: Long,
     override val files: List<AppFile>?,
     override val owner: String? = null,
+    val additionalOwners: List<String>? = null,
     @SerialName("internal")
     val internal: Boolean? = null,
 ) : FileContainer

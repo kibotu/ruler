@@ -11,11 +11,19 @@ class OwnershipFileParser {
         entries.map { entry ->
             OwnershipEntry(
                 identifier = requireNotNull(entry["identifier"]) { "Missing 'identifier'" }.toString(),
-                owner = requireNotNull(entry["owner"]) { "Missing 'owner'" }.toString(),
+                owners = parseOwners(entry),
                 internal = entry["internal"]?.toString()?.lowercase()?.toBooleanStrictOrNull(),
             )
         }
     } catch (exception: Exception) {
         throw IllegalStateException("Could not parse ownership file ${ownershipFile.name}", exception)
+    }
+
+    private fun parseOwners(entry: Map<String, Any?>): List<String> {
+        val owners = entry["owners"] ?: entry["owner"] ?: throw IllegalArgumentException("Missing 'owner' or 'owners'")
+        return when (owners) {
+            is List<*> -> owners.map { requireNotNull(it) { "Null owner in list" }.toString() }
+            else -> listOf(owners.toString())
+        }
     }
 }

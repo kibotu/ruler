@@ -28,35 +28,40 @@ class ReportBuilder {
         installSize = components.values.flatten().sumOf(AppFile::installSize),
         components = components.map { (component, files) ->
             val isAppComponent = appProjectPath != null && component.name == appProjectPath
+            val componentOwners = ownershipInfo?.getOwners(component.name, component.type)
+                ?: if (isAppComponent) listOf(APP_OWNER) else null
+            val (componentOwner, componentAdditionalOwners) = splitOwners(componentOwners)
             AppComponent(
                 name = component.name,
                 type = component.type,
                 downloadSize = files.sumOf(AppFile::downloadSize),
                 installSize = files.sumOf(AppFile::installSize),
-                owner = ownershipInfo?.getOwner(component.name, component.type)
-                    ?: if (isAppComponent) APP_OWNER else null,
+                owner = componentOwner,
+                additionalOwners = componentAdditionalOwners,
                 internal = ownershipInfo?.getInternal(component.name, component.type)
                     ?: if (isAppComponent) true else null,
                 files = mapReportFiles(
                     files = files,
                     omitFileBreakdown = omitFileBreakdown,
-                    ownerForFile = { file ->
-                        ownershipInfo?.getOwner(file.name, component.name, component.type)
+                    ownersForFile = { file ->
+                        ownershipInfo?.getOwners(file.name, component.name, component.type)
                     },
                 ),
             )
         }.sortedWith(comparator.reversed()),
         dynamicFeatures = features.map { (feature, files) ->
+            val (featureOwner, featureAdditionalOwners) = splitOwners(ownershipInfo?.getOwners(feature))
             DynamicFeature(
                 name = feature,
                 downloadSize = files.sumOf(AppFile::downloadSize),
                 installSize = files.sumOf(AppFile::installSize),
-                owner = ownershipInfo?.getOwner(feature),
+                owner = featureOwner,
+                additionalOwners = featureAdditionalOwners,
                 internal = ownershipInfo?.getInternal(feature),
                 files = mapReportFiles(
                     files = files,
                     omitFileBreakdown = omitFileBreakdown,
-                    ownerForFile = { file -> ownershipInfo?.getOwner(file.name, feature) },
+                    ownersForFile = { file -> ownershipInfo?.getOwners(file.name, feature) },
                 ),
             )
         }.sortedWith(comparator.reversed()),
@@ -65,19 +70,27 @@ class ReportBuilder {
     private fun mapReportFiles(
         files: List<AppFile>,
         omitFileBreakdown: Boolean,
-        ownerForFile: (AppFile) -> String?,
+        ownersForFile: (AppFile) -> List<String>?,
     ): List<AppFile>? {
         if (omitFileBreakdown) return null
         return files.map { file ->
+            val (owner, additionalOwners) = splitOwners(ownersForFile(file))
             AppFile(
                 name = file.name,
                 type = file.type,
                 downloadSize = file.downloadSize,
                 installSize = file.installSize,
-                owner = ownerForFile(file),
+                owner = owner,
+                additionalOwners = additionalOwners,
                 resourceType = file.resourceType,
             )
         }.sortedWith(comparator.reversed())
+    }
+
+    private fun splitOwners(owners: List<String>?): Pair<String?, List<String>?> {
+        if (owners.isNullOrEmpty()) return null to null
+        val additionalOwners = owners.drop(1).ifEmpty { null }
+        return owners.first() to additionalOwners
     }
 
     companion object {

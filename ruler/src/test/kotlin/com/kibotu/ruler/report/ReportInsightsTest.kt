@@ -219,6 +219,26 @@ class ReportInsightsTest {
     }
 
     @Test
+    fun `insights ignore additional owners`() {
+        val report = createReport(
+            components = listOf(
+                AppComponent(
+                    ":app",
+                    ComponentType.INTERNAL,
+                    100,
+                    200,
+                    null,
+                    owner = "core",
+                    additionalOwners = listOf("platform"),
+                ),
+            )
+        )
+        val insights = ReportInsights.from(report)
+
+        assertThat(insights.owners.single().owner).isEqualTo("core")
+    }
+
+    @Test
     fun `files without an owner are skipped`() {
         val report = createReport(
             components = listOf(

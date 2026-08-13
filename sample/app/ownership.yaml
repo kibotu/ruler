@@ -1,14 +1,15 @@
 - identifier: :app
-  owner: app-team
+  owners:
+    - app
+    - core
 
 - identifier: :lib
-  owner: lib-team
+  owner:
+    - app
+    - lib-team
 
 - identifier: "com.google.*"
   owner: google
 
 - identifier: "androidx.*"
   owner: google
-
-- identifier: "org.jetbrains*"
-  owner: jetbrains

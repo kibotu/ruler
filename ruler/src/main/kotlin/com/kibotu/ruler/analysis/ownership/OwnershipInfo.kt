@@ -17,27 +17,38 @@ class OwnershipInfo(
 
     private data class CompiledEntry(
         val pattern: Regex,
-        val owner: String,
+        val owners: List<String>,
         val internal: Boolean?,
     )
 
     private val compiledEntries = entries.map {
-        CompiledEntry(globToRegex(it.identifier), it.owner, it.internal)
+        CompiledEntry(globToRegex(it.identifier), it.owners, it.internal)
     }
 
+    fun getOwners(component: String, componentType: ComponentType): List<String>? =
+        match(candidateNames(component, componentType))?.owners ?: defaultOwnersOrNull()
+
+    fun getOwners(feature: String): List<String>? =
+        match(listOf(feature))?.owners ?: defaultOwnersOrNull()
+
+    /** A match on the file name overrides the owners of its component. */
+    fun getOwners(file: String, component: String, componentType: ComponentType): List<String>? =
+        match(listOf(file))?.owners ?: getOwners(component, componentType)
+
+    /** A match on the file name overrides the owners of its dynamic feature. */
+    fun getOwners(file: String, feature: String): List<String>? =
+        match(listOf(file))?.owners ?: getOwners(feature)
+
     fun getOwner(component: String, componentType: ComponentType): String? =
-        match(candidateNames(component, componentType))?.owner ?: defaultOwnerOrNull()
+        getOwners(component, componentType)?.firstOrNull()
 
-    fun getOwner(feature: String): String? =
-        match(listOf(feature))?.owner ?: defaultOwnerOrNull()
+    fun getOwner(feature: String): String? = getOwners(feature)?.firstOrNull()
 
-    /** A match on the file name overrides the owner of its component. */
     fun getOwner(file: String, component: String, componentType: ComponentType): String? =
-        match(listOf(file))?.owner ?: getOwner(component, componentType)
+        getOwners(file, component, componentType)?.firstOrNull()
 
-    /** A match on the file name overrides the owner of its dynamic feature. */
     fun getOwner(file: String, feature: String): String? =
-        match(listOf(file))?.owner ?: getOwner(feature)
+        getOwners(file, feature)?.firstOrNull()
 
     fun getInternal(component: String, componentType: ComponentType): Boolean? =
         match(candidateNames(component, componentType))?.internal
@@ -54,7 +65,8 @@ class OwnershipInfo(
     private fun match(candidates: List<String>): CompiledEntry? =
         compiledEntries.firstOrNull { entry -> candidates.any(entry.pattern::matches) }
 
-    private fun defaultOwnerOrNull(): String? = defaultOwner.takeIf(String::isNotBlank)
+    private fun defaultOwnersOrNull(): List<String>? =
+        defaultOwner.takeIf(String::isNotBlank)?.let(::listOf)
 
     companion object {
         /** Translates `*` and `?` into a regex, and escapes everything else. */

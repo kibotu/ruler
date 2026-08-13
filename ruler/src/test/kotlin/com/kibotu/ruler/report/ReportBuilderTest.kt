@@ -63,6 +63,23 @@ class ReportBuilderTest {
     }
 
     @Test
+    fun `multiple owners are split into primary and additional`() {
+        val entries = listOf(
+            OwnershipEntry(":app", listOf("core", "platform")),
+        )
+        val info = OwnershipInfo(entries, "")
+        val report = builder.build(appInfo, components, emptyMap(), info, omitFileBreakdown = false)
+
+        val appComponent = report.components.find { it.name == ":app" }!!
+        assertThat(appComponent.owner).isEqualTo("core")
+        assertThat(appComponent.additionalOwners).containsExactly("platform")
+        appComponent.files!!.forEach { file ->
+            assertThat(file.owner).isEqualTo("core")
+            assertThat(file.additionalOwners).containsExactly("platform")
+        }
+    }
+
+    @Test
     fun `report is built without file breakdown`() {
         val report = builder.build(appInfo, components, features, ownershipInfo, omitFileBreakdown = true)
 
