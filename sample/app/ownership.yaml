@@ -4,9 +4,11 @@
 - identifier: :lib
   owner: lib-team
 
-- identifier: androidx.constraintlayout:constraintlayout
+- identifier: "com.google.*"
   owner: google
-  internal: true
 
 - identifier: "androidx.*"
-  owner: android-team
+  owner: google
+
+- identifier: "org.jetbrains*"
+  owner: jetbrains
