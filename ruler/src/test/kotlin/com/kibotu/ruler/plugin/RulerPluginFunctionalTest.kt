@@ -22,6 +22,7 @@ class RulerPluginFunctionalTest {
     @BeforeEach
     fun setUp() {
         writeSettings()
+        writeLocalProperties()
         writeManifest()
     }
 
@@ -105,6 +106,10 @@ class RulerPluginFunctionalTest {
                     mavenCentral()
                     gradlePluginPortal()
                 }
+                plugins {
+                    id("com.android.application") version "9.3.1"
+                    id("com.android.library") version "9.3.1"
+                }
             }
             dependencyResolutionManagement {
                 repositories {
@@ -116,6 +121,13 @@ class RulerPluginFunctionalTest {
             """.trimIndent(),
         )
         projectDir.resolve("gradle.properties").writeText("android.useAndroidX=true\n")
+    }
+
+    private fun writeLocalProperties() {
+        val sdkDir = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+        if (sdkDir != null) {
+            projectDir.resolve("local.properties").writeText("sdk.dir=${sdkDir.replace('\\', '/')}\n")
+        }
     }
 
     private fun writeManifest() {
