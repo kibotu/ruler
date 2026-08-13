@@ -1,4 +1,4 @@
-Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
+> Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
 maintenance for over a year. This fork keeps the Android size analysis workflow alive and
 replaces the multi-module Kotlin/React frontend with a single HTML template — the same
 approach as [Caliper][caliper], its iOS equivalent, whose report format it matches.
@@ -23,6 +23,32 @@ self-contained HTML report for your team.
 
 **[See a live HTML report →](https://kibotu.github.io/ruler/)**
 
+
+<table>
+  <tr valign="top">
+    <td width="33%" align="center">
+      <a href="docs/breakdown.png">
+        <img src="docs/breakdown.png" alt="Module Size Breakdown" width="100%">
+      </a>
+      <br>
+      <em>Module Size Breakdown</em>
+    </td>
+    <td width="33%" align="center">
+      <a href="docs/insights.png">
+        <img src="docs/insights.png" alt="Size Insights" width="100%">
+      </a>
+      <br>
+      <em>Size Insights</em>
+    </td>
+    <td width="33%" align="center">
+      <a href="docs/ownership.png">
+        <img src="docs/ownership.png" alt="Module Ownership" width="100%">
+      </a>
+      <br>
+      <em>Module Ownership</em>
+    </td>
+  </tr>
+</table>
 
 Quick start
 -----------
@@ -158,32 +184,6 @@ app/build/reports/ruler/release/
 `report.html` is a single file with no external resources. It opens offline and contains a
 treemap, a component table, size distributions by file type, top-20 lists, and per-owner
 totals.
-
-<table>
-  <tr valign="top">
-    <td width="33%" align="center">
-      <a href="docs/breakdown.png">
-        <img src="docs/breakdown.png" alt="Module Size Breakdown" width="100%">
-      </a>
-      <br>
-      <em>Module Size Breakdown</em>
-    </td>
-    <td width="33%" align="center">
-      <a href="docs/insights.png">
-        <img src="docs/insights.png" alt="Size Insights" width="100%">
-      </a>
-      <br>
-      <em>Size Insights</em>
-    </td>
-    <td width="33%" align="center">
-      <a href="docs/ownership.png">
-        <img src="docs/ownership.png" alt="Module Ownership" width="100%">
-      </a>
-      <br>
-      <em>Module Ownership</em>
-    </td>
-  </tr>
-</table>
 
 `report.json` is the machine-readable form:
 
