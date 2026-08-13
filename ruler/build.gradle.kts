@@ -38,7 +38,7 @@ gradlePlugin {
 // TestKit injects a single classpath into the build under test. AGP has to travel with the
 // plugin, so that both land in the same classloader and Ruler can see the Android variant API.
 // AGP 9 builds Kotlin itself, so the Kotlin plugin and its daemon come along too.
-val functionalTestClasspath: Configuration by configurations.creating
+val functionalTestClasspath = configurations.create("functionalTestClasspath")
 
 dependencies {
     functionalTestClasspath(libs.android.gradlePlugin)
