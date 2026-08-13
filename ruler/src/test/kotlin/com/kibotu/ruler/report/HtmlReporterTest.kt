@@ -95,6 +95,8 @@ class HtmlReporterTest {
         assertThat(content).contains("id=\"teamFilterSelect\"")
         assertThat(content).contains("function selectTeamFilter(")
         assertThat(content).contains("owner-badge-filter")
+        assertThat(content).contains("internal-badge-filter")
+        assertThat(content).contains("function toggleInternalFilter(")
     }
 
     @Test

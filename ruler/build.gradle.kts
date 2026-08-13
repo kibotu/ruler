@@ -1,6 +1,19 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.tasks.Classpath
+import org.gradle.process.CommandLineArgumentProvider
 import java.time.Duration
+
+abstract class PluginClasspathArgumentProvider : CommandLineArgumentProvider {
+    @get:Classpath
+    abstract val pluginClasspath: ConfigurableFileCollection
+
+    @get:Classpath
+    abstract val additionalClasspath: ConfigurableFileCollection
+
+    override fun asArguments(): Iterable<String> =
+        listOf("-DpluginClasspath=${(pluginClasspath + additionalClasspath).asPath}")
+}
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -115,33 +128,17 @@ tasks.register<JavaExec>("previewReport") {
     }
 }
 
-val functionalTestClasspathFile = layout.buildDirectory.file("functional-test-plugin-classpath.txt")
-
-val writeFunctionalTestClasspath = tasks.register("writeFunctionalTestClasspath") {
-    notCompatibleWithConfigurationCache("Materializes the TestKit plugin classpath at execution time")
-    dependsOn(tasks.pluginUnderTestMetadata)
-    dependsOn(configurations.named("functionalTestClasspath"))
-    outputs.file(functionalTestClasspathFile)
-    doLast {
-        val metadata = project.tasks.named("pluginUnderTestMetadata", PluginUnderTestMetadata::class.java).get()
-        val agpClasspath = project.configurations.getByName("functionalTestClasspath")
-        project.layout.buildDirectory.file("functional-test-plugin-classpath.txt").get().asFile.writeText(
-            (metadata.pluginClasspath + agpClasspath).asPath,
-        )
-    }
-}
-
 tasks.withType<Test>().configureEach {
-    notCompatibleWithConfigurationCache("Reads the TestKit plugin classpath at execution time")
     useJUnitPlatform()
     timeout = Duration.ofMinutes(10)
     jvmArgs("-Xmx2g")
-    dependsOn(writeFunctionalTestClasspath)
-    inputs.file(functionalTestClasspathFile)
-    doFirst {
-        val classpathFile = project.layout.buildDirectory.file("functional-test-plugin-classpath.txt").get().asFile
-        systemProperty("pluginClasspath", classpathFile.readText())
-    }
+    dependsOn(tasks.pluginUnderTestMetadata)
+    jvmArgumentProviders.add(
+        objects.newInstance<PluginClasspathArgumentProvider>().apply {
+            pluginClasspath.from(tasks.pluginUnderTestMetadata.map { it.pluginClasspath })
+            additionalClasspath.from(functionalTestClasspath)
+        },
+    )
     testLogging {
         events("passed", "skipped", "failed")
     }

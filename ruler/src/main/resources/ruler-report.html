@@ -40,10 +40,9 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
 .module-name-row{font-size:16px;font-weight:600;color:#2d3748;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .owner-badge{display:inline-flex;align-items:center;padding:4px 10px;background:linear-gradient(135deg,#063773 0%,#0a5aa8 100%);color:#fff;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 2px 4px rgba(6,55,115,.2);flex-shrink:0}
 .owner-badge.additional{background:linear-gradient(135deg,#0a5aa8 0%,#3498db 100%)}
-.owner-badge.owner-badge-filter{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
-.owner-badge.owner-badge-filter:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(6,55,115,.3)}
-.owner-badge.selected{box-shadow:0 0 0 2px #fff,0 0 0 4px #063773}
+.owner-badge.owner-badge-filter{cursor:pointer}
 .internal-badge{display:inline-flex;align-items:center;padding:4px 10px;background:linear-gradient(135deg,#9b59b6 0%,#8e44ad 100%);color:#fff;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 2px 4px rgba(155,89,182,.2);flex-shrink:0}
+.internal-badge.internal-badge-filter{cursor:pointer}
 .module-stats{display:flex;align-items:center;gap:20px;flex-shrink:0}
 .module-stat{display:flex;flex-direction:column;align-items:flex-end}
 .module-stat-label{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.5px}
@@ -355,8 +354,7 @@ function renderOwnerBadges(c){
   var owners=allOwners(c);
   if(!owners.length)return '';
   return owners.map(function(o,i){
-    var selected=breakdownTeamFilter&&o===breakdownTeamFilter;
-    return '<span class="owner-badge owner-badge-filter'+(i>0?' additional':'')+(selected?' selected':'')+
+    return '<span class="owner-badge owner-badge-filter'+(i>0?' additional':'')+
       '" data-owner="'+esc(o)+'">'+esc(o)+'</span>';
   }).join('');
 }
@@ -385,6 +383,18 @@ function populateTeamFilterSelect(){
 function selectTeamFilter(team){
   breakdownTeamFilter=breakdownTeamFilter===team?'':(team||'');
   document.getElementById('teamFilterSelect').value=breakdownTeamFilter;
+  renderBreakdown();
+}
+
+function syncBreakdownFilterChips(){
+  document.querySelectorAll('#breakdownFilters .filter-chip').forEach(function(chip){
+    chip.classList.toggle('active',breakdownFilters[chip.dataset.filter]);
+  });
+}
+
+function toggleInternalFilter(){
+  breakdownFilters.internal=!breakdownFilters.internal;
+  syncBreakdownFilterChips();
   renderBreakdown();
 }
 
@@ -528,7 +538,7 @@ function renderModuleCard(component,index,prefix,displayLabel){
   return '<div class="module-card"><div class="module-header" data-module-id="'+id+'">'+
     '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
     renderOwnerBadges(component)+
-    (isInternal(component)?'<span class="internal-badge">Internal</span>':'')+'</div>'+
+    (isInternal(component)?'<span class="internal-badge internal-badge-filter">Internal</span>':'')+'</div>'+
     '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">'+displayLabel+'</span>'+
     '<span class="module-size">'+formatBytes(displaySize)+'</span></div>'+
     '<span class="expand-icon" id="icon-'+id+'">&#9660;</span></div></div>'+
@@ -595,7 +605,7 @@ function renderBreakdown(){
 document.querySelectorAll('#breakdownFilters .filter-chip').forEach(function(chip){
   chip.addEventListener('click',function(){
     breakdownFilters[chip.dataset.filter]=!breakdownFilters[chip.dataset.filter];
-    chip.classList.toggle('active',breakdownFilters[chip.dataset.filter]);
+    syncBreakdownFilterChips();
     renderBreakdown();
   });
 });
@@ -608,6 +618,12 @@ document.querySelector('.container').addEventListener('click',function(e){
   if(badge){
     e.preventDefault();
     selectTeamFilter(badge.dataset.owner);
+    return;
+  }
+  var internalBadge=e.target.closest('.internal-badge-filter');
+  if(internalBadge){
+    e.preventDefault();
+    toggleInternalFilter();
     return;
   }
   var header=e.target.closest('.module-header');
