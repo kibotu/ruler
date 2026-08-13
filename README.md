@@ -3,9 +3,6 @@ maintenance for over a year. This fork keeps the Android size analysis workflow 
 replaces the multi-module Kotlin/React frontend with a single HTML template — the same
 approach as [Caliper][caliper], its iOS equivalent, whose report format it matches.
 
-If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
-consider [buying me a coffee](https://buymeacoffee.com/kibotu).
-
 <img src="docs/logo.png" width="50%" />
 
 A Gradle plugin that measures the size of your Android app, file by file.
@@ -309,6 +306,9 @@ To work on the HTML report without an Android build:
 ./gradlew :ruler:previewReport
 ./gradlew :ruler:previewReport -Pjson=path/to/report.json
 ```
+
+If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
+consider [buying me a coffee](https://buymeacoffee.com/kibotu).
 
 License
 -------
