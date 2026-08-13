@@ -525,7 +525,7 @@ function renderModuleCard(component,index,prefix,displayLabel){
   var maxRef=breakdown.totalSize||component.installSize||displaySize;
   var files=component.files||[];
   var id=prefix+'-'+index;
-  return '<div class="module-card"><div class="module-header" onclick="toggleModule(\''+id+'\')">'+
+  return '<div class="module-card"><div class="module-header" data-module-id="'+id+'">'+
     '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
     renderOwnerBadges(component)+
     (isInternal(component)?'<span class="internal-badge">Internal</span>':'')+'</div>'+
@@ -603,11 +603,17 @@ document.getElementById('teamFilterSelect').addEventListener('change',function()
   breakdownTeamFilter=this.value;
   renderBreakdown();
 });
-document.getElementById('modulesGrid').addEventListener('click',function(e){
+document.querySelector('.container').addEventListener('click',function(e){
   var badge=e.target.closest('.owner-badge-filter');
-  if(!badge)return;
-  e.stopPropagation();
-  selectTeamFilter(badge.dataset.owner);
+  if(badge){
+    e.preventDefault();
+    selectTeamFilter(badge.dataset.owner);
+    return;
+  }
+  var header=e.target.closest('.module-header');
+  if(!header)return;
+  var id=header.dataset.moduleId;
+  if(id)toggleModule(id);
 });
 populateTeamFilterSelect();
 document.getElementById('searchInput').addEventListener('input',renderBreakdown);
