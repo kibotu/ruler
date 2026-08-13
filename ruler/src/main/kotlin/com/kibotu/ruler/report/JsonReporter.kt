@@ -7,10 +7,14 @@ import java.io.File
 /** Writes the machine-readable report. */
 class JsonReporter {
 
-    /** @return The `report.json` file in [targetDir]. */
+    /** @return The [FILE_NAME] file in [targetDir]. */
     fun write(report: AppReport, targetDir: File): File {
-        val reportFile = targetDir.resolve("report.json")
+        val reportFile = targetDir.resolve(FILE_NAME)
         reportFile.writeText(Json.encodeToString(report))
         return reportFile
+    }
+
+    companion object {
+        const val FILE_NAME = "report.json"
     }
 }

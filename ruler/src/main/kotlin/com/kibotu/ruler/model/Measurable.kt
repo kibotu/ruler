@@ -4,6 +4,4 @@ package com.kibotu.ruler.model
 interface Measurable {
     val downloadSize: Long
     val installSize: Long
-
-    enum class SizeType { DOWNLOAD, INSTALL }
 }

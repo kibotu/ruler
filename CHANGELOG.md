@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0]
+
+### Changed
+- The HTML report renders each module's file list when that module is expanded, instead of rendering
+  every file of every module up front.
+- Attribution indexes the dependency graph by package and by class name, instead of scanning it once
+  per unresolved file.
+  
+### Fixed
+
+- The report paths are printed on every build. They used to be logged from the analysis itself, so an
+  up-to-date or cached run said nothing about where the reports were. A `printRuler<Variant>Reports`
+  finalizer task now reports them, and the analysis stays cacheable.
+- Kotlin standard library classes that R8 synthesizes are attributed to `org.jetbrains.kotlin:kotlin-stdlib`
+  again. A synthetic `kotlin` component made that package ambiguous, which sent them to the application
+  module instead.
+- Indented lines in a DexGuard resource mapping file are read, so those resource names are de-obfuscated.
+- The publish workflow triggers on `v`-prefixed tags, which is how this project tags releases, and strips
+  the prefix from the published version.
+
+### Removed
+
+- The second JSON payload of pre-computed insights in `report.html`. The page read one figure from it
+  and computed the rest itself, so the payload only made the report larger.
+
 ## [3.0.0]
 
 ### Added

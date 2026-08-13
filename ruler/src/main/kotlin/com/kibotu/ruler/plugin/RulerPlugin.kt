@@ -5,10 +5,16 @@ import com.android.build.api.variant.ApplicationVariant
 import com.kibotu.ruler.analysis.AppInfo
 import com.kibotu.ruler.analysis.DeviceSpec
 import com.kibotu.ruler.analysis.verification.VerificationConfig
+import com.kibotu.ruler.report.HtmlReporter
+import com.kibotu.ruler.report.JsonReporter
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.file.Directory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.TaskProvider
 
 private const val EXTENSION_NAME = "ruler"
 
@@ -26,6 +32,8 @@ class RulerPlugin : Plugin<Project> {
 
             androidComponents.onVariants { variant ->
                 val variantName = variant.name.replaceFirstChar { it.titlecase() }
+                val reportDir = project.layout.buildDirectory.dir("reports/ruler/${variant.name}")
+                val reportPaths = project.registerReportPathsTask(variantName, reportDir)
 
                 project.tasks.register("analyze${variantName}Bundle", RulerTask::class.java) { task ->
                     task.group = EXTENSION_NAME
@@ -50,9 +58,8 @@ class RulerPlugin : Plugin<Project> {
                     task.unstrippedNativeFiles.set(ruler.unstrippedNativeFiles)
                     task.bloatyPath.set(ruler.bloatyPath)
 
-                    val buildDir = project.layout.buildDirectory
-                    task.workingDir.set(buildDir.dir("intermediates/ruler/${variant.name}"))
-                    task.reportDir.set(buildDir.dir("reports/ruler/${variant.name}"))
+                    task.workingDir.set(project.layout.buildDirectory.dir("intermediates/ruler/${variant.name}"))
+                    task.reportDir.set(reportDir)
 
                     task.verificationConfig.set(
                         VerificationConfig(
@@ -64,8 +71,29 @@ class RulerPlugin : Plugin<Project> {
                     // DexGuard writes its bundle after the standard one, so the artifact provider
                     // alone does not order the tasks correctly.
                     task.dependsOn("bundle$variantName")
+
+                    task.finalizedBy(reportPaths)
                 }
             }
+        }
+    }
+
+    /**
+     * A task that says where the reports are.
+     *
+     * The analysis is cacheable, so Gradle skips its action once nothing has changed, and anything
+     * the action logs goes with it. This task declares no outputs, so it always runs and the paths
+     * are printed on every build, whether the analysis ran, was up to date, or came from the cache.
+     */
+    private fun Project.registerReportPathsTask(
+        variantName: String,
+        reportDir: Provider<Directory>,
+    ): TaskProvider<Task> = tasks.register("printRuler${variantName}Reports") { task ->
+        task.description = "Prints where the $variantName reports are."
+        task.doLast {
+            val directory = reportDir.get().asFile.toPath()
+            it.logger.lifecycle("JSON report: ${directory.resolve(JsonReporter.FILE_NAME).toUri()}")
+            it.logger.lifecycle("HTML report: ${directory.resolve(HtmlReporter.FILE_NAME).toUri()}")
         }
     }
 

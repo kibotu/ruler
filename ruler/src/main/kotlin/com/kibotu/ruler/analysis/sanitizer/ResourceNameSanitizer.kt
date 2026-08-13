@@ -22,12 +22,12 @@ class ResourceNameSanitizer private constructor(private val nameMapping: Map<Str
         /** Reads lines of the form `res/anim/foo.xml -> [res/raw/a.xml]` and ignores the rest. */
         private fun parse(mapping: String): Map<String, String> {
             return mapping.lineSequence()
-                .filter { it.trim().startsWith("res/") }
+                .map(String::trim)
+                .filter { it.startsWith("res/") }
                 .mapNotNull { line ->
-                    val parts = line.split(" -> ")
-                    if (parts.size != 2) return@mapNotNull null
-                    val obfuscated = parts[1].removeSurrounding("[", "]")
-                    "/$obfuscated" to "/${parts[0]}"
+                    val (original, obfuscated) = line.split(" -> ", limit = 2)
+                        .takeIf { it.size == 2 } ?: return@mapNotNull null
+                    "/${obfuscated.removeSurrounding("[", "]")}" to "/$original"
                 }
                 .toMap()
         }

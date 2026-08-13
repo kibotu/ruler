@@ -1,7 +1,7 @@
 package com.kibotu.ruler.report
 
-import com.kibotu.ruler.analysis.dependency.DependencyComponent
 import com.kibotu.ruler.analysis.AppInfo
+import com.kibotu.ruler.analysis.dependency.DependencyComponent
 import com.kibotu.ruler.analysis.ownership.OwnershipInfo
 import com.kibotu.ruler.model.AppComponent
 import com.kibotu.ruler.model.AppFile
@@ -11,7 +11,8 @@ import com.kibotu.ruler.model.Measurable
 
 /** Builds an [AppReport] from raw component and feature data. */
 class ReportBuilder {
-    private val comparator = compareBy(Measurable::downloadSize).thenBy(Measurable::installSize)
+    private val largestFirst =
+        compareByDescending(Measurable::downloadSize).thenByDescending(Measurable::installSize)
 
     fun build(
         appInfo: AppInfo,
@@ -20,77 +21,69 @@ class ReportBuilder {
         ownershipInfo: OwnershipInfo?,
         omitFileBreakdown: Boolean,
         appProjectPath: String? = null,
-    ): AppReport = AppReport(
-        name = appInfo.applicationId,
-        version = appInfo.versionName,
-        variant = appInfo.variantName,
-        downloadSize = components.values.flatten().sumOf(AppFile::downloadSize),
-        installSize = components.values.flatten().sumOf(AppFile::installSize),
-        components = components.map { (component, files) ->
-            val isAppComponent = appProjectPath != null && component.name == appProjectPath
-            val componentOwners = ownershipInfo?.getOwners(component.name, component.type)
-                ?: if (isAppComponent) listOf(APP_OWNER) else null
-            val (componentOwner, componentAdditionalOwners) = splitOwners(componentOwners)
-            AppComponent(
-                name = component.name,
-                type = component.type,
-                downloadSize = files.sumOf(AppFile::downloadSize),
-                installSize = files.sumOf(AppFile::installSize),
-                owner = componentOwner,
-                additionalOwners = componentAdditionalOwners,
-                internal = ownershipInfo?.getInternal(component.name, component.type)
-                    ?: if (isAppComponent) true else null,
-                files = mapReportFiles(
-                    files = files,
-                    omitFileBreakdown = omitFileBreakdown,
-                    ownersForFile = { file ->
-                        ownershipInfo?.getOwners(file.name, component.name, component.type)
+    ): AppReport {
+        val allFiles = components.values.flatten()
+        return AppReport(
+            name = appInfo.applicationId,
+            version = appInfo.versionName,
+            variant = appInfo.variantName,
+            downloadSize = allFiles.sumOf(AppFile::downloadSize),
+            installSize = allFiles.sumOf(AppFile::installSize),
+            components = components.map { (component, files) ->
+                // The application module owns itself, unless the ownership file says otherwise.
+                val isAppComponent = component.name == appProjectPath
+                val declaredOwners = ownershipInfo?.owners(component.name, component.type)
+                val (owner, additionalOwners) = splitOwners(
+                    declaredOwners ?: listOf(APP_OWNER).takeIf { isAppComponent },
+                )
+                AppComponent(
+                    name = component.name,
+                    type = component.type,
+                    downloadSize = files.sumOf(AppFile::downloadSize),
+                    installSize = files.sumOf(AppFile::installSize),
+                    owner = owner,
+                    additionalOwners = additionalOwners,
+                    internal = ownershipInfo?.internalOverride(component.name, component.type)
+                        ?: true.takeIf { isAppComponent },
+                    files = reportFiles(files, omitFileBreakdown) { file ->
+                        ownershipInfo?.let { it.fileOwners(file.name) ?: declaredOwners }
                     },
-                ),
-            )
-        }.sortedWith(comparator.reversed()),
-        dynamicFeatures = features.map { (feature, files) ->
-            val (featureOwner, featureAdditionalOwners) = splitOwners(ownershipInfo?.getOwners(feature))
-            DynamicFeature(
-                name = feature,
-                downloadSize = files.sumOf(AppFile::downloadSize),
-                installSize = files.sumOf(AppFile::installSize),
-                owner = featureOwner,
-                additionalOwners = featureAdditionalOwners,
-                internal = ownershipInfo?.getInternal(feature),
-                files = mapReportFiles(
-                    files = files,
-                    omitFileBreakdown = omitFileBreakdown,
-                    ownersForFile = { file -> ownershipInfo?.getOwners(file.name, feature) },
-                ),
-            )
-        }.sortedWith(comparator.reversed()),
-    )
+                )
+            }.sortedWith(largestFirst),
+            dynamicFeatures = features.map { (feature, files) ->
+                val declaredOwners = ownershipInfo?.owners(feature)
+                val (owner, additionalOwners) = splitOwners(declaredOwners)
+                DynamicFeature(
+                    name = feature,
+                    downloadSize = files.sumOf(AppFile::downloadSize),
+                    installSize = files.sumOf(AppFile::installSize),
+                    owner = owner,
+                    additionalOwners = additionalOwners,
+                    internal = ownershipInfo?.internalOverride(feature),
+                    files = reportFiles(files, omitFileBreakdown) { file ->
+                        ownershipInfo?.let { it.fileOwners(file.name) ?: declaredOwners }
+                    },
+                )
+            }.sortedWith(largestFirst),
+        )
+    }
 
-    private fun mapReportFiles(
+    private fun reportFiles(
         files: List<AppFile>,
         omitFileBreakdown: Boolean,
-        ownersForFile: (AppFile) -> List<String>?,
+        ownersOf: (AppFile) -> List<String>?,
     ): List<AppFile>? {
         if (omitFileBreakdown) return null
         return files.map { file ->
-            val (owner, additionalOwners) = splitOwners(ownersForFile(file))
-            AppFile(
-                name = file.name,
-                type = file.type,
-                downloadSize = file.downloadSize,
-                installSize = file.installSize,
-                owner = owner,
-                additionalOwners = additionalOwners,
-                resourceType = file.resourceType,
-            )
-        }.sortedWith(comparator.reversed())
+            val (owner, additionalOwners) = splitOwners(ownersOf(file))
+            file.copy(owner = owner, additionalOwners = additionalOwners)
+        }.sortedWith(largestFirst)
     }
 
+    /** The first owner is the primary one. The rest are reported alongside it. */
     private fun splitOwners(owners: List<String>?): Pair<String?, List<String>?> {
         if (owners.isNullOrEmpty()) return null to null
-        val additionalOwners = owners.drop(1).ifEmpty { null }
-        return owners.first() to additionalOwners
+        return owners.first() to owners.drop(1).ifEmpty { null }
     }
 
     companion object {

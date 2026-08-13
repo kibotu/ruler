@@ -35,4 +35,11 @@ class ResourceNameSanitizerTest {
 
         assertThat(sanitizer.sanitize("/res/anim/xYz.xml")).isEqualTo("/res/anim/spin.xml")
     }
+
+    @Test
+    fun `indented mapping lines are read without their padding`() {
+        val sanitizer = ResourceNameSanitizer.fromMapping("    res/anim/spin.xml -> [res/anim/xYz.xml]  ")
+
+        assertThat(sanitizer.sanitize("/res/anim/xYz.xml")).isEqualTo("/res/anim/spin.xml")
+    }
 }

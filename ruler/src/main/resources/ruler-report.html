@@ -260,14 +260,12 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
 </div>
 
 <script type="application/json" id="ruler-report">__RULER_REPORT__</script>
-<script type="application/json" id="ruler-insights">__RULER_INSIGHTS__</script>
 
 <script>
 (function(){
 'use strict';
 
 var report = JSON.parse(document.getElementById('ruler-report').textContent);
-var insights = JSON.parse(document.getElementById('ruler-insights').textContent);
 var currentSort = 'downloadSize';
 var breakdownFilters = {internal:true,external:true,owned:true,unowned:true};
 var breakdownTeamFilter = '';
@@ -521,20 +519,22 @@ function renderSourceFiles(files,sizeKey){
     '</div></div>';
 }
 
-function renderModuleDetails(component,listSizeKey,maxSize){
+function renderModuleDetails(component,listSizeKey){
   var breakdown=computeComponentBreakdown(component,'installSize');
   var files=component.files||[];
-  return renderSizeBars(breakdown,maxSize)+renderResourcesGrid(breakdown.resources)+
+  return renderSizeBars(breakdown,breakdown.totalSize)+renderResourcesGrid(breakdown.resources)+
     renderAssetFiles(files,listSizeKey)+renderSourceFiles(files,listSizeKey);
 }
+
+// Cards whose details have not been rendered yet, keyed by card id. A large app has hundreds of
+// thousands of files, so rendering every collapsed card up front would freeze the page.
+var unrenderedDetails={};
 
 function renderModuleCard(component,index,prefix,displayLabel){
   var listSizeKey=currentSort==='installSize'?'installSize':'downloadSize';
   var displaySize=component[listSizeKey]||0;
-  var breakdown=computeComponentBreakdown(component,'installSize');
-  var maxRef=breakdown.totalSize||component.installSize||displaySize;
-  var files=component.files||[];
   var id=prefix+'-'+index;
+  unrenderedDetails[id]={component:component,sizeKey:listSizeKey};
   return '<div class="module-card"><div class="module-header" data-module-id="'+id+'">'+
     '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
     renderOwnerBadges(component)+
@@ -542,13 +542,19 @@ function renderModuleCard(component,index,prefix,displayLabel){
     '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">'+displayLabel+'</span>'+
     '<span class="module-size">'+formatBytes(displaySize)+'</span></div>'+
     '<span class="expand-icon" id="icon-'+id+'">&#9660;</span></div></div>'+
-    '<div class="module-details" id="mod-'+id+'">'+renderModuleDetails(component,listSizeKey,maxRef)+'</div></div>';
+    '<div class="module-details" id="mod-'+id+'"></div></div>';
 }
 
-window.toggleModule=function(id){
-  document.getElementById('mod-'+id).classList.toggle('open');
+function toggleModule(id){
+  var details=document.getElementById('mod-'+id);
+  var pending=unrenderedDetails[id];
+  if(pending){
+    details.innerHTML=renderModuleDetails(pending.component,pending.sizeKey);
+    delete unrenderedDetails[id];
+  }
+  details.classList.toggle('open');
   document.getElementById('icon-'+id).classList.toggle('open');
-};
+}
 
 // Tabs
 document.querySelectorAll('.tab').forEach(function(tab){
@@ -692,11 +698,6 @@ function buildTreemapNodes(components){
   return nodes.concat(treemapRemainder(sorted.slice(TREEMAP_MAX_COMPONENTS),'components'));
 }
 
-function filteredTreemapNodes(){
-  var comps=filteredComponents();
-  return comps.length===report.components.length?insights.treemap:buildTreemapNodes(comps);
-}
-
 function squarify(nodes,x,y,width,height){
   var items=nodes.filter(function(n){return n.installSize>0;});
   if(!items.length)return[];
@@ -800,7 +801,7 @@ function renderInsights(){
   hBarChart(document.getElementById('topFilesChart'),allFiles.slice(0,20),'#e74c3c');
   hBarChart(document.getElementById('topAssetsChart'),allAssets.slice(0,20),'#3498db');
 
-  treemap(document.getElementById('treemapChart'),filteredTreemapNodes());
+  treemap(document.getElementById('treemapChart'),buildTreemapNodes(comps));
 
   var resStats={};
   comps.forEach(function(c){

@@ -19,12 +19,8 @@ import com.kibotu.ruler.model.ComponentType
 import com.kibotu.ruler.report.HtmlReporter
 import com.kibotu.ruler.report.JsonReporter
 import com.kibotu.ruler.report.ReportBuilder
-import com.kibotu.ruler.report.ReportInsights
 import kotlinx.serialization.json.Json
 import java.io.File
-
-/** Fallback component for Kotlin stdlib classes that are not in the dependency graph. */
-private const val KOTLIN_STDLIB_COMPONENT = "kotlin"
 
 /**
  * Measures an app bundle and writes the JSON and HTML reports.
@@ -51,12 +47,7 @@ class SizeAnalysis(
 
     fun run() {
         val files = filesPerFeature()
-        val dependencies = DependencySanitizer(classNameSanitizer).sanitize(dependencyEntries) +
-            mapOf(
-                KOTLIN_STDLIB_COMPONENT to listOf(
-                    DependencyComponent(KOTLIN_STDLIB_COMPONENT, ComponentType.INTERNAL),
-                ),
-            )
+        val dependencies = DependencySanitizer(classNameSanitizer).sanitize(dependencyEntries)
 
         val defaultComponent = dependencies.values.flatten()
             .firstOrNull { it.name == config.projectPath }
@@ -100,7 +91,7 @@ class SizeAnalysis(
         val json = JsonReporter().write(report, config.reportDir)
         log("Wrote JSON report to ${json.toPath().toUri()}")
 
-        val html = HtmlReporter().write(report, ReportInsights.from(report), config.reportDir)
+        val html = HtmlReporter().write(report, config.reportDir)
         log("Wrote HTML report to ${html.toPath().toUri()}")
     }
 

@@ -8,7 +8,7 @@ import java.io.File
 class BloatyTest {
 
     @Test
-    fun `returns nothing without an unstripped library`(@TempDir tempDir: File) {
+    fun `returns nothing without an unstripped library`() {
         val bloaty = Bloaty(path = "/usr/bin/true")
 
         assertThat(bloaty.parseCompileUnits("stripped".toByteArray(), debugFile = null)).isEmpty()

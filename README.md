@@ -1,3 +1,11 @@
+Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
+maintenance for over a year. This fork keeps the Android size analysis workflow alive and
+replaces the multi-module Kotlin/React frontend with a single HTML template — the same
+approach as [Caliper][caliper], its iOS equivalent, whose report format it matches.
+
+If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
+consider [buying me a coffee](https://buymeacoffee.com/kibotu).
+
 <img src="docs/logo.png" width="50%" />
 
 A Gradle plugin that measures the size of your Android app, file by file.
@@ -13,126 +21,27 @@ resulting APKs. It attributes each class, resource, asset, and native library to
 module or Maven dependency that produced it. You get a JSON report for your tooling and a
 self-contained HTML report for your team.
 
-```
-> Task :app:analyzeReleaseBundle
-Wrote JSON report to file:///.../app/build/reports/ruler/release/report.json
-Wrote HTML report to file:///.../app/build/reports/ruler/release/report.html
-```
-
-Support
--------
-
-Ruler is a fork of [Spotify's Ruler][upstream]. That project has not had meaningful
-maintenance for over a year. This fork keeps the Android size analysis workflow alive,
-replaces the multi-module Kotlin/React frontend with a single HTML template (the same
-approach as for the iOS equivalent with the same report format [Caliper][caliper]), and produces matching `report.html` and `report.json`
-reports.
-
-If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
-consider [buying me a coffee](https://buymeacoffee.com/kibotu).
-
-## [Demo HTML report](https://kibotu.github.io/ruler/)
-
-<table>
-  <tr valign="top">
-    <td width="33%" align="center">
-      <a href="docs/breakdown.png">
-        <img src="docs/breakdown.png" alt="Module Size Breakdown" width="100%">
-      </a>
-      <br>
-      <em>Module Size Breakdown</em>
-    </td>
-    <td width="33%" align="center">
-      <a href="docs/insights.png">
-        <img src="docs/insights.png" alt="Size Insights" width="100%">
-      </a>
-      <br>
-      <em>Size Insights</em>
-    </td>
-    <td width="33%" align="center">
-      <a href="docs/ownership.png">
-        <img src="docs/ownership.png" alt="Module Ownership" width="100%">
-      </a>
-      <br>
-      <em>Module Ownership</em>
-    </td>
-  </tr>
-</table>
-
-Features
---------
-
- * **Per-file breakdown.** Download size and install size for every class, resource, asset,
-   and native library.
- * **Attribution.** Each file is assigned to its Gradle module or Maven dependency.
- * **Ownership.** Map modules, dependencies, and files to teams with a YAML file.
- * **De-obfuscation.** R8, ProGuard, and DexGuard mapping files are applied automatically.
- * **Dynamic features.** Each dynamic feature module is reported separately.
- * **Native deep-dive.** Optional [Bloaty][bloaty] integration reports native size per
-   compile unit.
- * **Size limits.** Fail the build when download or install size exceeds a threshold.
- * **HTML report.** Treemap, top-20 lists, and owner breakdown in one offline file.
- * **Cacheable.** The task is a `@CacheableTask` and supports the configuration cache.
+**[See a live HTML report →](https://kibotu.github.io/ruler/)**
 
 
-Download
---------
+Quick start
+-----------
 
-```kotlin
-// settings.gradle.kts
-plugins {
-    id("net.kibotu.ruler") version "3.0.0"
-}
-```
+Apply the plugin next to `com.android.application`:
 
 ```kotlin
 // app/build.gradle.kts
 plugins {
     id("com.android.application")
-    id("net.kibotu.ruler")
+    id("net.kibotu.ruler") version "<latest>"
 }
 ```
-
-Requires JDK 17+. Built and tested against Gradle 9.7 and Android Gradle Plugin 9.3.
-
-> **Note:** Ruler is not on the Gradle Plugin Portal yet. Until it is, install it into your
-> local Maven repository. See [Building](#building).
-
-
-Usage
------
-
-Ruler adds one task per application variant:
-
-```
-./gradlew analyzeDebugBundle
-./gradlew analyzeReleaseBundle
-```
-
-Each task writes two reports:
-
-```
-app/build/reports/ruler/release/
-├── report.json
-└── report.html
-```
-
-To measure the size on every build, attach the task to `check`:
-
-```kotlin
-tasks.named("check") {
-    dependsOn("analyzeReleaseBundle")
-}
-```
-
-
-Configuration
--------------
 
 Ruler needs a device specification. It splits the bundle for that device, because app size
-depends on the ABI, locale, density, and SDK level that the Play Store delivers.
+depends on the ABI, locale, density, and SDK level that the Play Store delivers:
 
 ```kotlin
+// app/build.gradle.kts
 ruler {
     abi.set("arm64-v8a")
     locale.set("en")
@@ -141,7 +50,41 @@ ruler {
 }
 ```
 
-Everything else is optional:
+Then run the task that Ruler adds for your variant:
+
+```
+$ ./gradlew analyzeReleaseBundle
+
+> Task :app:analyzeReleaseBundle
+> Task :app:printRulerReleaseReports
+JSON report: file:///.../app/build/reports/ruler/release/report.json
+HTML report: file:///.../app/build/reports/ruler/release/report.html
+```
+
+The paths are printed on every build, including when the analysis itself is up to date or comes
+from the build cache.
+
+There is one task per application variant, so `analyzeDebugBundle` works too. To measure on
+every build, attach the task to `check`:
+
+```kotlin
+tasks.named("check") {
+    dependsOn("analyzeReleaseBundle")
+}
+```
+
+Requires JDK 17+. Built and tested against Gradle 9.7 and Android Gradle Plugin 9.3.
+
+> **Resolving the plugin.** The snippet above resolves from the Gradle Plugin Portal. To take
+> it from Maven Central instead, add `mavenCentral()` to `pluginManagement.repositories` in
+> `settings.gradle.kts`. Until the first 3.0.0 release is published, install it into your local
+> Maven repository with `./gradlew :ruler:publishToMavenLocal` and add `mavenLocal()` there.
+
+
+Configuration
+-------------
+
+Beyond the device specification, everything is optional:
 
 ```kotlin
 ruler {
@@ -185,6 +128,105 @@ ruler {
 | `verification.installSizeThreshold` | `Long` | unlimited | Maximum install size in bytes. |
 
 
+Features
+--------
+
+ * **Per-file breakdown.** Download size and install size for every class, resource, asset,
+   and native library.
+ * **Attribution.** Each file is assigned to its Gradle module or Maven dependency.
+ * **Ownership.** Map modules, dependencies, and files to teams with a YAML file.
+ * **De-obfuscation.** R8, ProGuard, and DexGuard mapping files are applied automatically.
+ * **Dynamic features.** Each dynamic feature module is reported separately.
+ * **Native deep-dive.** Optional [Bloaty][bloaty] integration reports native size per
+   compile unit.
+ * **Size limits.** Fail the build when download or install size exceeds a threshold.
+ * **HTML report.** Treemap, top-20 lists, and owner breakdown in one offline file.
+ * **Cacheable.** The task is a `@CacheableTask` and supports the configuration cache.
+
+
+Reports
+-------
+
+Each task writes both reports side by side:
+
+```
+app/build/reports/ruler/release/
+├── report.json
+└── report.html
+```
+
+`report.html` is a single file with no external resources. It opens offline and contains a
+treemap, a component table, size distributions by file type, top-20 lists, and per-owner
+totals.
+
+<table>
+  <tr valign="top">
+    <td width="33%" align="center">
+      <a href="docs/breakdown.png">
+        <img src="docs/breakdown.png" alt="Module Size Breakdown" width="100%">
+      </a>
+      <br>
+      <em>Module Size Breakdown</em>
+    </td>
+    <td width="33%" align="center">
+      <a href="docs/insights.png">
+        <img src="docs/insights.png" alt="Size Insights" width="100%">
+      </a>
+      <br>
+      <em>Size Insights</em>
+    </td>
+    <td width="33%" align="center">
+      <a href="docs/ownership.png">
+        <img src="docs/ownership.png" alt="Module Ownership" width="100%">
+      </a>
+      <br>
+      <em>Module Ownership</em>
+    </td>
+  </tr>
+</table>
+
+`report.json` is the machine-readable form:
+
+```json
+{
+    "name": "com.kibotu.ruler.sample",
+    "version": "1.0",
+    "variant": "release",
+    "downloadSize": 251690,
+    "installSize": 473468,
+    "components": [
+        {
+            "name": ":lib",
+            "type": "INTERNAL",
+            "downloadSize": 18168,
+            "installSize": 35223,
+            "files": [
+                {
+                    "name": "/res/layout/activity_lib.xml",
+                    "type": "RESOURCE",
+                    "downloadSize": 505,
+                    "installSize": 487,
+                    "owner": "app",
+                    "additionalOwners": ["lib-team"],
+                    "resourceType": "LAYOUT"
+                }
+            ],
+            "owner": "app",
+            "additionalOwners": ["lib-team"]
+        }
+    ],
+    "dynamicFeatures": []
+}
+```
+
+Components and files are sorted by download size, largest first. `files` is `null` when
+`omitFileBreakdown` is set. A component `type` is `INTERNAL` or `EXTERNAL`. A file `type` is
+`CLASS`, `RESOURCE`, `ASSET`, `NATIVE_LIB`, `NATIVE_FILE`, or `OTHER`, and a `RESOURCE`
+carries a `resourceType` of `DRAWABLE`, `LAYOUT`, `FONT`, `RAW`, `VALUES`, or `OTHER`.
+`owner`, `additionalOwners`, `internal`, and `resourceType` are left out where they have no
+value, so treat a missing key as null.
+
+
 Ownership
 ---------
 
@@ -202,7 +244,9 @@ List your teams in a YAML file. Ruler reads the entries in order and uses the fi
   owner: google
 
 - identifier: /res/layout/activity_main.xml
-  owner: ui-team
+  owners:
+    - ui-team
+    - design-systems
 ```
 
 `identifier` matches one of the following:
@@ -217,6 +261,9 @@ List your teams in a YAML file. Ruler reads the entries in order and uses the fi
 
 Patterns support `*` for any characters and `?` for one character. Matches are
 case-insensitive. A match on a file name overrides the owner of its component.
+
+Use `owner` for a single team and `owners` for several. The first owner is the primary one;
+the rest are reported alongside it as `additionalOwners`.
 
 `internal` is optional. It overrides the report's internal/external flag, which is useful
 when a Maven coordinate belongs to your own organisation.
@@ -242,52 +289,6 @@ longer `path` wins. Ruler applies these entries when automatic attribution fails
 compile units, Ruler applies them first.
 
 
-Reports
--------
-
-`report.html` is a single file with no external resources. It opens offline and contains a
-treemap, a component table, size distributions by file type, top-20 lists, and per-owner
-totals.
-
-`report.json` is the machine-readable form:
-
-```json
-{
-    "name": "com.mycompany.app",
-    "version": "1.2.3",
-    "variant": "release",
-    "downloadSize": 12345678,
-    "installSize": 45678901,
-    "components": [
-        {
-            "name": ":app",
-            "type": "INTERNAL",
-            "downloadSize": 5000000,
-            "installSize": 20000000,
-            "owner": "App",
-            "internal": true,
-            "files": [
-                {
-                    "name": "com.mycompany.MainActivity",
-                    "type": "CLASS",
-                    "downloadSize": 12000,
-                    "installSize": 48000,
-                    "owner": "app-team",
-                    "resourceType": null
-                }
-            ]
-        }
-    ],
-    "dynamicFeatures": []
-}
-```
-
-Components and files are sorted by download size, largest first. `files` is `null` when
-`omitFileBreakdown` is set. `type` is `INTERNAL` or `EXTERNAL`. A file `type` is `CLASS`,
-`RESOURCE`, `ASSET`, `NATIVE_LIB`, `NATIVE_FILE`, or `OTHER`. A `resourceType` is
-`DRAWABLE`, `LAYOUT`, `FONT`, `RAW`, `VALUES`, `OTHER`, or `null`.
-
-
 Building
 --------
 
@@ -302,7 +303,7 @@ real project does. Changes to the plugin take effect immediately. No publish ste
 a separate build, it finds the Android SDK through `ANDROID_HOME` or its own
 `sample/local.properties`.
 
-To view the HTML report without an Android build:
+To work on the HTML report without an Android build:
 
 ```sh
 ./gradlew :ruler:previewReport

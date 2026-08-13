@@ -4,22 +4,19 @@ import com.kibotu.ruler.model.AppReport
 import kotlinx.serialization.json.Json
 import java.io.File
 
-/** Standalone entry point for generating a preview report without an Android build. */
+/**
+ * Renders `report.html` from a `report.json`, so that the template can be worked on without an
+ * Android build.
+ *
+ * @param args The report to read, followed by the directory to write to.
+ */
 fun main(args: Array<String>) {
-    val jsonText = if (args.isNotEmpty()) {
-        val file = File(args[0])
-        require(file.exists()) { "JSON file not found: ${args[0]}" }
-        file.readText()
-    } else {
-        val fixture = File("src/test/resources/fixtures/report-sample.json")
-        require(fixture.exists()) { "Fixture not found: ${fixture.absolutePath}" }
-        fixture.readText()
-    }
+    require(args.size == 2) { "Usage: previewReport <report.json> <output-dir>" }
 
-    val report = Json.decodeFromString<AppReport>(jsonText)
-    val insights = ReportInsights.from(report)
-    val outputDir = File("build/preview")
-    outputDir.mkdirs()
-    val htmlFile = HtmlReporter().write(report, insights, outputDir)
-    println("Preview report written to ${htmlFile.toURI()}")
+    val reportFile = File(args[0])
+    require(reportFile.exists()) { "JSON report not found: $reportFile" }
+    val outputDir = File(args[1]).apply { mkdirs() }
+
+    val report = Json.decodeFromString<AppReport>(reportFile.readText())
+    println("Preview report written to ${HtmlReporter().write(report, outputDir).toURI()}")
 }

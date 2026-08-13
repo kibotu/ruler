@@ -26,6 +26,9 @@ plugins {
 
 kotlin {
     jvmToolchain(17)
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
 }
 
 java {
@@ -123,9 +126,16 @@ tasks.register<JavaExec>("previewReport") {
     description = "Renders report.html from a report.json (defaults to the test fixture)"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass = "com.kibotu.ruler.report.PreviewReportKt"
-    if (project.hasProperty("json")) {
-        args(project.property("json").toString())
-    }
+    val fixture = layout.projectDirectory.file("src/test/resources/fixtures/report-sample.json")
+    // -Pjson is resolved against the directory Gradle was invoked from, not this subproject.
+    val invocationDir = rootDir
+    args(
+        providers.gradleProperty("json")
+            .map { invocationDir.resolve(it).path }
+            .orElse(fixture.asFile.path)
+            .get(),
+        layout.buildDirectory.dir("preview").get().asFile.path,
+    )
 }
 
 tasks.withType<Test>().configureEach {

@@ -146,6 +146,17 @@ class AttributorTest {
     }
 
     @Test
+    fun `attributes a synthesized kotlin class to the stdlib that declares the package`() {
+        val stdlib = DependencyComponent("org.jetbrains.kotlin:kotlin-stdlib:2.4.10", ComponentType.EXTERNAL)
+        val dependencies = mapOf("kotlin.Unit" to listOf(stdlib))
+        val files = listOf(appFile("kotlin.KotlinNothingValueException", FileType.CLASS))
+
+        val result = Attributor(defaultComponent).attribute(files, dependencies)
+
+        assertThat(result[stdlib]).hasSize(1)
+    }
+
+    @Test
     fun `an ambiguous package is not attributed`() {
         val dependencies = mapOf(
             "com.example.One" to listOf(libComponent),

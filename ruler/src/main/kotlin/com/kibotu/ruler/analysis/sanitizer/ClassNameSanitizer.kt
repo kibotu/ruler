@@ -2,7 +2,6 @@ package com.kibotu.ruler.analysis.sanitizer
 
 import com.android.tools.proguard.ProguardMap
 import java.io.File
-import java.io.StringReader
 
 /** De-obfuscates class names with an R8, ProGuard, or DexGuard mapping file. */
 class ClassNameSanitizer private constructor(private val proguardMap: ProguardMap) {
@@ -19,12 +18,5 @@ class ClassNameSanitizer private constructor(private val proguardMap: ProguardMa
             .removeSuffix(".class") // a/b/C.class -> a/b/C
             .replace('/', '.') // a/b/C -> a.b.C
         return proguardMap.getClassName(sanitized) // a.b.C -> foo.bar.Baz
-    }
-
-    companion object {
-        /** Builds a sanitizer from the contents of a mapping file. */
-        fun fromMapping(mapping: String) = ClassNameSanitizer(
-            ProguardMap().apply { readFromReader(StringReader(mapping)) },
-        )
     }
 }

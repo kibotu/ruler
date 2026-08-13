@@ -1,6 +1,5 @@
 package com.kibotu.ruler.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Single component of an app. Can either be a Gradle module or a dependency. */
@@ -13,6 +12,6 @@ data class AppComponent(
     override val files: List<AppFile>?,
     override val owner: String? = null,
     val additionalOwners: List<String>? = null,
-    @SerialName("internal")
+    /** Overrides [type] in the report, for a dependency that belongs to your own organisation. */
     val internal: Boolean? = null,
 ) : FileContainer

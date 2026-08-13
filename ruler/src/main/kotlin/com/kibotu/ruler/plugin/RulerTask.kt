@@ -113,7 +113,9 @@ abstract class RulerTask : DefaultTask() {
             resourceMappingFile = resourceMappingFile.asFile.orNull,
             unstrippedNativeFiles = unstrippedNativeFiles.get().map(RegularFile::getAsFile),
             bloatyPath = bloatyPath.orNull,
-            log = logger::lifecycle,
+            // printRuler<Variant>Reports announces the paths, because it also runs when this
+            // task is up to date. Keep this off the console so they are not printed twice.
+            log = logger::info,
         ).run()
     }
 

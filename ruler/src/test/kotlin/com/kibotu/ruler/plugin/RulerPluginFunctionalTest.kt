@@ -37,6 +37,19 @@ class RulerPluginFunctionalTest {
     }
 
     @Test
+    fun `the report paths are printed after the analysis`() {
+        writeBuildScript()
+
+        val output = run("analyzeDebugBundle", "--dry-run").output
+
+        // The finalizer runs even when the analysis is up to date, which is when the paths would
+        // otherwise go unreported.
+        assertThat(output).contains(":printRulerDebugReports SKIPPED")
+        assertThat(output.indexOf(":printRulerDebugReports"))
+            .isGreaterThan(output.indexOf(":analyzeDebugBundle"))
+    }
+
+    @Test
     fun `task properties are fully configured`() {
         writeBuildScript()
 

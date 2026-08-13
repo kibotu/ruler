@@ -1,6 +1,5 @@
 package com.kibotu.ruler.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Dynamic feature contained in an app. */
@@ -12,6 +11,5 @@ data class DynamicFeature(
     override val files: List<AppFile>?,
     override val owner: String? = null,
     val additionalOwners: List<String>? = null,
-    @SerialName("internal")
     val internal: Boolean? = null,
 ) : FileContainer

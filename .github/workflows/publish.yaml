@@ -3,37 +3,39 @@ name: Publish
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+      # Tags are written both as `3.0.0` and as `v3.0.0`; the artifact version never carries the v.
+      - id: extract
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
+          echo "Publishing version: ${VERSION#v}"
+
   build:
+    needs: version
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Extract version from tag
-        id: extract_version
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "Publishing version: $TAG_NAME"
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Build with Gradle
-        run: ./gradlew :ruler:build -Pversion=${{ steps.extract_version.outputs.VERSION }} --no-configuration-cache --no-daemon --stacktrace
+        run: ./gradlew :ruler:build -Pversion=${{ needs.version.outputs.version }} --no-configuration-cache --no-daemon --stacktrace
 
   publish-maven-central:
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
     env:
       SONATYPE_USERNAME: ${{ secrets.MAVEN_CENTRAL_USER_NAME }}
@@ -41,55 +43,33 @@ jobs:
       PGP_SIGNING_KEY: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
       PGP_SIGNING_PASSWORD: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Extract version from tag
-        id: extract_version
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "Publishing version: $TAG_NAME"
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Maven Central
-        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=${{ steps.extract_version.outputs.VERSION }} --no-configuration-cache --no-daemon --stacktrace
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository -Pversion=${{ needs.version.outputs.version }} --no-configuration-cache --no-daemon --stacktrace
 
   publish-gradle-portal:
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
     env:
       GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
       GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Extract version from tag
-        id: extract_version
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          echo "VERSION=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "Publishing version: $TAG_NAME"
-
-      - name: Setup JDK
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to Gradle Plugin Portal
-        run: ./gradlew :ruler:publishPlugins -Pversion=${{ steps.extract_version.outputs.VERSION }} --no-configuration-cache --no-daemon --stacktrace
+        run: ./gradlew :ruler:publishPlugins -Pversion=${{ needs.version.outputs.version }} --no-configuration-cache --no-daemon --stacktrace

@@ -12,7 +12,9 @@ plugins {
 
 allprojects {
     group = "net.kibotu"
-    version = findProperty("version")?.toString() ?: "3.0.0"
+    findProperty("version")?.toString()?.let {
+        version = it
+    }
 }
 
 extensions.configure(NexusPublishExtension::class) {

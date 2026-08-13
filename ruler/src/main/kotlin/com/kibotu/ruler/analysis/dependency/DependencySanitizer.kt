@@ -4,62 +4,35 @@ import com.kibotu.ruler.analysis.sanitizer.ClassNameSanitizer
 import com.kibotu.ruler.model.ComponentType
 
 /**
- * Responsible for sanitizing dependency entries, so they can be attributed easier.
+ * Cleans up dependency entries, so that their names line up with the entries of the APK.
  *
- * @param classNameSanitizer Used for sanitizing class names
+ * @param classNameSanitizer De-obfuscates class names.
  */
 class DependencySanitizer(private val classNameSanitizer: ClassNameSanitizer) {
 
-    /**
-     * Sanitizes a list of dependency entries, to ease further processing. Sanitizing means cleaning up entry names and
-     * associating entries with their components.
-     *
-     * @param entries List of raw entries parsed from dependencies
-     * @return Map of file names to a list of all components which include this file
-     */
+    /** @return File names mapped to every component that contains that file. */
     fun sanitize(entries: List<DependencyEntry>): Map<String, List<DependencyComponent>> {
-        val map = mutableMapOf<String, MutableList<DependencyComponent>>()
-        entries.map(::sanitizeEntry).forEach { entry ->
-            val components = map.getOrPut(entry.name) { ArrayList() }
-            val type = getComponentType(entry)
-            components += DependencyComponent(entry.component, type)
+        val components = mutableMapOf<String, MutableList<DependencyComponent>>()
+        entries.forEach { entry ->
+            components.getOrPut(nameOf(entry), ::mutableListOf) += componentOf(entry.component)
         }
-        return map
+        return components
     }
 
-    /** Cleans the component name and potentially sanitizes the name for a given [entry]. */
-    private fun sanitizeEntry(entry: DependencyEntry): DependencyEntry {
-        val component = normalizeComponentName(entry.component)
-        return when(entry) {
-            is DependencyEntry.Class -> {
-                val name = classNameSanitizer.sanitize(entry.name)
-                DependencyEntry.Class(name, component)
-            }
-            is DependencyEntry.Default -> {
-                val name = entry.name.replace('\\', '/') // Convert Windows-style paths to UNIX-style paths
-                DependencyEntry.Default(name, component)
-            }
-        }
+    private fun nameOf(entry: DependencyEntry): String = when (entry) {
+        is DependencyEntry.Class -> classNameSanitizer.sanitize(entry.name)
+        // A Windows path never matches an APK entry, whose separator is always a slash.
+        is DependencyEntry.Default -> entry.name.replace('\\', '/')
     }
 
     /**
-     * Normalizes Gradle component identifiers to a stable project path.
-     * Gradle reports project dependencies as `project ':sample:lib'`; we want `:sample:lib`.
+     * Gradle reports a project dependency as `project ':sample:lib'`, and a module dependency by
+     * its Maven coordinate. Only the former starts with a colon once unwrapped, which is what
+     * tells the two apart.
      */
-    private fun normalizeComponentName(raw: String): String {
-        return raw
-            .removePrefix("project ")
-            .trim()
-            .removeSurrounding("'")
-    }
-
-    /**
-     * Determines the correct component type for a given [entry].
-     * After normalization, Gradle subprojects look like ":foo" (internal),
-     * while Maven dependencies look like "org.bar:bar:1.0.0" (external).
-     */
-    private fun getComponentType(entry: DependencyEntry): ComponentType = when {
-        entry.component.startsWith(":") -> ComponentType.INTERNAL
-        else -> ComponentType.EXTERNAL
+    private fun componentOf(rawComponent: String): DependencyComponent {
+        val name = rawComponent.removePrefix("project ").trim().removeSurrounding("'")
+        val type = if (name.startsWith(":")) ComponentType.INTERNAL else ComponentType.EXTERNAL
+        return DependencyComponent(name, type)
     }
 }

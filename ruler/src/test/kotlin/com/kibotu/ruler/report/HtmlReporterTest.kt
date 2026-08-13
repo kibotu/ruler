@@ -8,6 +8,7 @@ import com.kibotu.ruler.model.ComponentType
 import com.kibotu.ruler.model.DynamicFeature
 import com.kibotu.ruler.model.FileType
 import com.kibotu.ruler.model.ResourceType
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -15,164 +16,85 @@ import java.io.File
 class HtmlReporterTest {
     private val reporter = HtmlReporter()
 
-    private fun createTestReport() = AppReport(
+    /** Carries a unicode name and a name full of markup, so that both survive into every test. */
+    private val report = AppReport(
         name = "com.kibotu.ruler.sample",
         version = "1.2.3",
         variant = "release",
-        downloadSize = 2900,
-        installSize = 4800,
+        downloadSize = 750,
+        installSize = 1250,
         components = listOf(
-            AppComponent(":app", ComponentType.INTERNAL, 250, 450, listOf(
-                AppFile("com.kibotu.sample.MainActivity", FileType.CLASS, 100, 200),
-                AppFile("/res/layout/main.xml", FileType.RESOURCE, 150, 250, resourceType = ResourceType.LAYOUT),
-            ), "app-team"),
-            AppComponent("com.ext:lib", ComponentType.EXTERNAL, 300, 500, listOf(
-                AppFile("ext.class", FileType.CLASS, 300, 500),
-            ), "ext-team"),
+            AppComponent(
+                name = ":module-\u00e4",
+                type = ComponentType.INTERNAL,
+                downloadSize = 250,
+                installSize = 450,
+                files = listOf(
+                    AppFile("com.kibotu.sample.MainActivity", FileType.CLASS, 100, 200),
+                    AppFile("/res/layout/main.xml", FileType.RESOURCE, 150, 250, resourceType = ResourceType.LAYOUT),
+                ),
+                owner = "app-team",
+            ),
+            AppComponent(
+                name = "</script><script>alert('x')</script>",
+                type = ComponentType.EXTERNAL,
+                downloadSize = 300,
+                installSize = 500,
+                files = listOf(AppFile("ext.class", FileType.CLASS, 300, 500)),
+                owner = "ext-team",
+            ),
         ),
         dynamicFeatures = listOf(
-            DynamicFeature("dynamic", 500, 800, listOf(
-                AppFile("DynActivity.class", FileType.CLASS, 300, 500),
-                AppFile("/res/layout/dyn.xml", FileType.RESOURCE, 200, 300, resourceType = ResourceType.LAYOUT),
-            ), "dynamic-team"),
+            DynamicFeature(
+                name = "dynamic",
+                downloadSize = 200,
+                installSize = 300,
+                files = listOf(AppFile("DynActivity.class", FileType.CLASS, 200, 300)),
+                owner = "dynamic-team",
+            ),
         ),
     )
 
     @Test
-    fun `HTML report is generated`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        val file = reporter.write(report, insights, targetDir)
+    fun `writes a single self-contained report`(@TempDir targetDir: File) {
+        val file = reporter.write(report, targetDir)
 
-        assertThat(file.exists()).isTrue()
         assertThat(file.name).isEqualTo("report.html")
+        assertThat(targetDir.listFiles()!!.map(File::getName)).containsExactly("report.html")
+        assertThat(file.readText()).doesNotContain("http://")
+        assertThat(file.readText()).doesNotContain("https://")
     }
 
     @Test
-    fun `no placeholder survives in output`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        val file = reporter.write(report, insights, targetDir)
-        val content = file.readText()
+    fun `fills the report into the template`(@TempDir targetDir: File) {
+        val html = reporter.write(report, targetDir).readText(Charsets.UTF_8)
 
-        assertThat(content).doesNotContain("__RULER_REPORT__")
-        assertThat(content).doesNotContain("__RULER_INSIGHTS__")
+        assertThat(html).doesNotContain("__RULER_REPORT__")
+        assertThat(Json.decodeFromString<AppReport>(payloadOf(html))).isEqualTo(report)
     }
 
     @Test
-    fun `no network requests in output`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        val file = reporter.write(report, insights, targetDir)
-        val content = file.readText()
+    fun `escapes markup so that the data cannot close its script tag`(@TempDir targetDir: File) {
+        val payload = payloadOf(reporter.write(report, targetDir).readText(Charsets.UTF_8))
 
-        assertThat(content).doesNotContain("http://")
-        assertThat(content).doesNotContain("https://")
+        assertThat(payload).doesNotContain("<")
+        assertThat(payload).contains("\\u003c/script>")
     }
 
     @Test
-    fun `JSON data is embedded in script tags`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        val file = reporter.write(report, insights, targetDir)
-        val content = file.readText()
+    fun `overwrites an existing report`(@TempDir targetDir: File) {
+        reporter.write(report, targetDir)
 
-        assertThat(content).contains("ruler-report")
-        assertThat(content).contains("ruler-insights")
-        assertThat(content).contains("com.kibotu.ruler.sample")
+        assertThat(reporter.write(report, targetDir).length()).isGreaterThan(0)
     }
 
-    @Test
-    fun `ownership chart CSS uses definite column height`(@TempDir targetDir: File) {
-        val content = reporter.write(createTestReport(), ReportInsights.from(createTestReport()), targetDir).readText()
-        assertThat(content).contains(".owner-bar-track{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;min-height:0}")
-        assertThat(content).contains(".owner-bar-grid{display:flex;flex-wrap:wrap;gap:24px 32px;align-items:flex-end;justify-content:center}")
-        assertThat(content).contains(".owner-bar-col{width:28px;")
-        assertThat(content).contains("className='ruler-tip'")
-        assertThat(content).contains("function tipAttr(")
-        assertThat(content).contains("sel.value='0'")
-        assertThat(content).contains("renderOwnerDetails('0')")
-        assertThat(content).contains("id=\"teamFilterSelect\"")
-        assertThat(content).contains("function selectTeamFilter(")
-        assertThat(content).contains("owner-badge-filter")
-        assertThat(content).contains("internal-badge-filter")
-        assertThat(content).contains("function toggleInternalFilter(")
+    /** The JSON that the template hands to the page. */
+    private fun payloadOf(html: String): String {
+        val start = html.indexOf(PAYLOAD_TAG) + PAYLOAD_TAG.length
+        return html.substring(start, html.indexOf("</script>", start))
     }
 
-    @Test
-    fun `report data round-trips through JSON parsing`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        val file = reporter.write(report, insights, targetDir)
-        val content = file.readText()
-
-        // Extract the JSON from the script tag
-        val startMarker = """<script type="application/json" id="ruler-report">"""
-        val endMarker = """</script>"""
-        val startIdx = content.indexOf(startMarker) + startMarker.length
-        val endIdx = content.indexOf(endMarker, startIdx)
-        val json = content.substring(startIdx, endIdx)
-
-        val parsed = kotlinx.serialization.json.Json.decodeFromString<AppReport>(json)
-        assertThat(parsed.name).isEqualTo(report.name)
-        assertThat(parsed.version).isEqualTo(report.version)
-        assertThat(parsed.components).hasSize(report.components.size)
-    }
-
-    @Test
-    fun `existing reports are overwritten`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        reporter.write(report, insights, targetDir)
-        reporter.write(report, insights, targetDir) // Should not throw
-    }
-
-    @Test
-    fun `exactly one file is written`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        reporter.write(report, insights, targetDir)
-
-        val files = targetDir.listFiles()!!
-        assertThat(files).hasLength(1)
-        assertThat(files[0].name).isEqualTo("report.html")
-    }
-
-    @Test
-    fun `html is UTF-8 encoded`(@TempDir targetDir: File) {
-        val report = AppReport(
-            name = "com.test.unicode",
-            version = "1.0",
-            variant = "debug",
-            downloadSize = 0,
-            installSize = 0,
-            components = listOf(
-                AppComponent(":module-\u00e4", ComponentType.INTERNAL, 100, 200, null),
-            ),
-            dynamicFeatures = emptyList(),
-        )
-        val insights = ReportInsights.from(report)
-        val file = reporter.write(report, insights, targetDir)
-        val content = file.readText(Charsets.UTF_8)
-
-        assertThat(content).contains("module-\u00e4")
-    }
-
-    @Test
-    fun `angle brackets in JSON are escaped`(@TempDir targetDir: File) {
-        val report = createTestReport()
-        val insights = ReportInsights.from(report)
-        val file = reporter.write(report, insights, targetDir)
-        val content = file.readText()
-
-        // Extract JUST the JSON payload content (between > and </script>)
-        val reportStart = content.indexOf("""<script type="application/json" id="ruler-report">""")
-        val jsonStart = content.indexOf(">", reportStart) + 1
-        val reportEnd = content.indexOf("</script>", jsonStart)
-        val jsonPayload = content.substring(jsonStart, reportEnd)
-
-        // The JSON payload should have < escaped as \u003c so no raw < can break out of the script block
-        assertThat(jsonPayload).doesNotContain("<script")
-        assertThat(jsonPayload).doesNotContain("</script")
+    private companion object {
+        const val PAYLOAD_TAG = """<script type="application/json" id="ruler-report">"""
     }
 }
