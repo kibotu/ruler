@@ -31,6 +31,31 @@ reports.
 If Ruler saved you a few hours hunting down a bloated dependency (or a few megabytes),
 consider [buying me a coffee](https://buymeacoffee.com/kibotu).
 
+## [Demo HTML report](https://kibotu.github.io/ruler/)
+
+<table>
+  <tr>
+    <td width="33%">
+      <a href="docs/breakdown.png">
+        <img src="docs/breakdown.png" alt="Module Size Breakdown" width="100%">
+      </a>
+      <p align="center"><em>Module Size Breakdown</em></p>
+    </td>
+    <td width="33%">
+      <a href="docs/insights.png">
+        <img src="docs/insights.png" alt="Size Insights" width="100%">
+      </a>
+      <p align="center"><em>Size Insights</em></p>
+    </td>
+    <td width="33%">
+      <a href="docs/ownership.png">
+        <img src="docs/ownership.png" alt="Module Ownership" width="100%">
+      </a>
+      <p align="center"><em>Module Ownership</em></p>
+    </td>
+  </tr>
+</table>
+
 Features
 --------
 
