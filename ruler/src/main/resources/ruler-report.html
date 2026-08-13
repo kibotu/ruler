@@ -585,23 +585,108 @@ function donutChart(el,data,valueKey,labelKey){
   el.innerHTML=svg;
 }
 
+var TREEMAP_MAX_COMPONENTS=50,TREEMAP_MAX_FILES=30;
+
+function treemapRemainder(remainder,label){
+  if(!remainder.length)return[];
+  return [{name:'other ('+remainder.length+' '+label+')',installSize:remainder.reduce(function(s,m){return s+m.installSize;},0),children:[]}];
+}
+
+function buildTreemapNodes(components){
+  var sorted=components.slice().sort(function(a,b){return b.downloadSize-a.downloadSize;});
+  var nodes=sorted.slice(0,TREEMAP_MAX_COMPONENTS).map(function(c){
+    var files=(c.files||[]).slice().sort(function(a,b){return b.downloadSize-a.downloadSize;});
+    return {
+      name:c.name,installSize:c.installSize,
+      children:files.slice(0,TREEMAP_MAX_FILES).map(function(f){return {name:f.name,installSize:f.installSize,children:[]};})
+        .concat(treemapRemainder(files.slice(TREEMAP_MAX_FILES),'files'))
+    };
+  });
+  return nodes.concat(treemapRemainder(sorted.slice(TREEMAP_MAX_COMPONENTS),'components'));
+}
+
+function filteredTreemapNodes(){
+  var comps=filteredComponents();
+  return comps.length===report.components.length?insights.treemap:buildTreemapNodes(comps);
+}
+
+function squarify(nodes,x,y,width,height){
+  var items=nodes.filter(function(n){return n.installSize>0;});
+  if(!items.length)return[];
+  var total=items.reduce(function(s,n){return s+n.installSize;},0);
+  if(!total)return[];
+  items.sort(function(a,b){return b.installSize-a.installSize;});
+  var rects=[],area=width*height,remaining=total,curX=x,curY=y,w=width,h=height,row=[];
+  function worst(r,len){
+    var s=r.reduce(function(a,n){return a+n.installSize;},0),ratio=area/remaining,
+      mx=Math.max.apply(null,r.map(function(n){return n.installSize;})),
+      mn=Math.min.apply(null,r.map(function(n){return n.installSize;})),l2=len*len,s2=s*s;
+    return Math.max(l2*mx/(ratio*ratio*s2),(ratio*ratio*s2)/(l2*mn));
+  }
+  function flush(horiz){
+    var rowSum=row.reduce(function(s,n){return s+n.installSize;},0);
+    if(horiz){
+      var rh=h*rowSum/remaining,rx=curX;
+      row.forEach(function(n){
+        var nw=w*n.installSize/rowSum;
+        rects.push({node:n,x:rx,y:curY,width:nw,height:rh});
+        rx+=nw;
+      });
+      curY+=rh;h-=rh;
+    }else{
+      var rw=w*rowSum/remaining,ry=curY;
+      row.forEach(function(n){
+        var nh=h*n.installSize/rowSum;
+        rects.push({node:n,x:curX,y:ry,width:rw,height:nh});
+        ry+=nh;
+      });
+      curX+=rw;w-=rw;
+    }
+    remaining-=rowSum;area=w*h;row=[];
+  }
+  var list=items.slice();
+  while(list.length){
+    var trial=row.concat(list[0]),horiz=w>=h,len=horiz?w:h;
+    if(!row.length||worst(row,len)>=worst(trial,len)){row=trial;list.shift();}
+    else flush(w>=h);
+  }
+  if(row.length)flush(w>=h);
+  return rects;
+}
+
+function treemapRects(nodes,x,y,w,h,depth,colorOffset){
+  var rects=squarify(nodes,x,y,w,h),all=[];
+  rects.forEach(function(r,i){
+    all.push({rect:r,depth:depth,colorIndex:colorOffset+i});
+    var kids=r.node.children;
+    if(kids&&kids.length&&r.width>10&&r.height>10){
+      var pad=2;
+      all=all.concat(treemapRects(kids,r.x+pad,r.y+pad,r.width-2*pad,r.height-2*pad,depth+1,colorOffset+i));
+    }
+  });
+  return all;
+}
+
 function treemap(el,nodes){
   el.innerHTML='';
   if(!nodes.length){el.innerHTML='<div class="no-data">No data available</div>';return;}
-  var total=nodes.reduce(function(s,n){return s+n.installSize;},0);
-  var w=el.offsetWidth||900,h=400,sorted=nodes.slice().sort(function(a,b){return b.installSize-a.installSize;});
+  var w=el.offsetWidth||900,h=400,items=treemapRects(nodes,0,0,w,h,0,0);
   var svg='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'">';
-  var x=0;
-  sorted.forEach(function(n,i){
-    var nw=total>0?(n.installSize/total)*w:0;
-    if(nw<2)return;
-    svg+='<rect x="'+x+'" y="0" width="'+nw+'" height="'+h+'" fill="'+COLORS[i%COLORS.length]+'" opacity=".85" stroke="#fff" stroke-width="2" '+
+  items.forEach(function(item){
+    var r=item.rect,n=r.node,d=item.depth;
+    if(r.width<2||r.height<2)return;
+    var hasKids=n.children&&n.children.length,color=COLORS[item.colorIndex%COLORS.length];
+    var opacity=hasKids&&d===0?0.25:0.85,stroke=d===0?'#fff':'rgba(255,255,255,.6)',sw=d===0?2:1;
+    svg+='<rect x="'+r.x+'" y="'+r.y+'" width="'+r.width+'" height="'+r.height+'" fill="'+color+'" opacity="'+opacity+'" stroke="'+stroke+'" stroke-width="'+sw+'" '+
       tipAttr(n.name+': '+formatBytes(n.installSize))+'></rect>';
-    if(nw>70){
-      svg+='<text x="'+(x+6)+'" y="22" font-size="11" font-weight="bold" fill="#fff" pointer-events="none">'+esc(n.name.length>18?n.name.substring(0,18)+'...':n.name)+'</text>';
-      svg+='<text x="'+(x+6)+'" y="38" font-size="10" fill="rgba(255,255,255,.9)" pointer-events="none">'+formatBytes(n.installSize)+'</text>';
+    if(!hasKids&&r.width>50&&r.height>28){
+      var label=n.name.length>22?n.name.substring(0,22)+'...':n.name;
+      svg+='<text x="'+(r.x+5)+'" y="'+(r.y+16)+'" font-size="10" font-weight="bold" fill="#fff" pointer-events="none">'+esc(label)+'</text>';
+      if(r.height>40)svg+='<text x="'+(r.x+5)+'" y="'+(r.y+30)+'" font-size="9" fill="rgba(255,255,255,.9)" pointer-events="none">'+formatBytes(n.installSize)+'</text>';
+    }else if(hasKids&&d===0&&r.width>55&&r.height>18){
+      var cLabel=n.name.length>20?n.name.substring(0,20)+'...':n.name;
+      svg+='<text x="'+(r.x+5)+'" y="'+(r.y+14)+'" font-size="10" font-weight="bold" fill="#333" pointer-events="none">'+esc(cLabel)+'</text>';
     }
-    x+=nw;
   });
   svg+='</svg>';
   el.innerHTML=svg;
@@ -628,7 +713,7 @@ function renderInsights(){
   hBarChart(document.getElementById('topFilesChart'),allFiles.slice(0,20),'#e74c3c');
   hBarChart(document.getElementById('topAssetsChart'),allAssets.slice(0,20),'#3498db');
 
-  treemap(document.getElementById('treemapChart'),comps.map(function(c){return {name:c.name,installSize:c.installSize};}));
+  treemap(document.getElementById('treemapChart'),filteredTreemapNodes());
 
   var resStats={};
   comps.forEach(function(c){
