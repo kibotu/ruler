@@ -61,7 +61,9 @@ ruler {
 
 tasks.named("check").configure {
     dependsOn("analyzeDebugBundle")
-    dependsOn("analyzeReleaseBundle")
+    if (project.findProperty("skipReleaseAnalysis") != "true") {
+        dependsOn("analyzeReleaseBundle")
+    }
 }
 
 kotlin {

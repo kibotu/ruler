@@ -27,13 +27,24 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          cache-cleanup: on-success
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
 
       - name: Test the plugin
         run: ./gradlew :ruler:build --stacktrace
 
       - name: Analyze the sample app
-        run: ./gradlew -p sample check --stacktrace
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            EXTRA_ARGS="-PskipReleaseAnalysis=true"
+          fi
+          ./gradlew -p sample check $EXTRA_ARGS --stacktrace
 
       - name: Prepare GitHub Pages site
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
