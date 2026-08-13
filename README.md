@@ -34,24 +34,27 @@ consider [buying me a coffee](https://buymeacoffee.com/kibotu).
 ## [Demo HTML report](https://kibotu.github.io/ruler/)
 
 <table>
-  <tr>
-    <td width="33%">
+  <tr valign="top">
+    <td width="33%" align="center">
       <a href="docs/breakdown.png">
         <img src="docs/breakdown.png" alt="Module Size Breakdown" width="100%">
       </a>
-      <p align="center"><em>Module Size Breakdown</em></p>
+      <br>
+      <em>Module Size Breakdown</em>
     </td>
-    <td width="33%">
+    <td width="33%" align="center">
       <a href="docs/insights.png">
         <img src="docs/insights.png" alt="Size Insights" width="100%">
       </a>
-      <p align="center"><em>Size Insights</em></p>
+      <br>
+      <em>Size Insights</em>
     </td>
-    <td width="33%">
+    <td width="33%" align="center">
       <a href="docs/ownership.png">
         <img src="docs/ownership.png" alt="Module Ownership" width="100%">
       </a>
-      <p align="center"><em>Module Ownership</em></p>
+      <br>
+      <em>Module Ownership</em>
     </td>
   </tr>
 </table>
