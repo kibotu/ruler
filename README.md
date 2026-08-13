@@ -2,6 +2,8 @@
 maintenance for over a year. This fork keeps the Android size analysis workflow alive and
 replaces the multi-module Kotlin/React frontend with a single HTML template — the same
 approach as [Caliper][caliper], its iOS equivalent, whose report format it matches.
+Against upstream, the analysis runs faster and, measured on a medium-sized app, the HTML
+report is about two thirds smaller and renders faster.
 
 <img src="docs/logo.png" width="50%" />
 
