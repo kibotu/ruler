@@ -271,7 +271,6 @@ var breakdownFilters = {internal:true,external:true,owned:true,unowned:true};
 var breakdownTeamFilter = '';
 var insightsFilters = {internal:true,external:true};
 var ownershipFilters = {internal:true,external:true};
-var ownershipChartData = [];
 var ownerGroupData = [];
 var insightsRendered = false;
 
@@ -530,8 +529,10 @@ function renderModuleDetails(component,listSizeKey){
 // thousands of files, so rendering every collapsed card up front would freeze the page.
 var unrenderedDetails={};
 
-function renderModuleCard(component,index,prefix,displayLabel){
-  var listSizeKey=currentSort==='installSize'?'installSize':'downloadSize';
+// `sizeKey` decides which metric a card's headline and its file lists use. It defaults
+// to the Breakdown tab's sort; tabs with their own sort control pass it explicitly.
+function renderModuleCard(component,index,prefix,displayLabel,sizeKey){
+  var listSizeKey=sizeKey||(currentSort==='installSize'?'installSize':'downloadSize');
   var displaySize=component[listSizeKey]||0;
   var id=prefix+'-'+index;
   unrenderedDetails[id]={component:component,sizeKey:listSizeKey};
@@ -686,9 +687,13 @@ function treemapRemainder(remainder,label){
 }
 
 function buildTreemapNodes(components){
-  var sorted=components.slice().sort(function(a,b){return b.downloadSize-a.downloadSize;});
+  // Select and lay out on the same key. These used to sort by downloadSize while the
+  // treemap sized cells by installSize, so the component at the top of the layout was
+  // not necessarily the largest one, and which components got dropped into the
+  // "other" bucket depended on the wrong metric.
+  var sorted=components.slice().sort(function(a,b){return b.installSize-a.installSize;});
   var nodes=sorted.slice(0,TREEMAP_MAX_COMPONENTS).map(function(c){
-    var files=(c.files||[]).slice().sort(function(a,b){return b.downloadSize-a.downloadSize;});
+    var files=(c.files||[]).slice().sort(function(a,b){return b.installSize-a.installSize;});
     return {
       name:c.name,installSize:c.installSize,
       children:files.slice(0,TREEMAP_MAX_FILES).map(function(f){return {name:f.name,installSize:f.installSize,children:[]};})
@@ -862,19 +867,19 @@ document.querySelectorAll('#insightsFilters .filter-chip').forEach(function(chip
 });
 
 // Ownership
-function prepareOwnershipChartData(sortBy){
-  var owners={};
-  report.components.filter(matchesOwnershipFilters).forEach(function(c){
-    var o=displayOwner(c)||'others';
-    if(!owners[o])owners[o]={download:0,install:0};
-    owners[o].download+=c.downloadSize;
-    owners[o].install+=c.installSize;
-  });
-  var list=Object.keys(owners).map(function(k){return {name:k,data:owners[k]};});
-  list.sort(function(a,b){return b.data[sortBy==='installSize'?'install':'download']-a.data[sortBy==='installSize'?'install':'download'];});
-  return list;
-}
-
+// A co-owned component is counted under every owner listed. The chart used to count only
+// the primary owner while the drill-down counted all of them, so the two views disagreed
+// and the per-owner totals summed to less than the app total.
+//
+// Note that totals across owners therefore exceed the app total by the size of any
+// co-owned component. That is the honest reading of "who is responsible for this", and it
+// matches what the drill-down has always shown.
+//
+// Shared by the chart and the drill-down. Only the order of the returned list is
+// meaningful, and only to the chart, which sorts owners by their aggregate size. The
+// drill-down re-sorts each owner's own component list by the size key it displays, so it
+// does not rely on that order. A co-owned component appears under each of its owners, so
+// the same entry is shared between lists rather than copied.
 function prepareOwnerGroupData(sortBy){
   var owners={};
   report.components.filter(matchesOwnershipFilters).forEach(function(c){
@@ -896,15 +901,15 @@ function prepareOwnerGroupData(sortBy){
 
 function renderOwnershipChart(){
   var chart=document.getElementById('ownershipChart');
-  if(!ownershipChartData.length){
+  if(!ownerGroupData.length){
     chart.innerHTML='<div class="no-results"><p>No ownership data available.</p></div>';
     return;
   }
-  var max=Math.max.apply(null,ownershipChartData.map(function(o){
+  var max=Math.max.apply(null,ownerGroupData.map(function(o){
     return Math.max(o.data.download,o.data.install);
   }));
   var html='<div class="owner-bar-grid">';
-  ownershipChartData.forEach(function(o){
+  ownerGroupData.forEach(function(o){
     var dh=max>0?(o.data.download/max*100):0,ih=max>0?(o.data.install/max*100):0;
     html+='<div class="owner-bar-group"><div class="owner-bar-label" title="'+esc(o.name)+'">'+esc(o.name)+'</div>'+
       '<div class="owner-bar-pair"><div class="owner-bar-col" '+tipAttr('Download: '+formatBytes(o.data.download))+'>'+
@@ -918,7 +923,6 @@ function renderOwnershipChart(){
 
 function renderOwnership(){
   var sort=document.getElementById('ownershipSortSelect').value;
-  ownershipChartData=prepareOwnershipChartData(sort);
   ownerGroupData=prepareOwnerGroupData(sort);
   renderOwnershipChart();
   var sel=document.getElementById('ownerSelect');
@@ -949,10 +953,15 @@ function renderOwnerDetails(idx){
     '<div class="owner-stat"><div class="num">'+owner.data.files+'</div><div class="lbl">File(s)</div></div>'+
     '<div class="owner-stat"><div class="num blue">'+formatBytes(owner.data.download)+'</div><div class="lbl">Download size</div></div>'+
     '<div class="owner-stat"><div class="num green">'+formatBytes(owner.data.install)+'</div><div class="lbl">Install size</div></div>';
-  var label=currentSort==='installSize'?'Install':'Download';
+  // The owner drill-down used to read currentSort, which belongs to the Breakdown tab,
+  // so its own sort control was ignored. Read the ownership tab's selection instead,
+  // and sort on the same key the cards display.
+  var sort=document.getElementById('ownershipSortSelect').value;
+  var key=sort==='installSize'?'installSize':'downloadSize';
+  var label=sort==='installSize'?'Install':'Download';
   document.getElementById('ownerModulesGrid').innerHTML=owner.data.list.slice().sort(function(a,b){
-    return (b.installSize||0)-(a.installSize||0);
-  }).map(function(c,i){return renderModuleCard(c,i,'o'+idx,label);}).join('');
+    return (b[key]||0)-(a[key]||0);
+  }).map(function(c,i){return renderModuleCard(c,i,'o'+idx,label,key);}).join('');
 }
 
 document.querySelectorAll('#ownershipFilters .filter-chip').forEach(function(chip){
@@ -968,10 +977,16 @@ document.getElementById('ownershipSortSelect').addEventListener('change',functio
 document.getElementById('ownerSelect').addEventListener('change',function(){renderOwnerDetails(this.value);});
 
 // Dynamic features
+// renderModuleCard derives the size shown in each card's file lists from currentSort,
+// which is the Breakdown tab's selection. A dynamic feature therefore showed install
+// size in its header while listing its files by download size. Pass the key explicitly
+// so the header and the lists agree.
 if(report.dynamicFeatures&&report.dynamicFeatures.length){
   document.getElementById('dynamicList').innerHTML=report.dynamicFeatures.map(function(f,i){
     var comp={name:f.name,owner:f.owner,additionalOwners:f.additionalOwners,type:'INTERNAL',downloadSize:f.downloadSize,installSize:f.installSize,files:f.files||[]};
-    return renderModuleCard(comp,i,'d','Install');
+    var key=currentSort==='installSize'?'installSize':'downloadSize';
+    var label=currentSort==='installSize'?'Install':'Download';
+    return renderModuleCard(comp,i,'d',label,key);
   }).join('');
 }
 
