@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTML reporter tests covering the treemap sort key, the ownership chart accounting, and
   per-tab sort handling.
 
+### Fixed
+
+- CI failed in `setup-android` before the build started. The action defaults to installing
+  `tools platform-tools`, and Google has removed the legacy `tools` package from the SDK
+  repository, so `sdkmanager` exits 1. CI now requests only the packages the build needs.
+  This affected every push since the last green run in August, not just this branch.
+
 ## [3.1.0]
 
 ### Changed
