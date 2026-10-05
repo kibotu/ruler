@@ -25,7 +25,13 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # `setup-android` defaults to installing the legacy `tools` package, which
+      # Google removed from the SDK repository. sdkmanager now exits 1 with
+      # "Failed to find package 'tools'", failing the job before the build starts.
+      # Request the packages this build actually needs instead.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
       - uses: gradle/actions/setup-gradle@v6
         with:

@@ -82,6 +82,44 @@ class HtmlReporterTest {
     }
 
     @Test
+    fun `sorts the treemap on the metric it lays out by`(@TempDir targetDir: File) {
+        // The treemap sized cells by installSize while picking which components to show
+        // by downloadSize, so the largest cell was not necessarily the component that
+        // survived the top-N cut.
+        val html = template()
+
+        assertThat(html).contains("return b.installSize-a.installSize;")
+        assertThat(html).doesNotContain("return b.downloadSize-a.downloadSize;")
+    }
+
+    @Test
+    fun `counts co-owned components under every owner in the chart`(@TempDir targetDir: File) {
+        // The chart counted only the primary owner while the drill-down counted all of
+        // them, so the two disagreed and the chart's totals fell short of the app total.
+        val html = template()
+
+        assertThat(html).doesNotContain("var o=displayOwner(c)||'others';")
+    }
+
+    @Test
+    fun `lets a tab override the size key used by its module cards`(@TempDir targetDir: File) {
+        // The ownership drill-down and the dynamic feature list used the Breakdown tab's
+        // sort, so their own sort control had no effect and their headers disagreed with
+        // the file lists underneath them.
+        val html = template()
+
+        assertThat(html).contains("function renderModuleCard(component,index,prefix,displayLabel,sizeKey)")
+        assertThat(html).contains("renderModuleCard(c,i,'o'+idx,label,key)")
+        assertThat(html).contains("renderModuleCard(comp,i,'d',label,key)")
+    }
+
+    /** The page's script, as shipped in the template resource. */
+    private fun template(): String =
+        checkNotNull(javaClass.getResourceAsStream("/ruler-report.html")) {
+            "template resource not found"
+        }.bufferedReader().readText()
+
+    @Test
     fun `overwrites an existing report`(@TempDir targetDir: File) {
         reporter.write(report, targetDir)
 
