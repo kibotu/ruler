@@ -16,23 +16,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The ownership chart counted only each component's primary owner, while the drill-down
   below it counted every owner. The two views disagreed and the chart's per-owner totals
   summed to less than the app total. The chart now counts co-owned components under each
-  owner, so the totals add up.
+  owner, so the totals add up. Per-owner totals therefore exceed the app total by the size
+  of each co-owned component: on the debug sample, 555,601 bytes across two co-owned
+  components; on the release sample, 123,863 bytes.
 - The ownership drill-down and the dynamic feature list read the Breakdown tab's sort
   setting, so the Ownership tab's own sort control had no effect there. A dynamic feature
   also showed install size in its header while listing its files by download size. Module
   cards now take the size key explicitly, defaulting to the Breakdown tab.
-
-### Added
-
-- HTML reporter tests covering the treemap sort key, the ownership chart accounting, and
-  per-tab sort handling.
-
-### Fixed
-
 - CI failed in `setup-android` before the build started. The action defaults to installing
   `tools platform-tools`, and Google has removed the legacy `tools` package from the SDK
   repository, so `sdkmanager` exits 1. CI now requests only the packages the build needs.
   This affected every push since the last green run in August, not just this branch.
+
+### Added
+
+- Tests pinning the report's treemap sort key, its ownership accounting, and its per-tab
+  size keys. They assert on the template's script source, so they guard against the
+  regressions above returning; they are not a substitute for checking the rendered page.
 
 ## [3.1.0]
 
