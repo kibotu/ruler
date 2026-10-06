@@ -4,12 +4,8 @@ import com.kibotu.ruler.model.AppReport
 import kotlinx.serialization.json.Json
 import java.io.File
 
-/**
- * Renders `report.html` from a `report.json`, so that the template can be worked on without an
- * Android build.
- *
- * @param args The report to read, followed by the directory to write to.
- */
+/** Renders `report.html` from a `report.json`, so the template can be worked on without an
+ *  Android build. */
 fun main(args: Array<String>) {
     require(args.size == 2) { "Usage: previewReport <report.json> <output-dir>" }
 

@@ -84,9 +84,8 @@ class HtmlReporterTest {
 
     @Test
     fun `sorts the treemap on the metric it lays out by`() {
-        // The treemap sized cells by installSize while picking which components and files
-        // to show by downloadSize, so the largest cell was not necessarily the component
-        // that survived the top-N cut. It should not mention download size at all.
+        // It sized cells by installSize while picking what to show by downloadSize, so the
+        // largest cell was not necessarily the component that survived the top-N cut.
         val body = bodyOf("buildTreemapNodes")
 
         assertThat(body).contains("b.installSize-a.installSize")
@@ -95,11 +94,9 @@ class HtmlReporterTest {
 
     @Test
     fun `scores a candidate treemap row against the value left to lay out`() {
-        // The row cost was normalised by the region's pixel area, which left the side
-        // length it minimised unrelated to the side the row was laid out on. Cells came
-        // out as slivers: a p90 aspect ratio of 17:1, and 45% of them worse than 3:1,
-        // against 1.5 and none for the same data laid out by d3. The row side has to be
-        // normalised by the remaining value, as d3 does.
+        // Normalising the row cost by the region's pixel area left the side length it
+        // minimised unrelated to the side the row was laid out on: p90 aspect ratio 17:1,
+        // 45% of cells worse than 3:1, against 1.5 and none laid out by d3.
         val body = bodyOf("squarify")
 
         assertThat(body).doesNotContain("area/remaining")
@@ -108,9 +105,7 @@ class HtmlReporterTest {
 
     @Test
     fun `gives every treemap cell its share of the region`() {
-        // A row spans the region's shorter side and its cells divide the other one, so a
-        // cell's width comes from the region's width and its height from the row. Sizing
-        // both from the row instead made the row cover the square of the row's thickness
+        // Sizing both sides from the row made the row cover the square of its own thickness
         // rather than the region's area, and the cells drifted off the canvas.
         val body = bodyOf("squarify")
 
@@ -120,9 +115,8 @@ class HtmlReporterTest {
 
     @Test
     fun `does not lay a treemap group out inside its own padding`() {
-        // A group only a little larger than the gutter it is inset by was handed a box
-        // smaller than that gutter, leaving a sub-pixel cell. Those were the 1px stripes
-        // that made the chart unreadable.
+        // A group barely larger than its gutter got a box smaller than the gutter, leaving a
+        // sub-pixel cell. Those 1px stripes made the chart unreadable.
         val body = bodyOf("treemapRects")
 
         assertThat(body).contains("r.width-2*TREEMAP_PAD>=TREEMAP_MIN_GROUP")
@@ -131,9 +125,8 @@ class HtmlReporterTest {
 
     @Test
     fun `draws the treemap at its final size before animating it`() {
-        // The cells were emitted at zero size and only the animation gave them one, so
-        // reduced motion, scripting turned off, and any headless screenshot all captured
-        // an empty chart. The final geometry is what gets written.
+        // Cells emitted at zero size only got one from the animation, so reduced motion,
+        // scripting off, and any headless screenshot all captured an empty chart.
         val body = bodyOf("treemap")
 
         assertThat(body).contains("""width="'+cw+'" height="'+ch+'"""")
@@ -143,8 +136,7 @@ class HtmlReporterTest {
     @Test
     fun `restores the treemap when its animation frames do not arrive`() {
         // Frames are throttled in a background tab and never arrive in some headless
-        // captures, which left every cell stranded part-grown. A half-drawn treemap reads
-        // as broken, so a timer puts the final geometry back.
+        // captures, which left every cell stranded part-grown.
         val body = bodyOf("growTreemap")
 
         assertThat(body).contains("setTimeout(settle,")
@@ -159,8 +151,8 @@ class HtmlReporterTest {
 
     @Test
     fun `counts a co-owned component under every owner`() {
-        // The chart counted only the primary owner while the drill-down counted all of
-        // them, so the two disagreed and the chart's totals fell short of the app total.
+        // The chart counted only the primary owner while the drill-down counted all of them,
+        // so the totals disagreed and fell short of the app total.
         val body = bodyOf("prepareOwnerGroupData")
 
         assertThat(body).contains("allOwners(c)")
@@ -169,9 +161,8 @@ class HtmlReporterTest {
 
     @Test
     fun `lets a tab override the size key used by its module cards`() {
-        // The ownership drill-down and the dynamic feature list used the Breakdown tab's
-        // sort, so their own sort control had no effect and their headers disagreed with
-        // the file lists underneath them.
+        // The ownership drill-down and the feature list used the Breakdown tab's sort, so
+        // their own sort control had no effect and their headers disagreed with the lists.
         assertThat(bodyOf("renderModuleCard"))
             .startsWith("function renderModuleCard(component,index,prefix,displayLabel,sizeKey)")
         assertThat(template()).contains("renderModuleCard(c,i,'o'+idx,label,key)")
@@ -191,14 +182,8 @@ class HtmlReporterTest {
             "template resource not found"
         }.bufferedReader().readText()
 
-    /**
-     * [functionName] out of [template], with its comments stripped and its whitespace
-     * collapsed.
-     *
-     * Scoping an assertion to one function keeps it from passing or failing on an
-     * unrelated part of the page. Stripping comments keeps it from tripping over prose,
-     * and the collapsed whitespace keeps it from failing on a reformat.
-     */
+    /** [functionName] out of [template], comments stripped and whitespace collapsed, so an assertion
+     *  cannot pass or fail on an unrelated part of the page. */
     private fun bodyOf(functionName: String): String {
         val script = template()
         val start = script.indexOf("function $functionName(")

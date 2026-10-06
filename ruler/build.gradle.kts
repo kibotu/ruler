@@ -51,9 +51,8 @@ gradlePlugin {
     }
 }
 
-// TestKit injects a single classpath into the build under test. AGP has to travel with the
-// plugin, so that both land in the same classloader and Ruler can see the Android variant API.
-// AGP 9 builds Kotlin itself, so the Kotlin plugin and its daemon come along too.
+// TestKit injects a single classpath, so AGP travels with the plugin and both land in the same
+// classloader. AGP 9 builds Kotlin itself, so the Kotlin plugin and its daemon come along too.
 val functionalTestClasspath = configurations.create("functionalTestClasspath")
 
 dependencies {
@@ -99,8 +98,7 @@ val shadowJar = tasks.named<ShadowJar>("shadowJar") {
     configurations = listOf(project.configurations.runtimeClasspath.get())
 }
 
-// Hand the relocated jar to every consumer, including project dependencies from
-// the sample's composite build. Disabling the `jar` task instead would leave the
+// Hand the relocated jar to every consumer. Disabling the `jar` task instead would leave the
 // outgoing artifact pointing at a file that is never produced.
 tasks.named<Jar>("jar") {
     archiveClassifier = "plain"

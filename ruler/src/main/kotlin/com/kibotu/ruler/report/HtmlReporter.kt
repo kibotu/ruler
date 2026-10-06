@@ -7,7 +7,7 @@ import java.io.File
 /** Writes the visual report by filling the data into an HTML template. */
 class HtmlReporter {
 
-    /** @return The [FILE_NAME] file in [targetDir]. It loads no external resources. */
+    /** @return The [FILE_NAME] file in [targetDir]. Self-contained, with no external resources. */
     fun write(report: AppReport, targetDir: File): File {
         val template = requireNotNull(javaClass.getResource("/$TEMPLATE")) { "Missing $TEMPLATE" }.readText()
         val html = template.replaceFirst(PLACEHOLDER, Json.encodeToString(report).htmlSafe())

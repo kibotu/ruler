@@ -78,13 +78,8 @@ class RulerPlugin : Plugin<Project> {
         }
     }
 
-    /**
-     * A task that says where the reports are.
-     *
-     * The analysis is cacheable, so Gradle skips its action once nothing has changed, and anything
-     * the action logs goes with it. This task declares no outputs, so it always runs and the paths
-     * are printed on every build, whether the analysis ran, was up to date, or came from the cache.
-     */
+    /** The analysis is cacheable, so its logs are skipped when it is up to date. This task declares
+     *  no outputs, so it always runs and the paths print on every build. */
     private fun Project.registerReportPathsTask(
         variantName: String,
         reportDir: Provider<Directory>,
