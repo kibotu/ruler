@@ -436,6 +436,9 @@ function getResourceKey(f){
   if(f.type==='NATIVE_FILE')return 'Native Files';
   return null;
 }
+// The insights tab already shows resources unbundled by type, so don't also list the raw .arsc
+// blob, which would otherwise appear as a misleading "Other" entry.
+function isResourcesArsc(f){return f.name.endsWith('resources.arsc');}
 
 function getFileTypeInfo(file){
   var name=file.name||'';
@@ -704,10 +707,11 @@ function buildTreemapNodes(components){
   var sorted=components.slice().sort(function(a,b){return b.installSize-a.installSize;});
   var nodes=sorted.slice(0,TREEMAP_MAX_COMPONENTS).map(function(c){
     var files=(c.files||[]).slice().sort(function(a,b){return b.installSize-a.installSize;});
+    var nonArsc=files.filter(function(f){return !isResourcesArsc(f);});
     return {
       name:c.name,installSize:c.installSize,
-      children:files.slice(0,TREEMAP_MAX_FILES).map(function(f){return {name:f.name,installSize:f.installSize,children:[]};})
-        .concat(treemapRemainder(files.slice(TREEMAP_MAX_FILES),'files'))
+      children:nonArsc.slice(0,TREEMAP_MAX_FILES).map(function(f){return {name:f.name,installSize:f.installSize,children:[]};})
+        .concat(treemapRemainder(nonArsc.slice(TREEMAP_MAX_FILES),'files'))
     };
   });
   return nodes.concat(treemapRemainder(sorted.slice(TREEMAP_MAX_COMPONENTS),'components'));
@@ -891,6 +895,7 @@ function renderInsights(){
   var resStats={};
   comps.forEach(function(c){
     (c.files||[]).forEach(function(f){
+      if (isResourcesArsc(f)) return;
       var key;
       if(isBinaryFile(f))key='Binary';
       else if(isImageFile(f))key='Images';
