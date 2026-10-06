@@ -94,6 +94,70 @@ class HtmlReporterTest {
     }
 
     @Test
+    fun `scores a candidate treemap row against the value left to lay out`() {
+        // The row cost was normalised by the region's pixel area, which left the side
+        // length it minimised unrelated to the side the row was laid out on. Cells came
+        // out as slivers: a p90 aspect ratio of 17:1, and 45% of them worse than 3:1,
+        // against 1.5 and none for the same data laid out by d3. The row side has to be
+        // normalised by the remaining value, as d3 does.
+        val body = bodyOf("squarify")
+
+        assertThat(body).doesNotContain("area/remaining")
+        assertThat(body).contains("remaining*TREEMAP_RATIO")
+    }
+
+    @Test
+    fun `gives every treemap cell its share of the region`() {
+        // A row spans the region's shorter side and its cells divide the other one, so a
+        // cell's width comes from the region's width and its height from the row. Sizing
+        // both from the row instead made the row cover the square of the row's thickness
+        // rather than the region's area, and the cells drifted off the canvas.
+        val body = bodyOf("squarify")
+
+        assertThat(body).contains("n.installSize*w/sum")
+        assertThat(body).contains("n.installSize*h/sum")
+    }
+
+    @Test
+    fun `does not lay a treemap group out inside its own padding`() {
+        // A group only a little larger than the gutter it is inset by was handed a box
+        // smaller than that gutter, leaving a sub-pixel cell. Those were the 1px stripes
+        // that made the chart unreadable.
+        val body = bodyOf("treemapRects")
+
+        assertThat(body).contains("r.width-2*TREEMAP_PAD>=TREEMAP_MIN_GROUP")
+        assertThat(body).contains("r.height-2*TREEMAP_PAD>=TREEMAP_MIN_GROUP")
+    }
+
+    @Test
+    fun `draws the treemap at its final size before animating it`() {
+        // The cells were emitted at zero size and only the animation gave them one, so
+        // reduced motion, scripting turned off, and any headless screenshot all captured
+        // an empty chart. The final geometry is what gets written.
+        val body = bodyOf("treemap")
+
+        assertThat(body).contains("""width="'+cw+'" height="'+ch+'"""")
+        assertThat(body).doesNotContain("""width="0" height="0"""")
+    }
+
+    @Test
+    fun `restores the treemap when its animation frames do not arrive`() {
+        // Frames are throttled in a background tab and never arrive in some headless
+        // captures, which left every cell stranded part-grown. A half-drawn treemap reads
+        // as broken, so a timer puts the final geometry back.
+        val body = bodyOf("growTreemap")
+
+        assertThat(body).contains("setTimeout(settle,")
+        assertThat(body).contains("(prefers-reduced-motion: reduce)")
+    }
+
+    @Test
+    fun `shows a treemap cell's share of the app in its tooltip`() {
+        // The tooltip gave an absolute size with nothing to compare it against.
+        assertThat(bodyOf("treemap")).contains("('+pct+'%)")
+    }
+
+    @Test
     fun `counts a co-owned component under every owner`() {
         // The chart counted only the primary owner while the drill-down counted all of
         // them, so the two disagreed and the chart's totals fell short of the app total.
