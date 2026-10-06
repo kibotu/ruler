@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0]
+
 ### Fixed
 
 - The HTML treemap scored a candidate row of cells against the region's pixel area, which
@@ -33,6 +35,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   chart. Cells are now drawn at their final size, and a timer restores that size if the
   animation frames are throttled or never arrive, so the entrance cannot strand the chart
   half-drawn.
+
+### Added
+
+- Tests pinning the treemap's layout invariants: that a candidate row is scored against the
+  value left to lay out, that each cell is sized by install size against the region, that a
+  group is not laid out inside its own padding, that cells are emitted at their final size,
+  that the entrance restores that size when its frames never arrive, and that a tooltip
+  carries the cell's share of the app. They assert on the template's script source, so they
+  guard against the regressions above returning; they are not a substitute for checking the
+  rendered page.
+
+## [3.2.0]
+
+### Fixed
+
 - The HTML treemap picked which components and files to show by download size but laid the
   cells out by install size. The component at the top of the layout was therefore not
   necessarily the largest one, and which entries fell into the "other" bucket depended on
@@ -212,7 +229,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Extracted non-Gradle specific code to `ruler-common`.
 
-[unreleased]: https://github.com/kibotu/ruler/compare/3.1.0...main
+[unreleased]: https://github.com/kibotu/ruler/compare/3.3.0...main
+[3.3.0]: https://github.com/kibotu/ruler/compare/3.2.0...3.3.0
+[3.2.0]: https://github.com/kibotu/ruler/compare/3.1.1...3.2.0
 [3.1.0]: https://github.com/kibotu/ruler/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/kibotu/ruler/compare/2.1.12...3.0.0
 [2.1.12]: https://github.com/kibotu/ruler/compare/2.1.11...2.1.12
