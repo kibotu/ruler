@@ -195,8 +195,9 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
     </div>
     <div class="section-block alt">
       <h2 class="section-title">🗺️ App Size Treemap</h2>
-      <p class="section-subtitle">Components sized proportionally by install size, largest first. Hover a cell for its share of the app.</p>
+      <p class="section-subtitle">Modules sized proportionally by install size, largest first, coloured by owner. Hover a cell for its share of the app.</p>
       <div class="treemap-box" id="treemapChart"></div>
+      <div class="legend-row" id="treemapLegend"></div>
     </div>
     <div class="section-block">
       <h2 class="section-title">📦 Resource Type Breakdown</h2>
@@ -676,39 +677,47 @@ function donutChart(el,data,valueKey,labelKey){
   el.innerHTML=svg;
 }
 
-var TREEMAP_MAX_COMPONENTS=50,TREEMAP_MAX_FILES=30;
-// A 1340x400 region is a 3.35:1 rectangle, close to the worst shape a squarified
-// treemap can be laid out in. 600 matches the height caliper renders at.
+// Caliper renders its treemap 600px tall, so the two reports are read at the same scale.
+// It used to be 400px here, close to the worst shape a squarified treemap can be laid out in.
 var TREEMAP_HEIGHT=600;
+// Caliper colours cells from d3.schemeTableau10, keyed by owner rather than by
+// position, so a team reads as one hue wherever its modules land. Same palette and the
+// same owner-keyed assignment here. A module with no owner gets the grey rather than a
+// hue, which would imply a team that does not exist.
+var TREEMAP_COLORS=['#4e79a7','#f28e2c','#e15759','#76b7b2','#59a14f','#edc949','#af7aa1','#ff9da7','#9c755f','#bab0ab'];
+var TREEMAP_UNOWNED='#9e9e9e';
 // Scales the row cost, and with it the aspect ratio the layout aims for. d3 exposes the
 // same knob as treemap().ratio; 1 is its default and is what the numbers above were
 // measured at.
 var TREEMAP_RATIO=1;
 // Gutters are drawn by insetting each cell, so a cell narrower than a gutter and a
-// half would close up. These bound that.
-var TREEMAP_PAD=1,TREEMAP_MIN_CELL=2,TREEMAP_MIN_GROUP=18;
+// half would close up. These bound that. The pad matches caliper's treemap().padding(2).
+var TREEMAP_PAD=2,TREEMAP_MIN_CELL=2;
 
-function treemapRemainder(remainder,label){
-  if(!remainder.length)return[];
-  return [{name:'other ('+remainder.length+' '+label+')',installSize:remainder.reduce(function(s,m){return s+m.installSize;},0),children:[]}];
+function treemapOwnerColors(nodes){
+  // One hue per owning team, in the order the teams first appear among the largest
+  // modules. Unowned modules are not a team, so they all share the grey rather than
+  // taking a hue off the sequence: that hue would imply an owner they do not have, and
+  // it would push every team's colour along by one.
+  var order=[],colors={},unowned=false,i;
+  nodes.forEach(function(n){
+    if(n.owner){if(order.indexOf(n.owner)===-1)order.push(n.owner);}
+    else unowned=true;
+  });
+  for(i=0;i<order.length;i++)colors[order[i]]=TREEMAP_COLORS[i%TREEMAP_COLORS.length];
+  if(unowned)colors[TREEMAP_UNOWNED]=TREEMAP_UNOWNED;
+  return colors;
 }
 
 function buildTreemapNodes(components){
-  // Select and lay out on the same key. These used to sort by downloadSize while the
-  // treemap sized cells by installSize, so the component at the top of the layout was
-  // not necessarily the largest one, and which components got dropped into the
-  // "other" bucket depended on the wrong metric.
-  var sorted=components.slice().sort(function(a,b){return b.installSize-a.installSize;});
-  var nodes=sorted.slice(0,TREEMAP_MAX_COMPONENTS).map(function(c){
-    var files=(c.files||[]).slice().sort(function(a,b){return b.installSize-a.installSize;});
-    var nonArsc=files.filter(function(f){return !isResourcesArsc(f);});
-    return {
-      name:c.name,installSize:c.installSize,
-      children:nonArsc.slice(0,TREEMAP_MAX_FILES).map(function(f){return {name:f.name,installSize:f.installSize,children:[]};})
-        .concat(treemapRemainder(nonArsc.slice(TREEMAP_MAX_FILES),'files'))
-    };
-  });
-  return nodes.concat(treemapRemainder(sorted.slice(TREEMAP_MAX_COMPONENTS),'components'));
+  // Modules only. Files, assets and resources are already broken out under Top
+  // Offenders and Resource Type Breakdown; nested in here they reduced the chart to
+  // unreadable slivers and forced a top-N cut, whose overflow had to be bucketed into
+  // an "other" cell. So there is no cut and no bucket: every module gets a cell.
+  // Largest first, so the squarify pass below is handed its worst case first and the
+  // layout matches what the cell sizes say.
+  return components.slice().sort(function(a,b){return b.installSize-a.installSize;})
+    .map(function(c){return {name:c.name,installSize:c.installSize,owner:displayOwner(c)};});
 }
 
 // Bruls/Huizing/van Wijk squarify, ported from d3 v7's treemap so that the treemap
@@ -768,30 +777,6 @@ function squarify(nodes,x,y,width,height){
   return rects;
 }
 
-function treemapRects(nodes,x,y,w,h,depth,hue){
-  var rects=squarify(nodes,x,y,w,h),all=[];
-  rects.forEach(function(r,i){
-    all.push({rect:r,depth:depth,hue:depth===0?i:hue,shade:i});
-    var kids=r.node.children;
-    // Only descend into a group that still has room for its own padding on every side.
-    // Handing a child a box smaller than the padding it is inset by leaves a
-    // sub-pixel cell, which is what turned the whole chart into 1px stripes.
-    if(kids&&kids.length&&r.width-2*TREEMAP_PAD>=TREEMAP_MIN_GROUP&&r.height-2*TREEMAP_PAD>=TREEMAP_MIN_GROUP){
-      all=all.concat(treemapRects(kids,r.x+TREEMAP_PAD,r.y+TREEMAP_PAD,
-        r.width-2*TREEMAP_PAD,r.height-2*TREEMAP_PAD,depth+1,hue));
-    }
-  });
-  return all;
-}
-
-// Lightens a #rrggbb colour toward white, so a component's files read as tints of the
-// component's own hue instead of an unrelated rainbow. One hue per component makes the
-// chart legible as blocks of components with internal structure.
-function lighten(hex,amount){
-  var n=parseInt(hex.slice(1),16),r=n>>16&255,g=n>>8&255,b=n&255;
-  return 'rgb('+Math.round(r+(255-r)*amount)+','+Math.round(g+(255-g)*amount)+','+Math.round(b+(255-b)*amount)+')';
-}
-
 // Caliper's report grows the cells in, and so does this one. The cells are drawn at
 // their final size first, so anything that never runs this -- scripting turned off, a
 // request for reduced motion, a headless screenshot -- still shows the whole chart.
@@ -835,27 +820,29 @@ function treemap(el,nodes){
   // hiding components through the filter chips does not silently rescale every cell.
   var total=nodes.reduce(function(s,n){return s+n.installSize;},0),
     w=el.offsetWidth||900,h=TREEMAP_HEIGHT,
-    items=treemapRects(nodes,TREEMAP_PAD,TREEMAP_PAD,w-2*TREEMAP_PAD,h-2*TREEMAP_PAD,0,0);
+    colors=treemapOwnerColors(nodes),
+    rects=squarify(nodes,TREEMAP_PAD,TREEMAP_PAD,w-2*TREEMAP_PAD,h-2*TREEMAP_PAD);
   var svg='<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMidYMid meet">';
-  items.forEach(function(item){
-    var r=item.rect,n=r.node,d=item.depth;
+  rects.forEach(function(r){
+    var n=r.node;
     // Pixel-snap to whole pixels, or the browser scales the sub-pixel edges and the
     // gutters come out uneven.
     var x=Math.round(r.x),y=Math.round(r.y),
       cw=Math.round(r.x+r.width)-x,ch=Math.round(r.y+r.height)-y;
     if(cw<TREEMAP_MIN_CELL||ch<TREEMAP_MIN_CELL)return;
-    var hue=COLORS[item.hue%COLORS.length],
-      fill=d===0?hue:lighten(hue,0.16+0.2*(item.shade%3)),
-      pct=total>0?(n.installSize/total*100).toFixed(1):'0.0';
+    var pct=total>0?(n.installSize/total*100).toFixed(1):'0.0',
+      owner=n.owner||TREEMAP_UNOWNED;
     svg+='<rect x="'+x+'" y="'+y+'" width="'+cw+'" height="'+ch+'" data-w="'+cw+'" data-h="'+ch+
-      '" fill="'+fill+'" stroke="#fff" stroke-width="'+(d===0?2:1)+'" '+
-      tipAttr(n.name+': '+formatBytes(n.installSize)+' ('+pct+'%)')+'></rect>';
-    var label=n.name.length>(d===0?20:22)?n.name.substring(0,d===0?20:22)+'...':n.name;
-    if(d===0&&cw>55&&ch>18){
-      svg+='<text data-label="1" x="'+(x+5)+'" y="'+(y+14)+'" font-size="11" font-weight="bold" fill="#fff" pointer-events="none">'+esc(label)+'</text>';
-    }else if(d>0&&cw>50&&ch>28){
-      svg+='<text data-label="1" x="'+(x+5)+'" y="'+(y+15)+'" font-size="10" font-weight="bold" fill="#fff" pointer-events="none">'+esc(label)+'</text>';
-      if(ch>40)svg+='<text data-label="1" x="'+(x+5)+'" y="'+(y+28)+'" font-size="9" fill="rgba(255,255,255,.9)" pointer-events="none">'+formatBytes(n.installSize)+'</text>';
+      '" fill="'+colors[owner]+'" fill-opacity=".8" stroke="#fff" stroke-width="2" '+
+      tipAttr(n.name+': '+formatBytes(n.installSize)+' ('+pct+'%)'+(n.owner?' · '+n.owner:''))+
+      '></rect>';
+    // Caliper's thresholds, so a cell is labelled here exactly when it is there.
+    var label=n.name.length>15?n.name.substring(0,15)+'...':n.name;
+    if(cw>80&&ch>30){
+      svg+='<text data-label="1" x="'+(x+4)+'" y="'+(y+16)+'" font-size="11" font-weight="bold" fill="#fff" pointer-events="none">'+esc(label)+'</text>';
+    }
+    if(cw>80&&ch>45){
+      svg+='<text data-label="1" x="'+(x+4)+'" y="'+(y+30)+'" font-size="10" fill="rgba(255,255,255,.9)" pointer-events="none">'+formatBytes(n.installSize)+'</text>';
     }
   });
   svg+='</svg>';
@@ -884,7 +871,15 @@ function renderInsights(){
   hBarChart(document.getElementById('topFilesChart'),allFiles.slice(0,20),'#e74c3c');
   hBarChart(document.getElementById('topAssetsChart'),allAssets.slice(0,20),'#3498db');
 
-  treemap(document.getElementById('treemapChart'),buildTreemapNodes(comps));
+  var treemapNodes=buildTreemapNodes(comps);
+  treemap(document.getElementById('treemapChart'),treemapNodes);
+  // The legend mirrors treemapOwnerColors, so owner colours keep their meaning when the
+  // insights filters change which owners are on screen.
+  var treemapColors=treemapOwnerColors(treemapNodes);
+  document.getElementById('treemapLegend').innerHTML=Object.keys(treemapColors).map(function(o){
+    return '<div class="legend-item"><div class="legend-swatch" style="background:'+treemapColors[o]+'"></div>'+
+      '<span style="font-weight:600">'+esc(o===TREEMAP_UNOWNED?'Unowned':o)+'</span></div>';
+  }).join('');
 
   var resStats={};
   comps.forEach(function(c){

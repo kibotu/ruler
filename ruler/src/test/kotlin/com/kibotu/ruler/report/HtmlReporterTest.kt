@@ -93,6 +93,42 @@ class HtmlReporterTest {
     }
 
     @Test
+    fun `draws every module and buckets none of them as other`() {
+        // The top-N cut rolled its overflow into an "other" cell, so a real module was
+        // either missing from the chart or shown under a name that is not a module.
+        val body = bodyOf("buildTreemapNodes")
+
+        assertThat(body).doesNotContain("other (")
+        assertThat(body).doesNotContain("slice(0,")
+    }
+
+    @Test
+    fun `gives the treemap a cell per module rather than one per file`() {
+        // Files nested as children shrank every module's cell until the chart was slivers.
+        assertThat(bodyOf("buildTreemapNodes")).doesNotContain("children")
+    }
+
+    @Test
+    fun `colours treemap cells by owner the way caliper does`() {
+        // It cycled a palette by position, so a team's modules changed colour whenever a
+        // larger module was filtered in above them. Caliper keys the scale on the owner.
+        val body = template()
+
+        assertThat(body).contains("var TREEMAP_COLORS=['#4e79a7','#f28e2c','#e15759','#76b7b2','#59a14f'")
+        assertThat(body).contains("colors[order[i]]=TREEMAP_COLORS[i%TREEMAP_COLORS.length]")
+        assertThat(bodyOf("buildTreemapNodes")).contains("displayOwner(c)")
+    }
+
+    @Test
+    fun `keys the treemap on the same owner colours its legend shows`() {
+        // Otherwise the legend promises a mapping the cells do not follow.
+        val body = bodyOf("renderInsights")
+
+        assertThat(body).contains("treemapOwnerColors(treemapNodes)")
+        assertThat(body).contains("treemapColors[o]")
+    }
+
+    @Test
     fun `scores a candidate treemap row against the value left to lay out`() {
         // Normalising the row cost by the region's pixel area left the side length it
         // minimised unrelated to the side the row was laid out on: p90 aspect ratio 17:1,
@@ -111,16 +147,6 @@ class HtmlReporterTest {
 
         assertThat(body).contains("n.installSize*w/sum")
         assertThat(body).contains("n.installSize*h/sum")
-    }
-
-    @Test
-    fun `does not lay a treemap group out inside its own padding`() {
-        // A group barely larger than its gutter got a box smaller than the gutter, leaving a
-        // sub-pixel cell. Those 1px stripes made the chart unreadable.
-        val body = bodyOf("treemapRects")
-
-        assertThat(body).contains("r.width-2*TREEMAP_PAD>=TREEMAP_MIN_GROUP")
-        assertThat(body).contains("r.height-2*TREEMAP_PAD>=TREEMAP_MIN_GROUP")
     }
 
     @Test

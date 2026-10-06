@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The insights treemap now gives each module one cell, as the comparison report does, instead
+  of nesting each module's files inside it. The nesting was what made a cell unreadable: a
+  module's cell was split between its own label and up to thirty file cells, so on a real app
+  the chart was mostly 1px stripes. Files, assets and resources are already broken out under
+  Top Offenders and Resource Type Breakdown, so the treemap no longer needs to carry them.
+- Consequently the treemap no longer truncates. It drew the fifty largest components and the
+  thirty largest files of each, and rolled the rest into a cell literally named "other (N
+  components)" or "other (N files)" — a bucket holding real modules under a name that is not
+  a module. Every module now gets a cell. On a 430-module app most of the smallest fall below
+  the 2px floor and are not drawn, which is a limit of the canvas rather than a silent
+  omission: their sizes are in the other two Insights charts and in the Breakdown tab.
+- The treemap is coloured by owner from d3's schemeTableau10, matching the comparison report,
+  along with its 0.8 fill opacity, white 2px stroke and padding. It previously cycled the
+  palette by position in the layout, so a module's colour was a function of whatever else
+  happened to be on screen. This reverses part of the rationale recorded in 3.3.0, where
+  colouring by owner was rejected because that app has 104 distinct owners and an ordinal
+  scale over ten hues cycles. It still cycles — at 104 owners roughly 344 of 429 adjacent
+  module pairs share a hue, so on an app owned that finely the colour carries little. The
+  3.3.0 objection stands; it is overridden here for parity with the comparison report. The
+  owner is in each cell's tooltip and in the legend, so the mapping stays readable regardless.
+- Unowned modules all share one grey and take no hue off the sequence. A hue would imply an
+  owner they do not have, and would shift every team's colour along by one.
+
 ## [3.3.1]
 
 ### Changed
