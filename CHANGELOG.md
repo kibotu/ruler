@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The HTML treemap scored a candidate row of cells against the region's pixel area, which
+  left the side length it minimised unrelated to the side the row was laid out on. Cells
+  came out as slivers rather than blocks: on a 430-component app, a p90 aspect ratio of
+  17:1 and 45% of cells worse than 3:1, against 1.5 and none for the same data laid out by
+  d3. The row side is now normalised by the remaining value, which makes the layout agree
+  with d3's treemap to within floating point while adding no dependency.
+- The HTML treemap laid out groups that were only a little larger than the gutter they are
+  inset by, handing their files a box smaller than that gutter and leaving sub-pixel cells.
+  Combined with the slivers above, the chart rendered as a field of 1px stripes.
+- The HTML treemap was drawn at 400px tall in a box up to 1340px wide, close to the worst
+  shape a squarified treemap can be laid out in. It now matches the 600px the comparison
+  report uses.
+- The HTML treemap gave a cell's absolute size with nothing to compare it against. Tooltips
+  now also carry that cell's share of the app, measured against what the treemap draws.
+- The HTML treemap coloured each cell by its position in the layout, so every component's
+  files came out an unrelated rainbow. Each component now has one hue and its files are
+  tints of it, which reads as blocks of components with internal structure. Colouring by
+  owner, as the comparison report does, was not an option: the app above has 104 distinct
+  owners, so an ordinal scale would cycle eight times and mean nothing.
+- The HTML treemap emitted its cells at zero size and relied on an animation to give them
+  one, so reduced motion, scripting turned off, and headless captures all showed an empty
+  chart. Cells are now drawn at their final size, and a timer restores that size if the
+  animation frames are throttled or never arrive, so the entrance cannot strand the chart
+  half-drawn.
 - The HTML treemap picked which components and files to show by download size but laid the
   cells out by install size. The component at the top of the layout was therefore not
   necessarily the largest one, and which entries fell into the "other" bucket depended on
