@@ -275,6 +275,9 @@ var ownerGroupData = [];
 var insightsRendered = false;
 
 var COLORS = ['#063773','#0a5aa8','#9b59b6','#2ecc71','#e74c3c','#f39c12','#3498db','#1abc9c','#e67e22','#95a5a6','#34495e','#8e44ad'];
+// D3 categorical schemes, matching caliper's report
+var TABLEAU10 = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
+var SET3 = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd','#ccebc5','#ffed6f'];
 
 function formatBytes(bytes){
   if(bytes===0)return '0 B';
@@ -671,7 +674,7 @@ function donutChart(el,data,valueKey,labelKey){
     var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
     var x2=cx+r*Math.cos(angle+sweep),y2=cy+r*Math.sin(angle+sweep);
     var large=sweep>Math.PI?1:0;
-    svg+='<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+COLORS[i%COLORS.length]+'" opacity=".9" '+
+    svg+='<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z" fill="'+SET3[i%SET3.length]+'" opacity=".9" '+
       tipAttr(d[labelKey]+': '+(valueKey==='size'?formatBytes(d[valueKey]):d[valueKey]))+'></path>';
     angle+=sweep;
   });
@@ -850,7 +853,7 @@ function treemap(el,nodes){
     var x=Math.round(r.x),y=Math.round(r.y),
       cw=Math.round(r.x+r.width)-x,ch=Math.round(r.y+r.height)-y;
     if(cw<TREEMAP_MIN_CELL||ch<TREEMAP_MIN_CELL)return;
-    var hue=COLORS[item.hue%COLORS.length],
+    var hue=TABLEAU10[item.hue%TABLEAU10.length],
       fill=d===0?hue:lighten(hue,0.16+0.2*(item.shade%3)),
       pct=total>0?(n.installSize/total*100).toFixed(1):'0.0';
     svg+='<rect x="'+x+'" y="'+y+'" width="'+cw+'" height="'+ch+'" data-w="'+cw+'" data-h="'+ch+
@@ -911,7 +914,7 @@ function renderInsights(){
   donutChart(document.getElementById('resourceCountChart'),resData,'count','type');
   donutChart(document.getElementById('resourceSizeChart'),resData,'size','type');
   document.getElementById('resourceLegend').innerHTML=resData.map(function(d,i){
-    return '<div class="legend-item"><div class="legend-swatch" style="background:'+COLORS[i%COLORS.length]+'"></div>'+
+    return '<div class="legend-item"><div class="legend-swatch" style="background:'+SET3[i%SET3.length]+'"></div>'+
       '<span style="font-weight:600">'+esc(d.type)+'</span><span style="color:#666">'+formatBytes(d.size)+'</span>'+
       '<span style="color:#999;font-size:11px">('+d.count+' items)</span></div>';
   }).join('');
