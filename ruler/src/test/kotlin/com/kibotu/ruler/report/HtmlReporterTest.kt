@@ -170,6 +170,47 @@ class HtmlReporterTest {
     }
 
     @Test
+    fun `splits a module card's files into four labelled sections`() {
+        // One list held everything that was not an asset, so dex, native code, resources
+        // and the manifest were indistinguishable under a single "Source Files" heading.
+        // The order is assets, resources, then code, and it is fixed so that two cards
+        // read the same way and can be compared by scanning down them.
+        val titles = Regex("title:'([^']+)'").findAll(fileParts()).map { it.groupValues[1] }.toList()
+
+        assertThat(titles).containsExactly("Asset Files", "Resources", "Native", "Source Files").inOrder()
+    }
+
+    @Test
+    fun `does not rank a module card's sections by size`() {
+        // Ranking put whichever section was largest first, so the order a card read in
+        // depended on the component and two components could not be scanned the same way.
+        assertThat(bodyOf("renderModuleDetails")).contains("FILE_PARTS.map(function(p){return renderFilePart(p,files,listSizeKey);})")
+        assertThat(template()).doesNotContain("b.total-a.total")
+    }
+
+    @Test
+    fun `gives every file type exactly one section`() {
+        // A file no bucket claims disappears from the card, and one two buckets claim is
+        // counted twice. Tying this to the enum means a type added later fails here rather
+        // than quietly going missing.
+        val parts = fileParts()
+
+        FileType.entries.forEach { type ->
+            val claimed = Regex("f\\.type==='${type.name}'").findAll(parts).count()
+            assertWithMessage("$type is claimed by $claimed sections").that(claimed).isEqualTo(1)
+        }
+    }
+
+    @Test
+    fun `lists a module card's files largest first`() {
+        // Caliper orders its resource list by size, and a section listed any other way
+        // buries the file that made it worth opening. This is within a section: the
+        // sections themselves keep the fixed order.
+        assertThat(bodyOf("renderFilePart"))
+            .contains("fileSize(b,sizeKey)-fileSize(a,sizeKey)")
+    }
+
+    @Test
     fun `overwrites an existing report`(@TempDir targetDir: File) {
         reporter.write(report, targetDir)
 
@@ -200,6 +241,10 @@ class HtmlReporterTest {
             .replace(Regex("//[^\\n]*"), " ")
             .replace(Regex("\\s+"), " ")
     }
+
+    /** The buckets a module card's file lists are split into, as the template declares them. */
+    private fun fileParts(): String =
+        template().substringAfter("var FILE_PARTS=[").substringBefore("];")
 
     /** The JSON that the template hands to the page. */
     private fun payloadOf(html: String): String {

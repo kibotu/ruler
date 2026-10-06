@@ -73,32 +73,16 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
 .file-row:hover{background:#f8f9fa}
 .file-name{color:#2d3748;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
 .file-size{color:#063773;font-weight:600;font-size:13px;text-align:right;white-space:nowrap}
-.top-files{margin-top:20px}
-.top-files h4{font-size:16px;margin-bottom:15px;color:#333}
-.file-item{display:flex;justify-content:space-between;padding:10px;background:#fff;margin-bottom:5px;border-radius:4px;font-size:13px;border-left:4px solid #e0e0e0;transition:all .2s}
-.file-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
-.file-path{color:#666;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.file-size-value{color:#333;font-weight:500;margin-left:15px;white-space:nowrap}
 .file-type-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;margin-right:8px}
-.file-type-image{border-left-color:#3498db}
 .file-type-image .file-type-badge{background:#e3f2fd;color:#1976d2}
-.file-type-lottie{border-left-color:#9b59b6}
 .file-type-lottie .file-type-badge{background:#f3e5f5;color:#7b1fa2}
-.file-type-pdf{border-left-color:#e74c3c}
 .file-type-pdf .file-type-badge{background:#ffebee;color:#c62828}
-.file-type-video{border-left-color:#e67e22}
 .file-type-video .file-type-badge{background:#fff3e0;color:#e65100}
-.file-type-audio{border-left-color:#1abc9c}
 .file-type-audio .file-type-badge{background:#e0f2f1;color:#00695c}
-.file-type-font{border-left-color:#34495e}
 .file-type-font .file-type-badge{background:#eceff1;color:#37474f}
-.file-type-native{border-left-color:#2ecc71}
 .file-type-native .file-type-badge{background:#e8f5e9;color:#2e7d32}
-.file-type-class{border-left-color:#063773}
 .file-type-class .file-type-badge{background:#e3f2fd;color:#063773}
-.file-type-layout{border-left-color:#f39c12}
 .file-type-layout .file-type-badge{background:#fff8e1;color:#f57f17}
-.file-type-other{border-left-color:#95a5a6}
 .file-type-other .file-type-badge{background:#f5f5f5;color:#616161}
 .no-results{text-align:center;padding:60px 20px;color:#999;font-size:16px}
 .no-data{padding:15px;color:#999;font-style:italic;text-align:center}
@@ -501,22 +485,32 @@ function renderResourcesGrid(resources){
       '<div class="resource-count">'+resources[k].count+' files</div></div>';}).join('')+'</div>';
 }
 
-function renderAssetFiles(files,sizeKey){
-  var assets=files.filter(isAssetFile).slice().sort(function(a,b){return fileSize(b,sizeKey)-fileSize(a,sizeKey);});
-  if(!assets.length)return '';
-  return '<div class="top-files"><h4>Asset Files <span class="count-badge">'+assets.length+'</span></h4>'+
-    assets.map(function(f){var info=getFileTypeInfo(f);return '<div class="file-item '+info.className+'">'+
-      '<span class="file-path" title="'+esc(f.name)+'"><span class="file-type-badge">'+info.label+'</span>'+esc(f.name)+'</span>'+
-      '<span class="file-size-value">'+formatBytes(fileSize(f,sizeKey))+'</span></div>';}).join('')+'</div>';
-}
+// A component's files partition into these four buckets, so a file is listed under one heading
+// and only one. They follow where a file sits in the APK rather than what it is called: dex
+// classes are code, everything under /res is a resource, the .so libraries and the compile units
+// they are split into are native, and the rest are assets. The last bucket takes the remainder
+// rather than naming what it failed to match, so a type added later cannot silently drop files
+// off the card.
+//
+// The order below is the order they are rendered in: assets, then resources, then code. It is
+// fixed rather than ranked by size, so the same card reads the same way whichever component it
+// describes and two components can be compared by scanning down them.
+var FILE_PARTS=[
+  {title:'Asset Files',accept:function(f){return f.type==='ASSET'||f.type==='OTHER';}},
+  {title:'Resources',accept:function(f){return f.type==='RESOURCE';}},
+  {title:'Native',accept:function(f){return f.type==='NATIVE_LIB'||f.type==='NATIVE_FILE';}},
+  {title:'Source Files',accept:function(f){return f.type==='CLASS';}}
+];
 
-function renderSourceFiles(files,sizeKey){
-  var sources=files.filter(function(f){return !isAssetFile(f);}).slice().sort(function(a,b){return fileSize(b,sizeKey)-fileSize(a,sizeKey);});
-  if(!sources.length)return '';
-  return '<div class="files-section"><h4>Source Files <span class="count-badge">'+sources.length+'</span></h4>'+
+// Largest first within a section, as Caliper orders its resource list. filter() hands back a
+// fresh array, so sorting it in place cannot disturb the order of the component's own files.
+function renderFilePart(part,files,sizeKey){
+  var partFiles=files.filter(part.accept).sort(function(a,b){return fileSize(b,sizeKey)-fileSize(a,sizeKey);});
+  if(!partFiles.length)return '';
+  return '<div class="files-section"><h4>'+part.title+' <span class="count-badge">'+partFiles.length+'</span></h4>'+
     '<div class="files-table"><div class="files-table-header"><div>File Name</div><div>Size</div></div>'+
-    sources.map(function(f){var info=getFileTypeInfo(f);return '<div class="file-row"><div class="file-name" title="'+esc(f.name)+'">'+
-      '<span class="'+info.className+'" style="display:inline;border:none;background:none;padding:0;margin:0"><span class="file-type-badge">'+info.label+'</span></span> '+
+    partFiles.map(function(f){var info=getFileTypeInfo(f);return '<div class="file-row"><div class="file-name" title="'+esc(f.name)+'">'+
+      '<span class="'+info.className+'"><span class="file-type-badge">'+info.label+'</span></span> '+
       esc(f.name)+'</div><div class="file-size">'+formatBytes(fileSize(f,sizeKey))+'</div></div>';}).join('')+
     '</div></div>';
 }
@@ -525,7 +519,7 @@ function renderModuleDetails(component,listSizeKey){
   var breakdown=computeComponentBreakdown(component,'installSize');
   var files=component.files||[];
   return renderSizeBars(breakdown,breakdown.totalSize)+renderResourcesGrid(breakdown.resources)+
-    renderAssetFiles(files,listSizeKey)+renderSourceFiles(files,listSizeKey);
+    FILE_PARTS.map(function(p){return renderFilePart(p,files,listSizeKey);}).join('');
 }
 
 // Cards whose details have not been rendered yet, keyed by card id. A large app has hundreds of
