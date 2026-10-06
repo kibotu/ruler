@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1]
+
+### Changed
+
+- Comments were pruned across the sources, from 254 lines to 145. Those that restated the code
+  or narrated history git already keeps were removed; those that explain why the code is the
+  way it is were kept and tightened. No behaviour change.
+
 ## [3.3.0]
 
 ### Fixed
@@ -229,7 +237,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Extracted non-Gradle specific code to `ruler-common`.
 
-[unreleased]: https://github.com/kibotu/ruler/compare/3.3.0...main
+[unreleased]: https://github.com/kibotu/ruler/compare/3.3.1...main
+[3.3.1]: https://github.com/kibotu/ruler/compare/3.3.0...3.3.1
 [3.3.0]: https://github.com/kibotu/ruler/compare/3.2.0...3.3.0
 [3.2.0]: https://github.com/kibotu/ruler/compare/3.1.1...3.2.0
 [3.1.0]: https://github.com/kibotu/ruler/compare/3.0.0...3.1.0
