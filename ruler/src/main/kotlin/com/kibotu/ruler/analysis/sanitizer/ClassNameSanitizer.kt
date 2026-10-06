@@ -3,15 +3,14 @@ package com.kibotu.ruler.analysis.sanitizer
 import com.android.tools.proguard.ProguardMap
 import java.io.File
 
-/** De-obfuscates class names with an R8, ProGuard, or DexGuard mapping file. */
+/** De-obfuscates class names with an R8, ProGuard, or DexGuard mapping file. Null leaves them as
+ *  they are. */
 class ClassNameSanitizer private constructor(private val proguardMap: ProguardMap) {
 
-    /** Names stay obfuscated when [mappingFile] is null. */
     constructor(mappingFile: File? = null) : this(
         ProguardMap().apply { mappingFile?.let(::readFromFile) },
     )
 
-    /** Sanitizes [className] and de-obfuscates it, if a mapping is available. */
     fun sanitize(className: String): String {
         val sanitized = className
             .removeSurrounding("L", ";") // La/b/C; -> a/b/C

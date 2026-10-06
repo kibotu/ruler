@@ -25,8 +25,6 @@ import java.util.Optional
 class ApkCreator(private val androidSdkDir: File? = null) {
 
     /**
-     * @param bundleFile The AAB to split.
-     * @param deviceSpec The device to build for.
      * @param targetDir Where to write the APKs. Ruler deletes the current contents.
      * @return Each module of the bundle, mapped to its APKs.
      */
@@ -75,12 +73,8 @@ class ApkCreator(private val androidSdkDir: File? = null) {
         return buildTools.location.resolve(SdkConstants.FN_AAPT2)
     }
 
-    /**
-     * Signs the split APKs with Ruler's own debug key.
-     *
-     * Signing makes bundletool write the /META-INF/BNDLTOOL.SF and *.RSA entries, which the APKs
-     * from the Play Store also have. Without them the measured size would be too small.
-     */
+    /** Signs with Ruler's own debug key so that bundletool writes the /META-INF entries that the APKs
+     *  from the Play Store also have. Without them the measured size is too small. */
     private fun debugSigningConfiguration(): SigningConfiguration {
         val keystore = checkNotNull(javaClass.classLoader.getResourceAsStream(KEYSTORE_RESOURCE)) {
             "Unable to load $KEYSTORE_RESOURCE"

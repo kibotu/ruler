@@ -8,12 +8,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
-/**
- * Applies the plugin to a real Android build.
- *
- * These tests configure the build but never run the analysis, because that needs an Android SDK
- * and a bundle. `sample` covers the analysis end to end.
- */
+/** Applies the plugin to a real Android build. Configures only, never runs the analysis: that needs
+ *  an Android SDK and a bundle, which `sample` covers end to end. */
 class RulerPluginFunctionalTest {
 
     @TempDir

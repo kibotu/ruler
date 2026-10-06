@@ -25,13 +25,8 @@ import java.io.File
 /**
  * Measures an app bundle and writes the JSON and HTML reports.
  *
- * @param config What to measure and where to write the result.
- * @param dependencyEntries Every file of every runtime dependency, with its declaring component.
  * @param mappingFile R8, ProGuard, or DexGuard mapping file. Class names stay obfuscated without it.
- * @param resourceMappingFile DexGuard resource name mapping file.
  * @param unstrippedNativeFiles Unstripped `.so` files that Bloaty reads debug symbols from.
- * @param bloatyPath Path to the Bloaty executable. Ruler looks it up on `PATH` when this is null.
- * @param log Receives one line for each report that Ruler writes.
  */
 class SizeAnalysis(
     private val config: RulerConfig,

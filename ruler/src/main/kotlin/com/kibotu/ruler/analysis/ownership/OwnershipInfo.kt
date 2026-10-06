@@ -2,14 +2,8 @@ package com.kibotu.ruler.analysis.ownership
 
 import com.kibotu.ruler.model.ComponentType
 
-/**
- * Resolves the owner of a component, a dynamic feature, or a single file.
- *
- * Entries are checked in the order of the ownership file, and the first match wins.
- *
- * @param entries Ownership entries, in file order.
- * @param defaultOwner Owner for names that match no entry. A blank value leaves them unowned.
- */
+/** Resolves the owner of a component, a dynamic feature, or a single file. The first matching entry
+ *  in file order wins. A blank [defaultOwner] leaves unmatched names unowned. */
 class OwnershipInfo(
     entries: List<OwnershipEntry>,
     private val defaultOwner: String,

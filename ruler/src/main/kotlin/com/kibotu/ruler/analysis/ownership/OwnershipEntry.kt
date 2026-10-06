@@ -3,9 +3,9 @@ package com.kibotu.ruler.analysis.ownership
 /**
  * A single entry in the ownership file.
  *
- * @param identifier Pattern to match component/file names. Supports glob-style `*` (any chars) and `?` (single char).
- * @param owners Team names to assign when matched. The first owner is primary; additional owners are shown in the report only.
- * @param internal Override for internal/external classification. When `null`, structural type (INTERNAL/EXTERNAL) is used.
+ * @param identifier Pattern matching component/file names. Supports glob `*` and `?`.
+ * @param owners Team names. The first is primary; the rest only show in the report.
+ * @param internal Overrides the structural type. Null keeps it.
  */
 data class OwnershipEntry(
     val identifier: String,

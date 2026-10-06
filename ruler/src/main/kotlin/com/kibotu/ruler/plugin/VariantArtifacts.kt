@@ -7,10 +7,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 import java.io.File
 
-/**
- * Third-party obfuscators write their bundle and mapping files to their own directories, instead
- * of replacing the standard ones.
- */
+/** Third-party obfuscators write their bundle and mapping files to their own directories. */
 internal enum class Obfuscator(val pluginId: String) {
     DEXGUARD("dexguard"),
     PROGUARD("com.guardsquare.proguard"),
@@ -40,12 +37,7 @@ internal enum class Obfuscator(val pluginId: String) {
     }
 }
 
-/**
- * The bundle to analyze.
- *
- * The obfuscator has not run at configuration time, so its output may appear later. Every lookup
- * below therefore resolves lazily and falls back when the file never appears.
- */
+/** The obfuscator has not run at configuration time, so every lookup resolves lazily. */
 internal fun Project.getBundleFile(variant: ApplicationVariant): Provider<RegularFile> {
     val defaultBundle = variant.artifacts.get(SingleArtifact.BUNDLE)
     val obfuscator = Obfuscator.of(this) ?: return defaultBundle

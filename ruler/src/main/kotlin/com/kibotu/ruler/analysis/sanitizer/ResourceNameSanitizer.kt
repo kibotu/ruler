@@ -2,15 +2,13 @@ package com.kibotu.ruler.analysis.sanitizer
 
 import java.io.File
 
-/** De-obfuscates resource file names, which DexGuard obfuscates. */
+/** De-obfuscates resource file names, which DexGuard obfuscates. Null leaves them as they are. */
 class ResourceNameSanitizer private constructor(private val nameMapping: Map<String, String>) {
 
-    /** Names stay obfuscated when [mappingFile] is null. */
     constructor(mappingFile: File? = null) : this(
         mappingFile?.readText()?.let(::parse) ?: emptyMap(),
     )
 
-    /** Sanitizes [resourceName] and de-obfuscates it, if a mapping is available. */
     fun sanitize(resourceName: String): String {
         return nameMapping[resourceName] ?: resourceName // /res/raw/dVo.xml -> /res/drawable/foo.xml
     }
