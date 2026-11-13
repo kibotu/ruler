@@ -602,20 +602,20 @@ function renderFilePart(part,files,sizeKey){
 function renderModuleDetails(component,listSizeKey){
   var breakdown=computeComponentBreakdown(component,'installSize');
   var files=component.files||[];
-  return renderProguardSection(component.proguardRules)+
-    renderSizeBars(breakdown,breakdown.totalSize)+renderResourcesGrid(breakdown.resources)+
+  return renderSizeBars(breakdown,breakdown.totalSize)+renderProguardSection(component.proguardRules)+
+    renderResourcesGrid(breakdown.resources)+
     FILE_PARTS.map(function(p){return renderFilePart(p,files,listSizeKey);}).join('');
 }
 
-// The rules a component bundles, as a section at the top of its card. It starts collapsed and
-// its files start expanded, so one click reads the rules. It is first because rules reach beyond
-// the component, so they are worth seeing before the size breakdown. Like the file lists, the
+// The rules a component bundles, as a section right below its size bars. It starts collapsed and
+// its files start expanded, so one click reads the rules. It comes before the file lists because
+// rules reach beyond the component. Like the file lists, the
 // section only appears when there is something to show.
 function renderProguardSection(rules){
   if(!rules||!rules.length)return '';
   var directives=rules.reduce(function(s,f){return s+f.ruleCount;},0);
   var flagged=rules.reduce(function(s,f){return s+scopeFlags(f).length;},0);
-  return '<div class="pg-section" style="margin-top:0;margin-bottom:30px"><div class="pg-header collapsible" data-collapse=".pg-body"><h4>ProGuard Rules <span class="count-badge">'+
+  return '<div class="pg-section" style="margin-top:30px"><div class="pg-header collapsible" data-collapse=".pg-body"><h4>ProGuard Rules <span class="count-badge">'+
     rules.length+'</span></h4><span class="pg-meta">'+directives+' directives</span>'+
     (flagged?'<span class="pg-scope">&#9888;&#xFE0E; '+flagged+' outside namespace</span>':'')+
     '<span class="expand-icon toggle-icon">&#9660;</span></div>'+
