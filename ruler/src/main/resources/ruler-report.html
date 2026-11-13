@@ -139,6 +139,40 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
 .treemap-box{background:#fff;border-radius:8px;overflow:hidden;min-height:600px}
 .dynamic-list{padding:30px}
 .dynamic-item{background:#fff;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px;padding:18px 24px}
+/* ProGuard rules: a collapsible section on each Breakdown card, and the ProGuard tab. */
+.pg-section{margin-top:30px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;overflow:hidden}
+.pg-header{padding:12px 15px;background:#f8f9fa;cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none}
+.pg-header:hover{background:#f5f6fa}
+.pg-header h4{font-size:15px;color:#333;display:flex;align-items:center;gap:10px;margin:0}
+.pg-header h4 .count-badge{background:#063773;color:#fff;padding:2px 8px;border-radius:10px;font-size:12px}
+.pg-meta{font-size:12px;color:#666}
+.pg-header .pg-icon{margin-left:auto}
+.pg-body{display:none;padding:12px 15px}
+.pg-body.open{display:block}
+.pg-file{border:1px solid #e0e0e0;border-radius:6px;margin-bottom:10px;overflow:hidden}
+.pg-file:last-child{margin-bottom:0}
+.pg-file-header{padding:8px 12px;background:#fafafa;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;user-select:none}
+.pg-file-header:hover{background:#f5f6fa}
+.pg-file-header .pg-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2d3748;font-weight:600}
+.pg-file-header .pg-icon{font-size:10px}
+.pg-origin{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:#e3f2fd;color:#063773;white-space:nowrap}
+.pg-origin.targeted{background:#e8f5e9;color:#2e7d32}
+.pg-count{font-size:11px;color:#999;white-space:nowrap}
+.pg-content{display:none;margin:0;padding:12px;background:#2d3748;color:#e2e8f0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;max-height:400px;overflow:auto;white-space:pre}
+.pg-content.open{display:block}
+.rule-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px;overflow:hidden}
+.rule-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:#063773}
+.rule-summary{padding:12px 15px;background:#fafafa;border-top:1px solid #f0f0f0;font-size:12px;color:#666}
+.flag-chip{display:inline-flex;align-items:center;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#ffebee;color:#c62828;margin:2px 4px 2px 0}
+.flag-chip.info{background:#fff8e1;color:#f57f17}
+.flag-chip[data-tip]{cursor:default}
+.flag-list{display:flex;flex-wrap:wrap;gap:4px}
+.pg-explainer{font-size:14px;color:#333}
+.pg-explainer h4{font-size:15px;margin:18px 0 6px;color:#063773}
+.pg-explainer h4:first-child{margin-top:0}
+.pg-explainer p,.pg-explainer li{font-size:13px;color:#555}
+.pg-explainer code{background:#f0f0f0;padding:1px 5px;border-radius:3px;font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pg-explainer ul{margin:6px 0 6px 20px}
 @media(max-width:900px){.chart-grid-3{grid-template-columns:1fr}}
 </style>
 </head>
@@ -153,6 +187,7 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
     <div class="tab active" data-tab="breakdown">Breakdown</div>
     <div class="tab" data-tab="insights">Insights</div>
     <div class="tab" data-tab="ownership">Ownership</div>
+    <div class="tab" data-tab="proguard" id="tabProguard" style="display:none">ProGuard</div>
     <div class="tab" data-tab="dynamic" id="tabDynamic" style="display:none">Dynamic Features</div>
   </div>
 
@@ -239,6 +274,30 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
     </div>
   </div>
 
+  <div id="proguard" class="tab-content">
+    <div class="summary" id="proguardSummary"></div>
+    <div class="controls">
+      <div class="filter-chips" id="proguardFilters">
+        <div class="filter-chip active" data-filter="internal">Internal</div>
+        <div class="filter-chip active" data-filter="external">External</div>
+      </div>
+    </div>
+    <div class="section-block">
+      <h2 class="section-title">📦 Rules by component</h2>
+      <p class="section-subtitle">Every component that bundles ProGuard/R8 rules, most directives first. Click a file to read it.</p>
+      <div id="proguardComponents"></div>
+    </div>
+    <div class="section-block alt">
+      <h2 class="section-title">🚩 Global options and broad keeps</h2>
+      <p class="section-subtitle">Rules that do not just affect the component that ships them, but the whole app's R8 build. Library authors are asked not to use these.</p>
+      <div id="proguardFlags"></div>
+    </div>
+    <div class="section-block">
+      <h2 class="section-title">📚 Where ProGuard rules come from</h2>
+      <div class="pg-explainer" id="proguardExplainer"></div>
+    </div>
+  </div>
+
   <div id="dynamic" class="tab-content">
     <div class="dynamic-list" id="dynamicList"></div>
   </div>
@@ -258,6 +317,8 @@ var insightsFilters = {internal:true,external:true};
 var ownershipFilters = {internal:true,external:true};
 var ownerGroupData = [];
 var insightsRendered = false;
+var proguardFilters = {internal:true,external:true};
+var proguardRendered = false;
 
 var COLORS = ['#063773','#0a5aa8','#9b59b6','#2ecc71','#e74c3c','#f39c12','#3498db','#1abc9c','#e67e22','#95a5a6','#34495e','#8e44ad'];
 
@@ -520,7 +581,29 @@ function renderModuleDetails(component,listSizeKey){
   var breakdown=computeComponentBreakdown(component,'installSize');
   var files=component.files||[];
   return renderSizeBars(breakdown,breakdown.totalSize)+renderResourcesGrid(breakdown.resources)+
-    FILE_PARTS.map(function(p){return renderFilePart(p,files,listSizeKey);}).join('');
+    FILE_PARTS.map(function(p){return renderFilePart(p,files,listSizeKey);}).join('')+
+    renderProguardSection(component.proguardRules);
+}
+
+// The rules a component bundles, as a collapsible section on its card. Like the file lists, the
+// section only appears when there is something to show, so cards stay comparable by scanning.
+function renderProguardSection(rules){
+  if(!rules||!rules.length)return '';
+  var directives=rules.reduce(function(s,f){return s+f.ruleCount;},0);
+  return '<div class="pg-section"><div class="pg-header" data-collapse=".pg-body"><h4>ProGuard Rules <span class="count-badge">'+
+    rules.length+'</span></h4><span class="pg-meta">'+directives+' directives</span>'+
+    '<span class="expand-icon pg-icon">&#9660;</span></div>'+
+    '<div class="pg-body">'+rules.map(renderRuleFile).join('')+'</div></div>';
+}
+
+function renderRuleFile(file){
+  var targeted=file.origin.indexOf('Targeted')===0;
+  return '<div class="pg-file"><div class="pg-file-header" data-collapse=".pg-content">'+
+    '<span class="pg-origin'+(targeted?' targeted':'')+'">'+esc(file.origin)+'</span>'+
+    '<span class="pg-name" title="'+esc(file.name)+'">'+esc(file.name)+'</span>'+
+    '<span class="pg-count">'+file.ruleCount+' directives</span>'+
+    '<span class="expand-icon pg-icon">&#9660;</span></div>'+
+    '<pre class="pg-content">'+esc(file.content)+'</pre></div>';
 }
 
 // Cards whose details have not been rendered yet, keyed by card id. A large app has hundreds of
@@ -564,6 +647,7 @@ document.querySelectorAll('.tab').forEach(function(tab){
     document.getElementById(tab.dataset.tab).classList.add('active');
     if(tab.dataset.tab==='insights'&&!insightsRendered){renderInsights();insightsRendered=true;}
     if(tab.dataset.tab==='ownership')renderOwnership();
+    if(tab.dataset.tab==='proguard'&&!proguardRendered){renderProguardTab();proguardRendered=true;}
   });
 });
 
@@ -573,6 +657,7 @@ document.querySelectorAll('.tab').forEach(function(tab){
   document.getElementById('headerTitle').textContent='📱 '+report.name;
   document.getElementById('headerSubtitle').textContent=parts.join(' • ');
   if(report.dynamicFeatures&&report.dynamicFeatures.length)document.getElementById('tabDynamic').style.display='';
+  if(report.components.some(function(c){return c.proguardRules&&c.proguardRules.length;}))document.getElementById('tabProguard').style.display='';
 })();
 
 // Summary
@@ -629,6 +714,21 @@ document.querySelector('.container').addEventListener('click',function(e){
   if(internalBadge){
     e.preventDefault();
     toggleInternalFilter();
+    return;
+  }
+  // Collapsibles nested in a card's details. Handled before the module header, since the fast
+  // path below toggles the whole card.
+  var toggled=e.target.closest('[data-collapse]');
+  if(toggled){
+    toggled.parentElement.querySelector(toggled.dataset.collapse).classList.toggle('open');
+    toggled.querySelector('.pg-icon').classList.toggle('open');
+    return;
+  }
+  var ruleHeader=e.target.closest('.rule-header');
+  if(ruleHeader){
+    var ruleCard=ruleHeader.parentElement;
+    ruleCard.querySelector('.module-details').classList.toggle('open');
+    document.getElementById('icon-'+ruleHeader.dataset.ruleId).classList.toggle('open');
     return;
   }
   var header=e.target.closest('.module-header');
@@ -937,6 +1037,140 @@ document.querySelectorAll('#insightsFilters .filter-chip').forEach(function(chip
     insightsFilters[chip.dataset.filter]=!insightsFilters[chip.dataset.filter];
     chip.classList.toggle('active',insightsFilters[chip.dataset.filter]);
     renderInsights();
+  });
+});
+
+// ProGuard
+// Flags are directives that act on the whole app's R8 build rather than on the component that
+// ships them, which is why AGP asks library authors not to use them. The broad-keep match is a
+// heuristic: it fires on a -keep of any ** package that keeps all members.
+var PROGUARD_FLAGS=[
+  {re:/^-dontobfuscate\b/m,label:'-dontobfuscate',level:'warn',why:'Disables obfuscation for the whole app, not just the library that ships it.'},
+  {re:/^-dontshrink\b/m,label:'-dontshrink',level:'warn',why:'Disables code shrinking for the whole app, not just the library that ships it.'},
+  {re:/^-dontoptimize\b/m,label:'-dontoptimize',level:'warn',why:'Disables all R8 optimizations for the whole app, not just the library that ships it.'},
+  {re:/^-allowaccessmodification\b/m,label:'-allowaccessmodification',level:'warn',why:'A global obfuscation setting. The app developer owns it, not a dependency.'},
+  {re:/^-repackageclasses\b/m,label:'-repackageclasses',level:'warn',why:'Moves all obfuscated classes app-wide. The app developer owns it, not a dependency.'},
+  {re:/^-flattenpackagehierarchy\b/m,label:'-flattenpackagehierarchy',level:'warn',why:'Repackages classes app-wide. The app developer owns it, not a dependency.'},
+  {re:/^-ignorewarnings\b/m,label:'-ignorewarnings',level:'warn',why:'Silences R8 warnings, which can hide real missing-class problems.'},
+  {re:/^-print(configuration|mapping|usage|seeds)\b/m,label:'-print* output',level:'info',why:'Writes a debug output file on every consuming build.'},
+  {re:/^-include\b/m,label:'-include',level:'info',why:'Pulls in another file, which may not exist in the consuming build.'},
+  {re:/^-keep(?:class|classmembers)\s[^{]*\*\*[^{]*\{\s*\*\s*;/m,label:'Broad -keep',level:'warn',why:'Heuristic: keeps every class of a ** package with all members, so none of that code can be optimized. Usually wants to be a targeted rule.'},
+];
+
+function flagsOf(rules){
+  var hits={};
+  rules.forEach(function(file){
+    PROGUARD_FLAGS.forEach(function(flag){
+      if(flag.re.test(file.content))hits[flag.label]=flag;
+    });
+  });
+  return Object.keys(hits).map(function(k){return hits[k];});
+}
+
+function flagChip(flag){
+  return '<span class="flag-chip'+(flag.level==='info'?' info':'')+'" data-tip="'+esc(flag.why)+'">'+
+    esc(flag.label)+'</span>';
+}
+
+function hasProguardRules(c){return c.proguardRules&&c.proguardRules.length;}
+function directivesOf(c){return c.proguardRules.reduce(function(s,f){return s+f.ruleCount;},0);}
+
+function renderProguardTab(){
+  var withRules=report.components.filter(hasProguardRules);
+  var files=withRules.reduce(function(s,c){return s+c.proguardRules.length;},0);
+  var directives=withRules.reduce(function(s,c){return s+directivesOf(c);},0);
+  var flagged=withRules.filter(function(c){return flagsOf(c.proguardRules).length;});
+  document.getElementById('proguardSummary').innerHTML=
+    '<div class="summary-card"><h3>Components with rules</h3><div class="value">'+withRules.length+'</div>'+
+    '<div class="label">of '+report.components.length+' components</div></div>'+
+    '<div class="summary-card"><h3>Rule files</h3><div class="value">'+files+'</div>'+
+    '<div class="label">bundled by dependencies</div></div>'+
+    '<div class="summary-card"><h3>Directives</h3><div class="value">'+directives+'</div>'+
+    '<div class="label">total -rules</div></div>'+
+    '<div class="summary-card"><h3>Flagged</h3><div class="value">'+flagged.length+'</div>'+
+    '<div class="label">ship global options or broad keeps</div></div>';
+
+  var comps=withRules.filter(function(c){
+    return (isInternal(c)&&proguardFilters.internal)||(!isInternal(c)&&proguardFilters.external);
+  });
+  comps.sort(function(a,b){return directivesOf(b)-directivesOf(a);});
+  document.getElementById('proguardComponents').innerHTML=comps.length?
+    comps.map(renderRuleCard).join(''):'<div class="no-results">No components bundle rules</div>';
+
+  renderProguardFlags(flagged);
+  renderProguardExplainer();
+}
+
+// Each card lists the rule files of one component, largest directive count first. The header
+// reuses the module card styles; the body skips the size and file lists, since the Breakdown
+// tab owns those and this tab is about the rules.
+function renderRuleCard(component,i){
+  var id='r'+i;
+  var flags=flagsOf(component.proguardRules);
+  return '<div class="rule-card">'+
+    '<div class="module-header rule-header" data-rule-id="'+id+'">'+
+    '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
+    renderOwnerBadges(component)+
+    (isInternal(component)?'<span class="internal-badge internal-badge-filter">Internal</span>':'')+'</div>'+
+    '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">Directives</span>'+
+    '<span class="module-size">'+directivesOf(component)+'</span></div>'+
+    '<span class="expand-icon" id="icon-'+id+'">&#9660;</span></div></div>'+
+    '<div class="module-details">'+
+    (flags.length?'<div class="flag-list" style="margin-bottom:15px">'+flags.map(flagChip).join('')+'</div>':'')+
+    component.proguardRules.map(renderRuleFile).join('')+
+    '</div></div>';
+}
+
+function renderProguardFlags(flagged){
+  var el=document.getElementById('proguardFlags');
+  if(!flagged.length){
+    el.innerHTML='<div class="no-data">None found. Nothing in the report disables shrinking, obfuscation or optimization app-wide.</div>';
+    return;
+  }
+  el.innerHTML=flagged.map(function(c){
+    return '<div class="rule-card"><div class="module-header" style="cursor:default">'+
+      '<div class="module-info"><div class="module-name-row">'+esc(c.name)+'</div></div>'+
+      '<div class="flag-list">'+flagsOf(c.proguardRules).map(flagChip).join('')+'</div></div></div>';
+  }).join('');
+}
+
+function renderProguardExplainer(){
+  var el=document.getElementById('proguardExplainer');
+  if(el.innerHTML)return;
+  el.innerHTML=
+    '<h4>Consumer rules</h4>'+
+    '<p>The rules a library ships so that R8 keeps whatever it reflects on. They are packaged'+
+    ' into the library artifact and are applied automatically in every app that consumes it:</p>'+
+    '<ul><li>Inside an <code>AAR</code>: <code>proguard.txt</code> at the archive root. The Android'+
+    ' Gradle Plugin merges what the library declared via <code>consumerProguardFiles</code>, plus'+
+    ' the <code>META-INF/proguard/</code> files of jars bundled in the AAR, into that file.</li>'+
+    '<li>Inside a <code>JAR</code>: any files under <code>META-INF/proguard/</code>.</li></ul>'+
+    '<h4>Targeted R8 rules</h4>'+
+    '<p>Rules written for specific R8 versions live under <code>META-INF/com.android.tools/</code>,'+
+    ' in subdirectories named <code>r8-from-&lt;X&gt;-upto-&lt;Y&gt;</code> (both parts optional,'+
+    ' <code>&lt;Y&gt;</code> exclusive). In an AAR they travel inside <code>classes.jar</code>, in a'+
+    ' JAR at the archive root. AGP applies every directory whose range matches its R8 version;'+
+    ' if a library ships targeted rules, its legacy locations are ignored.</p>'+
+    '<h4>The app\u2019s own rules</h4>'+
+    '<p><code>proguardFiles</code> and the <code>getDefaultProguardFile(...)</code> defaults belong'+
+    ' to the app, not to any component, so they are not listed per card. The fully merged'+
+    ' configuration R8 actually ran with is written next to the mapping file, at'+
+    ' <code>outputs/mapping/&lt;variant&gt;/configuration.txt</code>.</p>'+
+    '<h4>Not listed here</h4>'+
+    '<p>Project modules declare their consumer rules in their build scripts, never packaged into'+
+    ' an archive, so their rules cannot be attributed from the classpath. They still reach R8 and'+
+    ' show up in <code>configuration.txt</code>.</p>'+
+    '<h4>Why none of this shows up in the APK</h4>'+
+    '<p>Rules never ship in the app \u2014 they only steer R8 at build time. A bundled rule can grow'+
+    ' the app without adding a single file to it, which is exactly what the red flags above make'+
+    ' visible.</p>';
+}
+
+document.querySelectorAll('#proguardFilters .filter-chip').forEach(function(chip){
+  chip.addEventListener('click',function(){
+    proguardFilters[chip.dataset.filter]=!proguardFilters[chip.dataset.filter];
+    chip.classList.toggle('active',proguardFilters[chip.dataset.filter]);
+    renderProguardTab();
   });
 });
 

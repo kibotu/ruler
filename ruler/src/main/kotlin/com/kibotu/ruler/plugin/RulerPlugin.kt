@@ -39,7 +39,9 @@ class RulerPlugin : Plugin<Project> {
                     task.group = EXTENSION_NAME
                     task.description = "Measures the size of the $variantName app bundle."
 
-                    EntryParser().parse(variant.runtimeConfiguration).forEach(task.dependencyEntries::put)
+                    val entryParser = EntryParser()
+                    entryParser.parse(variant.runtimeConfiguration).forEach(task.dependencyEntries::put)
+                    task.ruleArchives.set(entryParser.ruleArchives(variant.runtimeConfiguration))
 
                     task.projectPath.set(project.path)
                     task.sdkDirectory.set(androidComponents.sdkComponents.sdkDirectory)

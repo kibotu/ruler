@@ -3,6 +3,7 @@ package com.kibotu.ruler.plugin
 import com.kibotu.ruler.analysis.dependency.ArtifactResult
 import com.kibotu.ruler.analysis.dependency.DependencyEntry
 import com.kibotu.ruler.analysis.dependency.DependencyParser
+import com.kibotu.ruler.analysis.proguard.RuleArchive
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
@@ -24,6 +25,21 @@ class EntryParser {
         return CODE_ARTIFACT_TYPES.associateWith { parse(configuration, it, holdsCode = true) } +
             ASSET_ARTIFACT_TYPES.associateWith { parse(configuration, it, holdsCode = false) }
     }
+
+    /**
+     * @return The AAR and JAR archives of every runtime dependency, untransformed, since the
+     *  bundled ProGuard rules never survive AGP's artifact transformations.
+     */
+    fun ruleArchives(configuration: Configuration): Provider<List<RuleArchive>> =
+        configuration.incoming
+            .artifactView { view -> view.isLenient = true }
+            .artifacts
+            .resolvedArtifacts
+            .map { artifacts ->
+                artifacts.map { artifact ->
+                    RuleArchive(artifact.id.componentIdentifier.displayName, artifact.file)
+                }
+            }
 
     private fun parse(configuration: Configuration, artifactType: String, holdsCode: Boolean) =
         configuration.incoming

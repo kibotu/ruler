@@ -16,6 +16,7 @@ import com.kibotu.ruler.analysis.sanitizer.ResourceNameSanitizer
 import com.kibotu.ruler.analysis.verification.Verifier
 import com.kibotu.ruler.model.AppFile
 import com.kibotu.ruler.model.ComponentType
+import com.kibotu.ruler.model.ProguardRuleFile
 import com.kibotu.ruler.report.HtmlReporter
 import com.kibotu.ruler.report.JsonReporter
 import com.kibotu.ruler.report.ReportBuilder
@@ -31,6 +32,7 @@ import java.io.File
 class SizeAnalysis(
     private val config: RulerConfig,
     private val dependencyEntries: List<DependencyEntry>,
+    private val proguardRules: Map<String, List<ProguardRuleFile>> = emptyMap(),
     private val mappingFile: File? = null,
     private val resourceMappingFile: File? = null,
     private val unstrippedNativeFiles: List<File> = emptyList(),
@@ -53,9 +55,9 @@ class SizeAnalysis(
         val dynamicFeatures = files.filterKeys { it != BASE_FEATURE_NAME }
 
         writeReports(components, dynamicFeatures, ownershipInfo())
-
         Verifier(config.verificationConfig).verify(components.values.flatten())
     }
+
 
     /** Reads every APK of every feature and turns its entries into de-obfuscated app files. */
     private fun filesPerFeature(): Map<String, List<AppFile>> {
@@ -81,6 +83,7 @@ class SizeAnalysis(
             ownershipInfo = ownershipInfo,
             omitFileBreakdown = config.omitFileBreakdown,
             appProjectPath = config.projectPath,
+            proguardRules = proguardRules,
         )
 
         val json = JsonReporter().write(report, config.reportDir)

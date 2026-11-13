@@ -6,6 +6,8 @@ import com.kibotu.ruler.analysis.RulerConfig
 import com.kibotu.ruler.analysis.SizeAnalysis
 import com.kibotu.ruler.analysis.apk.ApkCreator
 import com.kibotu.ruler.analysis.dependency.DependencyEntry
+import com.kibotu.ruler.analysis.proguard.ProguardRuleExtractor
+import com.kibotu.ruler.analysis.proguard.RuleArchive
 import com.kibotu.ruler.analysis.verification.VerificationConfig
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -32,6 +34,14 @@ abstract class RulerTask : DefaultTask() {
 
     @get:Input
     abstract val dependencyEntries: MapProperty<String, List<DependencyEntry>>
+
+    /**
+     * The dependency archives whose bundled ProGuard rules are reported. An input value rather
+     * than an input file collection, since it is a component-to-file mapping; the archives live
+     * in the immutable dependency cache, so their content is addressed by their versioned path.
+     */
+    @get:Input
+    abstract val ruleArchives: ListProperty<RuleArchive>
 
     @get:Input
     abstract val projectPath: Property<String>
@@ -109,6 +119,7 @@ abstract class RulerTask : DefaultTask() {
                 verificationConfig = verificationConfig.get(),
             ),
             dependencyEntries = dependencyEntries.get().values.flatten(),
+            proguardRules = ProguardRuleExtractor().parse(ruleArchives.get()),
             mappingFile = mappingFile.asFile.orNull,
             resourceMappingFile = resourceMappingFile.asFile.orNull,
             unstrippedNativeFiles = unstrippedNativeFiles.get().map(RegularFile::getAsFile),

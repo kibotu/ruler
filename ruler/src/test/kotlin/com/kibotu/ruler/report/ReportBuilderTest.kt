@@ -8,6 +8,7 @@ import com.kibotu.ruler.analysis.ownership.OwnershipInfo
 import com.kibotu.ruler.model.AppFile
 import com.kibotu.ruler.model.ComponentType
 import com.kibotu.ruler.model.FileType
+import com.kibotu.ruler.model.ProguardRuleFile
 import com.kibotu.ruler.model.ResourceType
 import org.junit.jupiter.api.Test
 
@@ -224,4 +225,19 @@ class ReportBuilderTest {
 
         assertThat(report.dynamicFeatures[0].internal).isTrue()
     }
+
+    @Test
+    fun `proguard rules are attached to their component`() {
+        val rules = mapOf(
+            ":lib" to listOf(ProguardRuleFile("Consumer rules", "proguard.txt", KEEP, ruleCount = 1)),
+        )
+        val report = builder.build(appInfo, components, emptyMap(), null, omitFileBreakdown = false, proguardRules = rules)
+
+        val libComponent = report.components.find { it.name == ":lib" }!!
+        assertThat(libComponent.proguardRules!!.single().content).isEqualTo(KEEP)
+        // Components without rules stay null, so the card renders no section.
+        assertThat(report.components.find { it.name == ":app" }!!.proguardRules).isNull()
+    }
 }
+
+private const val KEEP = "-keep class com.example.** { *; }\n"
