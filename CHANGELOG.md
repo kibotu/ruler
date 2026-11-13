@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.0.0]
 
 ### Added
 
@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   their library, shows which components' rules pin which classes (by install size), and explains
   where rules come from. Project modules are not covered, since their rules are never packaged.
 - `proguardRules` and `proguardReach` on components in `report.json`.
+
+## [3.3.2]
 
 ### Changed
 
@@ -272,6 +274,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extracted non-Gradle specific code to `ruler-common`.
 
 [unreleased]: https://github.com/kibotu/ruler/compare/3.3.1...main
+[4.0.0]: https://github.com/kibotu/ruler/compare/3.3.2...4.0.0
+[3.3.2]: https://github.com/kibotu/ruler/compare/3.3.1...3.3.2
 [3.3.1]: https://github.com/kibotu/ruler/compare/3.3.0...3.3.1
 [3.3.0]: https://github.com/kibotu/ruler/compare/3.2.0...3.3.0
 [3.2.0]: https://github.com/kibotu/ruler/compare/3.1.1...3.2.0
