@@ -25,26 +25,33 @@ self-contained HTML report for your team.
 
 <table>
   <tr valign="top">
-    <td width="33%" align="center">
+    <td width="25%" align="center">
       <a href="docs/breakdown.png">
         <img src="docs/breakdown.png" alt="Module Size Breakdown" width="100%">
       </a>
       <br>
       <em>Module Size Breakdown</em>
     </td>
-    <td width="33%" align="center">
+    <td width="25%" align="center">
       <a href="docs/insights.png">
         <img src="docs/insights.png" alt="Size Insights" width="100%">
       </a>
       <br>
       <em>Size Insights</em>
     </td>
-    <td width="33%" align="center">
+    <td width="25%" align="center">
       <a href="docs/ownership.png">
         <img src="docs/ownership.png" alt="Module Ownership" width="100%">
       </a>
       <br>
       <em>Module Ownership</em>
+    </td>
+    <td width="25%" align="center">
+      <a href="docs/ownership.png">
+        <img src="docs/proguard.png" alt="Proguard" width="100%">
+      </a>
+      <br>
+      <em>Proguard</em>
     </td>
   </tr>
 </table>
