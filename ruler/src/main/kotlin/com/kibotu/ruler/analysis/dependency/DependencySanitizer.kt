@@ -10,7 +10,7 @@ class DependencySanitizer(private val classNameSanitizer: ClassNameSanitizer) {
     fun sanitize(entries: List<DependencyEntry>): Map<String, List<DependencyComponent>> {
         val components = mutableMapOf<String, MutableList<DependencyComponent>>()
         entries.forEach { entry ->
-            components.getOrPut(nameOf(entry), ::mutableListOf) += componentOf(entry.component)
+            components.getOrPut(nameOf(entry), ::mutableListOf) += DependencyComponent.of(entry.component)
         }
         return components
     }
@@ -19,13 +19,5 @@ class DependencySanitizer(private val classNameSanitizer: ClassNameSanitizer) {
         is DependencyEntry.Class -> classNameSanitizer.sanitize(entry.name)
         // A Windows path never matches an APK entry, whose separator is always a slash.
         is DependencyEntry.Default -> entry.name.replace('\\', '/')
-    }
-
-    /** Gradle reports a project dependency as `project ':sample:lib'`, and a module dependency by
-     *  its Maven coordinate. Only the former starts with a colon once unwrapped. */
-    private fun componentOf(rawComponent: String): DependencyComponent {
-        val name = rawComponent.removePrefix("project ").trim().removeSurrounding("'")
-        val type = if (name.startsWith(":")) ComponentType.INTERNAL else ComponentType.EXTERNAL
-        return DependencyComponent(name, type)
     }
 }
