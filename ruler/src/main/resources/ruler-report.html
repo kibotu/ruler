@@ -146,20 +146,40 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
 .pg-header h4{font-size:15px;color:#333;display:flex;align-items:center;gap:10px;margin:0}
 .pg-header h4 .count-badge{background:#063773;color:#fff;padding:2px 8px;border-radius:10px;font-size:12px}
 .pg-meta{font-size:12px;color:#666}
-.pg-header .pg-icon{margin-left:auto}
-.pg-body{display:none;padding:12px 15px}
-.pg-body.open{display:block}
+.collapsed{display:none!important}
+.collapsible{cursor:pointer;user-select:none}
+.collapsible .toggle-icon{margin-left:auto}
+.pg-body{padding:12px 15px}
 .pg-file{border:1px solid #e0e0e0;border-radius:6px;margin-bottom:10px;overflow:hidden}
 .pg-file:last-child{margin-bottom:0}
-.pg-file-header{padding:8px 12px;background:#fafafa;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;user-select:none}
-.pg-file-header:hover{background:#f5f6fa}
+.pg-file-header{padding:8px 12px;background:#fafafa;display:flex;align-items:center;gap:10px;font-size:13px}
 .pg-file-header .pg-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2d3748;font-weight:600}
-.pg-file-header .pg-icon{font-size:10px}
 .pg-origin{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:#e3f2fd;color:#063773;white-space:nowrap}
 .pg-origin.targeted{background:#e8f5e9;color:#2e7d32}
 .pg-count{font-size:11px;color:#999;white-space:nowrap}
-.pg-content{display:none;margin:0;padding:12px;background:#2d3748;color:#e2e8f0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;max-height:400px;overflow:auto;white-space:pre}
-.pg-content.open{display:block}
+.pg-content{margin:0;padding:12px;background:#2d3748;color:#e2e8f0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;max-height:400px;overflow:auto;white-space:pre}
+.pg-line{display:inline-block;min-width:100%;box-sizing:border-box;border-left:3px solid transparent;margin-left:-3px}
+.pg-line.warn{background:rgba(239,83,80,.18);border-left-color:#ef5350}
+.pg-line.info{background:rgba(255,193,7,.14);border-left-color:#ffb300}
+.pg-line.warn::before{content:"\26A0\FE0E ";color:#ff8a80}
+.pg-line.info::before{content:"\24D8 ";color:#ffd54f}
+.pg-scope{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;background:#ffebee;color:#c62828}
+.pg-scope.info{background:#fff8e1;color:#f57f17}
+.pg-reach{padding:4px 0 16px}
+.reach-title{font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.reach-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:#e8eaf0}
+.reach-bar>div{min-width:2px}
+.reach-own{background:#063773}
+.reach-others{background:#f39c12}
+.reach-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:12px;color:#555}
+.reach-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.reach-legend .none{background:#e8eaf0}
+.impact-row{margin-top:12px;font-size:13px}
+.impact-head{display:flex;justify-content:space-between;gap:12px;color:#2d3748;font-weight:600}
+.impact-head span:last-child{color:#666;font-weight:400;white-space:nowrap}
+.impact-track{height:6px;border-radius:3px;background:#e8eaf0;margin:5px 0}
+.impact-fill{height:100%;border-radius:3px;background:#f39c12}
+.impact-rules code{display:inline-block;background:#f0f0f0;padding:1px 6px;border-radius:3px;font-size:11px;margin:2px 4px 2px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .rule-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px;overflow:hidden}
 .rule-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:#063773}
 .rule-summary{padding:12px 15px;background:#fafafa;border-top:1px solid #f0f0f0;font-size:12px;color:#666}
@@ -284,7 +304,7 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
     </div>
     <div class="section-block">
       <h2 class="section-title">📦 Rules by component</h2>
-      <p class="section-subtitle">Every component that bundles ProGuard/R8 rules, most directives first. Click a file to read it.</p>
+      <p class="section-subtitle">Components that bundle ProGuard/R8 rules, or that other libraries’ rules reach. Rules leaving their library come first. Click a card to open it.</p>
       <div id="proguardComponents"></div>
     </div>
     <div class="section-block alt">
@@ -541,10 +561,11 @@ function renderResourcesGrid(resources){
   var keys=Object.keys(resources);
   if(!keys.length)return '';
   keys.sort(function(a,b){return resources[b].size-resources[a].size;});
-  return '<h4 style="margin-top:20px;margin-bottom:15px;color:#333">Resources</h4><div class="resources-grid">'+
+  return '<div class="files-section"><h4 class="collapsible" data-collapse=".resources-grid">Resources'+
+    '<span class="expand-icon toggle-icon open">&#9660;</span></h4><div class="resources-grid">'+
     keys.map(function(k){return '<div class="resource-card"><div class="resource-type">'+esc(k)+'</div>'+
       '<div class="resource-size">'+formatBytes(resources[k].size)+'</div>'+
-      '<div class="resource-count">'+resources[k].count+' files</div></div>';}).join('')+'</div>';
+      '<div class="resource-count">'+resources[k].count+' files</div></div>';}).join('')+'</div></div>';
 }
 
 // A component's files partition into these four buckets, so a file is listed under one heading
@@ -569,7 +590,8 @@ var FILE_PARTS=[
 function renderFilePart(part,files,sizeKey){
   var partFiles=files.filter(part.accept).sort(function(a,b){return fileSize(b,sizeKey)-fileSize(a,sizeKey);});
   if(!partFiles.length)return '';
-  return '<div class="files-section"><h4>'+part.title+' <span class="count-badge">'+partFiles.length+'</span></h4>'+
+  return '<div class="files-section"><h4 class="collapsible" data-collapse=".files-table">'+part.title+
+    ' <span class="count-badge">'+partFiles.length+'</span><span class="expand-icon toggle-icon open">&#9660;</span></h4>'+
     '<div class="files-table"><div class="files-table-header"><div>File Name</div><div>Size</div></div>'+
     partFiles.map(function(f){var info=getFileTypeInfo(f);return '<div class="file-row"><div class="file-name" title="'+esc(f.name)+'">'+
       '<span class="'+info.className+'"><span class="file-type-badge">'+info.label+'</span></span> '+
@@ -580,30 +602,63 @@ function renderFilePart(part,files,sizeKey){
 function renderModuleDetails(component,listSizeKey){
   var breakdown=computeComponentBreakdown(component,'installSize');
   var files=component.files||[];
-  return renderSizeBars(breakdown,breakdown.totalSize)+renderResourcesGrid(breakdown.resources)+
-    FILE_PARTS.map(function(p){return renderFilePart(p,files,listSizeKey);}).join('')+
-    renderProguardSection(component.proguardRules);
+  return renderProguardSection(component.proguardRules)+
+    renderSizeBars(breakdown,breakdown.totalSize)+renderResourcesGrid(breakdown.resources)+
+    FILE_PARTS.map(function(p){return renderFilePart(p,files,listSizeKey);}).join('');
 }
 
-// The rules a component bundles, as a collapsible section on its card. Like the file lists, the
-// section only appears when there is something to show, so cards stay comparable by scanning.
+// The rules a component bundles, as a section at the top of its card. It starts collapsed and
+// its files start expanded, so one click reads the rules. It is first because rules reach beyond
+// the component, so they are worth seeing before the size breakdown. Like the file lists, the
+// section only appears when there is something to show.
 function renderProguardSection(rules){
   if(!rules||!rules.length)return '';
   var directives=rules.reduce(function(s,f){return s+f.ruleCount;},0);
-  return '<div class="pg-section"><div class="pg-header" data-collapse=".pg-body"><h4>ProGuard Rules <span class="count-badge">'+
+  var flagged=rules.reduce(function(s,f){return s+scopeFlags(f).length;},0);
+  return '<div class="pg-section" style="margin-top:0;margin-bottom:30px"><div class="pg-header collapsible" data-collapse=".pg-body"><h4>ProGuard Rules <span class="count-badge">'+
     rules.length+'</span></h4><span class="pg-meta">'+directives+' directives</span>'+
-    '<span class="expand-icon pg-icon">&#9660;</span></div>'+
-    '<div class="pg-body">'+rules.map(renderRuleFile).join('')+'</div></div>';
+    (flagged?'<span class="pg-scope">&#9888;&#xFE0E; '+flagged+' outside namespace</span>':'')+
+    '<span class="expand-icon toggle-icon">&#9660;</span></div>'+
+    '<div class="pg-body collapsed">'+rules.map(renderRuleFile).join('')+'</div></div>';
+}
+
+// What each kind of flagged rule means, as it reads in a tooltip. Only a rule that names another
+// package is a warning on its own; one that matches by hierarchy is usually legitimate.
+var SCOPE_INFO={
+  OUTSIDE_NAMESPACE:{level:'warn',label:'outside namespace',why:'Names a package outside the library that ships it. R8 applies it to the whole app.'},
+  ALL_CLASSES:{level:'warn',label:'all classes',why:'Matches every class in the app, whichever library ships the rule.'},
+  CROSS_CUTTING:{level:'info',label:'by hierarchy',why:'Matches by extends, implements or annotation, so it can reach classes of any library.'}
+};
+
+// Flags that point past the shipping component's own package, as opposed to the broad but
+// customary rules that match by hierarchy.
+function scopeFlags(file){
+  return (file.flags||[]).filter(function(f){return SCOPE_INFO[f.scope].level==='warn';});
 }
 
 function renderRuleFile(file){
   var targeted=file.origin.indexOf('Targeted')===0;
-  return '<div class="pg-file"><div class="pg-file-header" data-collapse=".pg-content">'+
+  var byLine={};
+  (file.flags||[]).forEach(function(f){byLine[f.line]=f;});
+  var lines=file.content.split('\n').map(function(text,i){
+    var flag=byLine[i+1];
+    if(!flag)return esc(text);
+    var info=SCOPE_INFO[flag.scope];
+    return '<span class="pg-line '+info.level+'" title="'+esc(info.why)+'">'+esc(text)+'</span>';
+  }).join('\n');
+  var counts={};
+  (file.flags||[]).forEach(function(f){counts[f.scope]=(counts[f.scope]||0)+1;});
+  var chips=Object.keys(SCOPE_INFO).filter(function(k){return counts[k];}).map(function(k){
+    var info=SCOPE_INFO[k];
+    return '<span class="pg-scope'+(info.level==='info'?' info':'')+'" title="'+esc(info.why)+
+      (file.namespace&&k==='OUTSIDE_NAMESPACE'?' This library lives in '+esc(file.namespace)+'.':'')+'">'+
+      (info.level==='warn'?'&#9888;&#xFE0E; ':'&#9432; ')+counts[k]+' '+info.label+'</span>';
+  }).join('');
+  return '<div class="pg-file"><div class="pg-file-header">'+
     '<span class="pg-origin'+(targeted?' targeted':'')+'">'+esc(file.origin)+'</span>'+
-    '<span class="pg-name" title="'+esc(file.name)+'">'+esc(file.name)+'</span>'+
-    '<span class="pg-count">'+file.ruleCount+' directives</span>'+
-    '<span class="expand-icon pg-icon">&#9660;</span></div>'+
-    '<pre class="pg-content">'+esc(file.content)+'</pre></div>';
+    '<span class="pg-name" title="'+esc(file.name)+'">'+esc(file.name)+'</span>'+chips+
+    '<span class="pg-count">'+file.ruleCount+' directives</span></div>'+
+    '<pre class="pg-content">'+lines+'</pre></div>';
 }
 
 // Cards whose details have not been rendered yet, keyed by card id. A large app has hundreds of
@@ -720,8 +775,8 @@ document.querySelector('.container').addEventListener('click',function(e){
   // path below toggles the whole card.
   var toggled=e.target.closest('[data-collapse]');
   if(toggled){
-    toggled.parentElement.querySelector(toggled.dataset.collapse).classList.toggle('open');
-    toggled.querySelector('.pg-icon').classList.toggle('open');
+    toggled.parentElement.querySelector(toggled.dataset.collapse).classList.toggle('collapsed');
+    toggled.querySelector('.toggle-icon').classList.toggle('open');
     return;
   }
   var ruleHeader=e.target.closest('.rule-header');
@@ -1073,10 +1128,21 @@ function flagChip(flag){
 }
 
 function hasProguardRules(c){return c.proguardRules&&c.proguardRules.length;}
-function directivesOf(c){return c.proguardRules.reduce(function(s,f){return s+f.ruleCount;},0);}
+function directivesOf(c){return (c.proguardRules||[]).reduce(function(s,f){return s+f.ruleCount;},0);}
+// A component belongs on the tab if it ships rules, or if other components' rules reach it.
+function hasProguardStory(c){return hasProguardRules(c)||c.proguardReach;}
+function outsideRules(c){
+  return (c.proguardRules||[]).reduce(function(s,f){return s+scopeFlags(f).length;},0);
+}
+function affectedBytes(c){
+  return c.proguardReach?c.proguardReach.affectedBy.reduce(function(s,i){return s+i.bytes;},0):0;
+}
 
 function renderProguardTab(){
   var withRules=report.components.filter(hasProguardRules);
+  var story=report.components.filter(hasProguardStory);
+  var outside=withRules.reduce(function(s,c){return s+outsideRules(c);},0);
+  var affected=report.components.filter(function(c){return c.proguardReach&&c.proguardReach.affectedBy.length;});
   var files=withRules.reduce(function(s,c){return s+c.proguardRules.length;},0);
   var directives=withRules.reduce(function(s,c){return s+directivesOf(c);},0);
   var flagged=withRules.filter(function(c){return flagsOf(c.proguardRules).length;});
@@ -1087,13 +1153,20 @@ function renderProguardTab(){
     '<div class="label">bundled by dependencies</div></div>'+
     '<div class="summary-card"><h3>Directives</h3><div class="value">'+directives+'</div>'+
     '<div class="label">total -rules</div></div>'+
+    '<div class="summary-card"><h3>Outside namespace</h3><div class="value">'+outside+'</div>'+
+    '<div class="label">rules naming another library\u2019s package</div></div>'+
+    '<div class="summary-card"><h3>Affected</h3><div class="value">'+affected.length+'</div>'+
+    '<div class="label">components reached by other libraries\u2019 rules</div></div>'+
     '<div class="summary-card"><h3>Flagged</h3><div class="value">'+flagged.length+'</div>'+
     '<div class="label">ship global options or broad keeps</div></div>';
 
-  var comps=withRules.filter(function(c){
+  var comps=story.filter(function(c){
     return (isInternal(c)&&proguardFilters.internal)||(!isInternal(c)&&proguardFilters.external);
   });
-  comps.sort(function(a,b){return directivesOf(b)-directivesOf(a);});
+  // Most worrying first: rules that leave their library, then who is reached by others, then size.
+  comps.sort(function(a,b){
+    return outsideRules(b)-outsideRules(a)||affectedBytes(b)-affectedBytes(a)||directivesOf(b)-directivesOf(a);
+  });
   document.getElementById('proguardComponents').innerHTML=comps.length?
     comps.map(renderRuleCard).join(''):'<div class="no-results">No components bundle rules</div>';
 
@@ -1101,24 +1174,58 @@ function renderProguardTab(){
   renderProguardExplainer();
 }
 
-// Each card lists the rule files of one component, largest directive count first. The header
-// reuses the module card styles; the body skips the size and file lists, since the Breakdown
-// tab owns those and this tab is about the rules.
+// Each card tells the rule story of one component: how far other libraries' rules reach into it,
+// then the rule files it ships. The header reuses the module card styles; the body skips the size
+// and file lists, since the Breakdown tab owns those and this tab is about the rules.
 function renderRuleCard(component,i){
   var id='r'+i;
-  var flags=flagsOf(component.proguardRules);
+  var rules=component.proguardRules||[];
+  var flags=flagsOf(rules);
+  var outside=outsideRules(component);
+  var reach=component.proguardReach;
+  var by=reach?reach.affectedBy.length:0;
   return '<div class="rule-card">'+
     '<div class="module-header rule-header" data-rule-id="'+id+'">'+
     '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
     renderOwnerBadges(component)+
-    (isInternal(component)?'<span class="internal-badge internal-badge-filter">Internal</span>':'')+'</div>'+
+    (isInternal(component)?'<span class="internal-badge internal-badge-filter">Internal</span>':'')+
+    (outside?' <span class="pg-scope" title="Rules this component ships that name another package.">&#9888;&#xFE0E; '+outside+' outside namespace</span>':'')+
+    (by?' <span class="pg-scope info" title="Other components ship rules that match its classes.">&#8623; affected by '+by+'</span>':'')+'</div>'+
     '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">Directives</span>'+
     '<span class="module-size">'+directivesOf(component)+'</span></div>'+
     '<span class="expand-icon" id="icon-'+id+'">&#9660;</span></div></div>'+
     '<div class="module-details">'+
+    renderReach(reach)+
     (flags.length?'<div class="flag-list" style="margin-bottom:15px">'+flags.map(flagChip).join('')+'</div>':'')+
-    component.proguardRules.map(renderRuleFile).join('')+
+    rules.map(renderRuleFile).join('')+
     '</div></div>';
+}
+
+// How much of a component the rules pin, by install size of its classes, split by who pinned
+// them, and which other components' rules match it. Matching is by class name, so a rule that
+// reaches classes through extends or an annotation is not counted here.
+function renderReach(reach){
+  if(!reach||!reach.bytes)return '';
+  var pct=function(n){return Math.max(0,n/reach.bytes*100);};
+  var unpinned=reach.bytes-reach.ownKept.bytes-reach.othersKept.bytes;
+  var bar='<div class="reach-title">Keep reach <span style="font-weight:400;text-transform:none;letter-spacing:0">\u00b7 '+
+    reach.classes+' classes, '+formatBytes(reach.bytes)+'</span></div>'+
+    '<div class="reach-bar" title="Install size of the classes, by the keep rule that pins them">'+
+    '<div class="reach-own" style="width:'+pct(reach.ownKept.bytes)+'%"></div>'+
+    '<div class="reach-others" style="width:'+pct(reach.othersKept.bytes)+'%"></div></div>'+
+    '<div class="reach-legend">'+
+    '<span><i class="reach-own"></i>Its own rules '+formatBytes(reach.ownKept.bytes)+' ('+reach.ownKept.classes+')</span>'+
+    '<span><i class="reach-others"></i>Only other libraries\u2019 rules '+formatBytes(reach.othersKept.bytes)+' ('+reach.othersKept.classes+')</span>'+
+    '<span><i class="none"></i>Not pinned by name '+formatBytes(unpinned)+'</span></div>';
+  var top=reach.affectedBy.length?reach.affectedBy[0].bytes:0;
+  var impacts=reach.affectedBy.map(function(i){
+    return '<div class="impact-row"><div class="impact-head"><span>'+esc(i.source)+'</span><span>'+
+      i.classes+' classes \u00b7 '+formatBytes(i.bytes)+'</span></div>'+
+      '<div class="impact-track"><div class="impact-fill" style="width:'+(top?i.bytes/top*100:0)+'%"></div></div>'+
+      '<div class="impact-rules">'+i.rules.map(function(r){return '<code title="'+esc(r)+'">'+esc(r)+'</code>';}).join('')+'</div></div>';
+  }).join('');
+  return '<div class="pg-reach">'+bar+
+    (impacts?'<div class="reach-title" style="margin-top:18px">Affected by rules of other components</div>'+impacts:'')+'</div>';
 }
 
 function renderProguardFlags(flagged){
@@ -1151,6 +1258,16 @@ function renderProguardExplainer(){
     ' <code>&lt;Y&gt;</code> exclusive). In an AAR they travel inside <code>classes.jar</code>, in a'+
     ' JAR at the archive root. AGP applies every directory whose range matches its R8 version;'+
     ' if a library ships targeted rules, its legacy locations are ignored.</p>'+
+    '<h4>Namespaces and reach</h4>'+
+    '<p>R8 applies every consumer rule to the whole app, so a rule is only \u201cclean\u201d when it names'+
+    ' classes of the library that ships it. A library\u2019s namespace is the longest package prefix of the'+
+    ' classes in its archive. A rule that keeps or rewrites a package outside of it is flagged'+
+    ' (<code>-keep class com.example.**</code> from a library in <code>com.example.lib</code>), as is one that'+
+    ' matches every class. Rules narrowed by <code>extends</code>, <code>implements</code> or an annotation'+
+    ' are marked as by hierarchy: usually fine, but they can reach any library.</p>'+
+    '<p>The keep reach bar and \u201caffected by\u201d list match the other libraries\u2019 rules against'+
+    ' a component\u2019s classes by name, sized by their install size. Hierarchy rules and the app\u2019s own'+
+    ' rules are left out, so treat the numbers as a lower bound.</p>'+
     '<h4>The app\u2019s own rules</h4>'+
     '<p><code>proguardFiles</code> and the <code>getDefaultProguardFile(...)</code> defaults belong'+
     ' to the app, not to any component, so they are not listed per card. The fully merged'+
