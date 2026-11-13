@@ -160,6 +160,8 @@ Features
    and native library.
  * **Attribution.** Each file is assigned to its Gradle module or Maven dependency.
  * **Ownership.** Map modules, dependencies, and files to teams with a YAML file.
+ * **ProGuard rules.** See which rules your dependencies ship, which ones reach beyond their
+   own library, and whose rules touch whose code.
  * **De-obfuscation.** R8, ProGuard, and DexGuard mapping files are applied automatically.
  * **Dynamic features.** Each dynamic feature module is reported separately.
  * **Native deep-dive.** Optional [Bloaty][bloaty] integration reports native size per
@@ -181,8 +183,8 @@ app/build/reports/ruler/release/
 ```
 
 `report.html` is a single file with no external resources. It opens offline and contains a
-treemap, a component table, size distributions by file type, top-20 lists, and per-owner
-totals.
+treemap, a component table, size distributions by file type, top-20 lists, per-owner totals,
+and, when a dependency ships rules, a [ProGuard tab](#proguard-rules).
 
 `report.json` is the machine-readable form:
 
@@ -222,8 +224,41 @@ Components and files are sorted by download size, largest first. `files` is `nul
 `omitFileBreakdown` is set. A component `type` is `INTERNAL` or `EXTERNAL`. A file `type` is
 `CLASS`, `RESOURCE`, `ASSET`, `NATIVE_LIB`, `NATIVE_FILE`, or `OTHER`, and a `RESOURCE`
 carries a `resourceType` of `DRAWABLE`, `LAYOUT`, `FONT`, `RAW`, `VALUES`, or `OTHER`.
-`owner`, `additionalOwners`, `internal`, and `resourceType` are left out where they have no
-value, so treat a missing key as null.
+`owner`, `additionalOwners`, `internal`, `resourceType`, `proguardRules`, and `proguardReach`
+are left out where they have no value, so treat a missing key as null.
+
+
+ProGuard rules
+--------------
+
+Rules never end up in the APK, so Ruler reads them from your dependencies' AARs and JARs: the
+merged consumer `proguard.txt` of an AAR, `META-INF/proguard/*` of a JAR, and the targeted
+`META-INF/com.android.tools/r8-*` directories of both. No setup needed.
+
+You get two views:
+
+ * **Breakdown.** Each card has a collapsible "ProGuard Rules" section below its size bars.
+ * **ProGuard tab.** One card per component, most worrying first, with the rule files and:
+   * **Outside namespace.** R8 applies a consumer rule to the whole app, so a library that
+     keeps `com.mycompany.**` from `com.mycompany.lib` is changing code it doesn't own. A
+     library's namespace is the package prefix of its own classes, and rules that name
+     another package, or every class, are highlighted line by line. Rules narrowed by
+     `extends`, `implements`, or an annotation are marked as by hierarchy: usually fine.
+   * **Keep reach.** How much of a component, by install size, is pinned by its own rules
+     and how much only by other libraries' rules, plus a list of who affects it. Say
+     `androidx.versionedparcelable` keeping `androidx.**Parcelizer` inside
+     `androidx.core:core`.
+   * **Global options.** `-dontobfuscate`, `-dontoptimize`, and friends, attributed to the
+     library that sets them.
+
+Good to know:
+
+ * Reach matches class names only, so treat it as a lower bound. Hierarchy rules and the
+   app's own rules are left out.
+ * Project modules declare their consumer rules in build scripts, never in an archive, so only
+   external dependencies report rules.
+ * Rules are reported from the classpath. The merged configuration R8 actually ran with is
+   `outputs/mapping/<variant>/configuration.txt`.
 
 
 Ownership

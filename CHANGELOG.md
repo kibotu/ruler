@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- ProGuard/R8 rule analysis. Breakdown cards get a collapsible "ProGuard Rules" section and the
+  report a ProGuard tab. Rules are read from the AARs and JARs of the runtime classpath, including
+  targeted `META-INF/com.android.tools/r8-*` rules. The tab flags rules that name a package outside
+  their library, shows which components' rules pin which classes (by install size), and explains
+  where rules come from. Project modules are not covered, since their rules are never packaged.
+- `proguardRules` and `proguardReach` on components in `report.json`.
+
 ### Changed
 
 - The insights treemap now gives each module one cell, as the comparison report does, instead
