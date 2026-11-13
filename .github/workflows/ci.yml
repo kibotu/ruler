@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       # `setup-android` defaults to installing the legacy `tools` package, which
       # Google removed from the SDK repository. sdkmanager now exits 1 with

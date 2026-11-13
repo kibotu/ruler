@@ -6,7 +6,7 @@ android {
     namespace = "com.kibotu.ruler.sample.lib"
     compileSdk = 37
     defaultConfig {
-        minSdk = 23
+        minSdk = 24
     }
     lint {
         warningsAsErrors = true
@@ -18,5 +18,5 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }

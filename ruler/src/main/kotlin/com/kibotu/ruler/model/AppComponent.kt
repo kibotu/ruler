@@ -14,4 +14,6 @@ data class AppComponent(
     val additionalOwners: List<String>? = null,
     /** Overrides [type] in the report, for a dependency that belongs to your own organisation. */
     val internal: Boolean? = null,
+    /** The ProGuard/R8 rules this component bundles. Null for components that ship none. */
+    val proguardRules: List<ProguardRuleFile>? = null,
 ) : FileContainer
