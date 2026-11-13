@@ -47,7 +47,7 @@ self-contained HTML report for your team.
       <em>Module Ownership</em>
     </td>
     <td width="25%" align="center">
-      <a href="docs/ownership.png">
+      <a href="docs/proguard.png">
         <img src="docs/proguard.png" alt="Proguard" width="100%">
       </a>
       <br>
