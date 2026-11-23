@@ -10,6 +10,7 @@ import com.kibotu.ruler.model.ComponentType
 import com.kibotu.ruler.model.FileType
 import com.kibotu.ruler.model.ProguardRuleFile
 import com.kibotu.ruler.model.ResourceType
+import com.kibotu.ruler.model.RuleScope
 import org.junit.jupiter.api.Test
 
 class ReportBuilderTest {
@@ -237,6 +238,28 @@ class ReportBuilderTest {
         assertThat(libComponent.proguardRules!!.single().content).isEqualTo(KEEP)
         // Components without rules stay null, so the card renders no section.
         assertThat(report.components.find { it.name == ":app" }!!.proguardRules).isNull()
+    }
+
+    @Test
+    fun `a cross dependency is reported on both sides of it`() {
+        val components = mapOf(
+            DependencyComponent(":lib", ComponentType.INTERNAL) to listOf(AppFile("com.example.lib.Api", FileType.CLASS, 10, 20)),
+            DependencyComponent("com.example:core:1.0", ComponentType.EXTERNAL) to listOf(AppFile("com.example.core.Internal", FileType.CLASS, 30, 60)),
+        )
+        val rules = mapOf(
+            ":lib" to listOf(ProguardRuleFile("Consumer rules", "proguard.txt", "-keep class com.example.** { *; }", ruleCount = 1)),
+        )
+
+        val report = builder.build(appInfo, components, emptyMap(), null, omitFileBreakdown = false, proguardRules = rules)
+
+        // The culprit names what it keeps, and the component it keeps names who did it.
+        val flag = report.components.find { it.name == ":lib" }!!.proguardRules!!.single().flags!!.single()
+        assertThat(flag.scope).isEqualTo(RuleScope.CROSS_DEPENDENCY)
+        assertThat(flag.targets).containsExactly("com.example:core:1.0")
+
+        val reach = report.components.find { it.name == "com.example:core:1.0" }!!.proguardReach!!
+        assertThat(reach.affectedBy.single().source).isEqualTo(":lib")
+        assertThat(reach.othersKept.bytes).isEqualTo(60L)
     }
 }
 

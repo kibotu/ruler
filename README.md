@@ -105,6 +105,22 @@ tasks.named("check") {
 }
 ```
 
+or add append it to your release build
+
+app/build.gradle
+
+```groovy
+tasks.configureEach {
+    if (name == "bundleRelease") {
+        finalizedBy("analyzeReleaseBundle")
+    }
+
+    if (name == "analyzeReleaseBundle") {
+        dependsOn("bundleRelease")
+    }
+}
+```
+
 Requires JDK 17+. Built and tested against Gradle 9.7 and Android Gradle Plugin 9.3.
 
 > **Resolving the plugin.** The snippet above resolves from the Gradle Plugin Portal. To take
@@ -232,7 +248,8 @@ Components and files are sorted by download size, largest first. `files` is `nul
 `CLASS`, `RESOURCE`, `ASSET`, `NATIVE_LIB`, `NATIVE_FILE`, or `OTHER`, and a `RESOURCE`
 carries a `resourceType` of `DRAWABLE`, `LAYOUT`, `FONT`, `RAW`, `VALUES`, or `OTHER`.
 `owner`, `additionalOwners`, `internal`, `resourceType`, `proguardRules`, and `proguardReach`
-are left out where they have no value, so treat a missing key as null.
+are left out where they have no value, so treat a missing key as null. A flag of scope
+`CROSS_DEPENDENCY` also carries `targets`: the components whose classes that directive reached.
 
 
 ProGuard rules
@@ -251,10 +268,14 @@ You get two views:
      library's namespace is the package prefix of its own classes, and rules that name
      another package, or every class, are highlighted line by line. Rules narrowed by
      `extends`, `implements`, or an annotation are marked as by hierarchy: usually fine.
+   * **Cross-dependency.** The outside-namespace rules that can be shown to have matched classes
+     another component of this app owns. Say `androidx.versionedparcelable` keeping
+     `androidx.**Parcelizer` inside `androidx.core:core`, which supersedes the consumer rules core
+     ships for itself. The size lands on the component that owns the code, so the library that
+     wrote the rule looks smaller than the app it made bigger. A panel ranks the pairs by install
+     size and names the rules and the components they reach.
    * **Keep reach.** How much of a component, by install size, is pinned by its own rules
-     and how much only by other libraries' rules, plus a list of who affects it. Say
-     `androidx.versionedparcelable` keeping `androidx.**Parcelizer` inside
-     `androidx.core:core`.
+     and how much only by other libraries' rules, plus a list of who affects it.
    * **Global options.** `-dontobfuscate`, `-dontoptimize`, and friends, attributed to the
      library that sets them.
 
@@ -262,6 +283,10 @@ Good to know:
 
  * Reach matches class names only, so treat it as a lower bound. Hierarchy rules and the
    app's own rules are left out.
+ * Cross-dependency rules are the reason Android asks library authors not to keep a dependency
+   package-wide: [optimization for library authors][library-rules]. Where a dependency's rules are
+   not yours to narrow, AGP 8.4 and newer can ignore them:
+   `optimization.keepRules { it.ignoreFrom("com.example:lib") }`.
  * Project modules declare their consumer rules in build scripts, never in an archive, so only
    external dependencies report rules.
  * Rules are reported from the classpath. The merged configuration R8 actually ran with is
@@ -362,3 +387,4 @@ Apache License 2.0. See [LICENSE](LICENSE).
  [bloaty]: https://github.com/google/bloaty
  [upstream]: https://github.com/spotify/ruler
  [caliper]: https://github.com/kibotu/caliper
+ [library-rules]: https://developer.android.com/topic/performance/app-optimization/library-optimization

@@ -37,6 +37,11 @@ class ProguardRuleExtractor {
             }
             .filterValues { it.isNotEmpty() }
 
+    /** The `proguardFiles` the app declares. */
+    fun appRules(files: List<File>): List<ProguardRuleFile> = files
+        .filter(File::isFile)
+        .mapNotNull { file -> file.inputStream().use { ruleFile(it, file.name, appOrigin) } }
+
     private fun parseArchive(archive: RuleArchive): List<ProguardRuleFile> = when {
         archive.file.extension.equals("aar", ignoreCase = true) -> aarRules(archive)
         archive.file.extension.equals("jar", ignoreCase = true) -> jarRules(archive)
@@ -48,6 +53,9 @@ class ProguardRuleExtractor {
      * consumer rule to the whole app, so a rule that names someone else's package is the
      * library author's rule changing another team's code. Without classes there is no namespace
      * to measure against, and nothing is flagged.
+     *
+     * This is the view from the archive alone. [ProguardAnalyzer] then sharpens the directives it
+     * can show pinning classes of another component, which needs the app rather than the archive.
      */
     private fun analyzed(file: ProguardRuleFile, namespace: String?): ProguardRuleFile {
         val flags = RuleParser.parse(file.content).mapNotNull { rule ->
@@ -62,7 +70,7 @@ class ProguardRuleExtractor {
             when {
                 prefix.isNotEmpty() ->
                     RuleScope.OUTSIDE_NAMESPACE.takeIf { namespace != null && !prefix.startsWith("$namespace.") }
-                pattern in ALL && rule.pinsClasses && !rule.constrained -> RuleScope.ALL_CLASSES
+                pattern in ALL && rule.wholeClass && !rule.constrained -> RuleScope.ALL_CLASSES
                 else -> RuleScope.CROSS_CUTTING
             }
         }
@@ -139,9 +147,16 @@ class ProguardRuleExtractor {
     }
 
     companion object {
+        /**
+         * Whether the file is one of AGP's `getDefaultProguardFile(...)` files. They name framework
+         * classes and match by hierarchy, and no app owner can change them.
+         */
+        fun isAgpDefault(file: File): Boolean = DEFAULT_PROGUARD_FILES in file.invariantSeparatorsPath
+
         private const val consumerOrigin = "Consumer rules"
+        private const val appOrigin = "App rules"
         private const val CLASSES_JAR = "classes.jar"
-        private const val MAX_DIRECTIVE = 200
+        private const val DEFAULT_PROGUARD_FILES = "/default_proguard_files/"
         private val ALL = setOf("*", "**")
 
         /** Consumer rule files inside an AAR. AGP merges the declared ones into `proguard.txt`. */

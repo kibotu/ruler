@@ -1,19 +1,27 @@
 package com.kibotu.ruler.analysis.proguard
 
+/** How long a reported directive may get, so a long class specification stays on one line. */
+internal const val MAX_DIRECTIVE = 200
+
 /** A class specification of a ProGuard/R8 directive, reduced to what name matching needs. */
 internal data class ClassRule(
     /** 1-based line where the directive starts. */
     val line: Int,
     /** The directive up to its member block, on one line. */
     val directive: String,
-    /** Whether the directive pins classes. The others, like `-assumenosideeffects`, only rewrite them. */
-    val keep: Boolean,
-    /** Whether it pins every matching class, rather than only the ones that have the listed members. */
-    val pinsClasses: Boolean,
+    /**
+     * Whether R8 has to keep the classes it matches, which is what makes an app bigger. Keeping
+     * only members or names, `allowshrinking`, and rewrites like `-assumenosideeffects` keep none.
+     */
+    val pins: Boolean,
+    /** Whether it applies to every matching class, rather than only the ones that have the listed members. */
+    val wholeClass: Boolean,
     /** The class name patterns, with `/` written as `.` and negated patterns dropped. */
     val patterns: List<String>,
     /** Narrowed by `extends`, `implements` or an annotation, which name matching cannot resolve. */
     val constrained: Boolean,
+    /** Only applies when the `-if` before it holds. */
+    val conditional: Boolean = false,
 )
 
 /**
@@ -26,7 +34,8 @@ internal object RuleParser {
         "-keep", "-keepclassmembers", "-keepclasseswithmembers",
         "-keepnames", "-keepclassmembernames", "-keepclasseswithmembernames",
     )
-    private val PINS_CLASSES = setOf("-keep", "-keepnames")
+    private val PINS = setOf("-keep", "-keepclasseswithmembers")
+    private val WHOLE_CLASS = setOf("-keep", "-keepnames")
     private val REWRITE = setOf("-assumenosideeffects", "-assumevalues")
     private val CLASS_KEYWORDS = setOf("class", "interface", "enum", "@interface")
     private val HIERARCHY = setOf("extends", "implements")
@@ -35,6 +44,7 @@ internal object RuleParser {
         val rules = mutableListOf<ClassRule>()
         val lines = content.lines()
         var index = 0
+        var conditional = false
         while (index < lines.size) {
             val start = index
             val first = lines[index++].substringBefore('#').trim()
@@ -44,17 +54,18 @@ internal object RuleParser {
             while (directive.count { it == '{' } > directive.count { it == '}' } && index < lines.size) {
                 directive.append(' ').append(lines[index++].substringBefore('#').trim())
             }
-            classRule(start + 1, directive.toString())?.let(rules::add)
+            classRule(start + 1, directive.toString(), conditional)?.let(rules::add)
+            conditional = first.startsWith("-if ")
         }
         return rules
     }
 
-    private fun classRule(line: Int, directive: String): ClassRule? {
+    private fun classRule(line: Int, directive: String, conditional: Boolean): ClassRule? {
         val head = directive.substringBefore('{').trim()
         val tokens = head.split(Regex("\\s+"))
-        val name = tokens.first().substringBefore(',')
-        val keep = name in KEEP
-        if (!keep && name !in REWRITE) return null
+        val options = tokens.first().split(',')
+        val name = options.first()
+        if (name !in KEEP && name !in REWRITE) return null
 
         val keyword = tokens.indexOfFirst { it in CLASS_KEYWORDS }
         if (keyword < 0) return null
@@ -66,7 +77,15 @@ internal object RuleParser {
         val patterns = names.split(',').map { it.trim().replace('/', '.') }
             .filter { it.isNotEmpty() && !it.startsWith("!") }
         if (patterns.isEmpty()) return null
-        return ClassRule(line, head, keep, name in PINS_CLASSES, patterns, constrained = annotated || hierarchy >= 0)
+        return ClassRule(
+            line = line,
+            directive = head,
+            pins = name in PINS && "allowshrinking" !in options,
+            wholeClass = name in WHOLE_CLASS,
+            patterns = patterns,
+            constrained = annotated || hierarchy >= 0,
+            conditional = conditional,
+        )
     }
 
     /** The part of a pattern before its first wildcard, which every matching class starts with. */

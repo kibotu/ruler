@@ -125,6 +125,25 @@ class ProguardRuleExtractorTest {
     }
 
     @Test
+    fun `reads the app's own rule files`() {
+        val own = tempDir.resolve("proguard-rules.pro").apply { writeText("$KEEP_ONE\n$DONT_WARN") }
+        val missing = tempDir.resolve("missing.pro")
+
+        val rules = ProguardRuleExtractor().appRules(listOf(own, missing))
+
+        assertThat(rules.map { Triple(it.origin, it.name, it.ruleCount) })
+            .containsExactly(Triple("App rules", "proguard-rules.pro", 2))
+    }
+
+    @Test
+    fun `tells AGP's default rule files apart`() {
+        val defaults = tempDir.resolve("build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-9.5.1")
+
+        assertThat(ProguardRuleExtractor.isAgpDefault(defaults)).isTrue()
+        assertThat(ProguardRuleExtractor.isAgpDefault(tempDir.resolve("proguard-rules.pro"))).isFalse()
+    }
+
+    @Test
     fun `files are sorted by directive count within a component`() {
         val jar = tempDir.resolve("lib.jar")
         ZipOutputStream(jar.outputStream()).use { output ->

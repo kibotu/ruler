@@ -18,7 +18,7 @@ data class ProguardRuleFile(
     val ruleCount: Int,
     /** The package the component's own classes live in, which its rules are measured against. */
     val namespace: String? = null,
-    /** The rules that reach beyond [namespace]. Null when all of them stay inside. */
+    /** The rules that reach beyond the component. Null when none of them do. */
     val flags: List<RuleFlag>? = null,
 )
 
@@ -30,10 +30,16 @@ data class RuleFlag(
     /** The directive up to its member block, on one line. */
     val directive: String,
     val scope: RuleScope,
+    /** The components whose classes the directive reached, the costly one first. Only set on a
+     *  [RuleScope.CROSS_DEPENDENCY], where it is known because those classes are in the app. */
+    val targets: List<String>? = null,
 )
 
 @Serializable
 enum class RuleScope {
+    /** Reaches classes of another component of the app, so it acts on a dependency it does not own. */
+    CROSS_DEPENDENCY,
+
     /** Names a package other than the one the component lives in. */
     OUTSIDE_NAMESPACE,
 
@@ -42,6 +48,9 @@ enum class RuleScope {
 
     /** Starts with a wildcard but is narrowed by `extends`, `implements` or an annotation. */
     CROSS_CUTTING,
+
+    /** Keeps classes by name, and the app contains none of them. */
+    NO_MATCH,
 }
 
 /** What other components' rules do to a component, measured on its classes in the app. */
@@ -50,22 +59,35 @@ data class ProguardReach(
     /** Number and install size of the component's classes in the app. */
     val classes: Int,
     val bytes: Long,
-    /** Classes pinned by a keep rule of the component itself. */
+    /** Classes kept by a keep rule of the component itself. */
     val ownKept: Pinned,
-    /** Classes pinned by a keep rule of another component, and not by its own. */
+    /** Classes kept by a keep rule of another component, and not by its own. */
     val othersKept: Pinned,
-    /** The other components whose rules match its classes, most bytes first. */
+    /** The other components whose rules match its classes, the most bytes only they keep first. */
     val affectedBy: List<RuleImpact>,
 )
 
 @Serializable
 data class Pinned(val classes: Int, val bytes: Long)
 
+/** What the rules of one other component do to a component. */
 @Serializable
 data class RuleImpact(
     val source: String,
+    /** Number of classes its rules match, kept or only rewritten. */
     val classes: Int,
+    /** The classes its keep rules keep. */
+    val kept: Pinned,
+    /** The classes no other rule keeps: the most that dropping its rules can save. */
+    val onlyTheirs: Pinned,
+    /** Its directives that matched, most bytes kept first. */
+    val rules: List<RuleMatch>,
+)
+
+@Serializable
+data class RuleMatch(
+    val directive: String,
+    val classes: Int,
+    /** Install size of the classes it keeps. Zero for a directive that keeps none. */
     val bytes: Long,
-    /** The directives that matched, most classes first. */
-    val rules: List<String>,
 )

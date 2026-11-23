@@ -298,5 +298,5 @@ CLAUDE.md
 gradle-daemon-jvm.properties
 .kotlin
 
-
+.idea
 progress.md

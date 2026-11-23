@@ -9,6 +9,7 @@ import com.kibotu.ruler.analysis.dependency.DependencyEntry
 import com.kibotu.ruler.analysis.proguard.ProguardRuleExtractor
 import com.kibotu.ruler.analysis.proguard.RuleArchive
 import com.kibotu.ruler.analysis.verification.VerificationConfig
+import com.kibotu.ruler.model.ProguardRuleFile
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
@@ -42,6 +43,11 @@ abstract class RulerTask : DefaultTask() {
      */
     @get:Input
     abstract val ruleArchives: ListProperty<RuleArchive>
+
+    /** The `proguardFiles` of the variant, reported as the app's own rules. */
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val appRuleFiles: ListProperty<RegularFile>
 
     @get:Input
     abstract val projectPath: Property<String>
@@ -119,7 +125,7 @@ abstract class RulerTask : DefaultTask() {
                 verificationConfig = verificationConfig.get(),
             ),
             dependencyEntries = dependencyEntries.get().values.flatten(),
-            proguardRules = ProguardRuleExtractor().parse(ruleArchives.get()),
+            proguardRules = proguardRules(),
             mappingFile = mappingFile.asFile.orNull,
             resourceMappingFile = resourceMappingFile.asFile.orNull,
             unstrippedNativeFiles = unstrippedNativeFiles.get().map(RegularFile::getAsFile),
@@ -127,6 +133,13 @@ abstract class RulerTask : DefaultTask() {
             // printRuler<Variant>Reports prints the paths, since it also runs when this task does not.
             log = logger::info,
         ).run()
+    }
+
+    private fun proguardRules(): Map<String, List<ProguardRuleFile>> {
+        val extractor = ProguardRuleExtractor()
+        val dependencies = extractor.parse(ruleArchives.get())
+        val app = extractor.appRules(appRuleFiles.get().map(RegularFile::getAsFile))
+        return if (app.isEmpty()) dependencies else dependencies + (projectPath.get() to app)
     }
 
     /** Splits the bundle for the target device. An APK handed in directly is used as-is. */
