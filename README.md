@@ -105,6 +105,22 @@ tasks.named("check") {
 }
 ```
 
+or add append it to your release build
+
+app/build.gradle
+
+```groovy
+tasks.configureEach {
+    if (name == "bundleRelease") {
+        finalizedBy("analyzeReleaseBundle")
+    }
+
+    if (name == "analyzeReleaseBundle") {
+        dependsOn("bundleRelease")
+    }
+}
+```
+
 Requires JDK 17+. Built and tested against Gradle 9.7 and Android Gradle Plugin 9.3.
 
 > **Resolving the plugin.** The snippet above resolves from the Gradle Plugin Portal. To take
