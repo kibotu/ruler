@@ -37,12 +37,9 @@ class ProguardRuleExtractor {
             }
             .filterValues { it.isNotEmpty() }
 
-    /**
-     * The `proguardFiles` the app declares. AGP's own `getDefaultProguardFile(...)` files are left
-     * out: they name framework classes and match by hierarchy, and no app owner can change them.
-     */
+    /** The `proguardFiles` the app declares. */
     fun appRules(files: List<File>): List<ProguardRuleFile> = files
-        .filter { it.isFile && DEFAULT_PROGUARD_FILES !in it.invariantSeparatorsPath }
+        .filter(File::isFile)
         .mapNotNull { file -> file.inputStream().use { ruleFile(it, file.name, appOrigin) } }
 
     private fun parseArchive(archive: RuleArchive): List<ProguardRuleFile> = when {
@@ -150,6 +147,12 @@ class ProguardRuleExtractor {
     }
 
     companion object {
+        /**
+         * Whether the file is one of AGP's `getDefaultProguardFile(...)` files. They name framework
+         * classes and match by hierarchy, and no app owner can change them.
+         */
+        fun isAgpDefault(file: File): Boolean = DEFAULT_PROGUARD_FILES in file.invariantSeparatorsPath
+
         private const val consumerOrigin = "Consumer rules"
         private const val appOrigin = "App rules"
         private const val CLASSES_JAR = "classes.jar"

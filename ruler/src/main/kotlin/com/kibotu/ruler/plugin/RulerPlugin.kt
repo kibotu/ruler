@@ -4,6 +4,7 @@ import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
 import com.kibotu.ruler.analysis.AppInfo
 import com.kibotu.ruler.analysis.DeviceSpec
+import com.kibotu.ruler.analysis.proguard.ProguardRuleExtractor
 import com.kibotu.ruler.analysis.verification.VerificationConfig
 import com.kibotu.ruler.report.HtmlReporter
 import com.kibotu.ruler.report.JsonReporter
@@ -42,7 +43,11 @@ class RulerPlugin : Plugin<Project> {
                     val entryParser = EntryParser()
                     entryParser.parse(variant.runtimeConfiguration).forEach(task.dependencyEntries::put)
                     task.ruleArchives.set(entryParser.ruleArchives(variant.runtimeConfiguration))
-                    task.appRuleFiles.set(variant.proguardFiles)
+                    // AGP's default files come out of a task the variant's list carries no dependency
+                    // on, and they are not the app's to change, so they are no input at all.
+                    task.appRuleFiles.set(
+                        variant.proguardFiles.map { files -> files.filterNot { ProguardRuleExtractor.isAgpDefault(it.asFile) } },
+                    )
 
                     task.projectPath.set(project.path)
                     task.sdkDirectory.set(androidComponents.sdkComponents.sdkDirectory)
