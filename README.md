@@ -13,7 +13,7 @@ A Gradle plugin that measures the size of your Android app, file by file.
 [![Maven Central Version](https://img.shields.io/maven-central/v/net.kibotu/ruler)](https://central.sonatype.com/artifact/net.kibotu/ruler)
 [![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/net.kibotu.ruler)](https://plugins.gradle.org/plugin/net.kibotu.ruler)
 [![](https://jitpack.io/v/kibotu/ruler.svg)](https://jitpack.io/#kibotu/ruler)
-[![AGP 9.3.1](https://img.shields.io/badge/AGP-9.3.1-blue?logo=android)](https://developer.android.com/build/releases/agp-9-3-0-release-notes)
+[![AGP 9.5.2](https://img.shields.io/badge/AGP-9.5.2-blue?logo=android)](https://developer.android.com/build/releases/agp-9-5-0-release-notes)
 
 Ruler builds your app bundle, splits it for one device, and reads every entry in the
 resulting APKs. It attributes each class, resource, asset, and native library to the Gradle
@@ -78,7 +78,7 @@ ruler {
     abi.set("arm64-v8a")
     locale.set("en")
     screenDensity.set(480)
-    sdkVersion.set(36)
+    sdkVersion.set(37)
 }
 ```
 
@@ -105,7 +105,7 @@ tasks.named("check") {
 }
 ```
 
-or add append it to your release build
+or append it to your release build
 
 app/build.gradle
 
@@ -121,12 +121,11 @@ tasks.configureEach {
 }
 ```
 
-Requires JDK 17+. Built and tested against Gradle 9.7 and Android Gradle Plugin 9.3.
+Requires JDK 21+. Built and tested against Gradle 9.9.2 and Android Gradle Plugin 9.5.2.
 
 > **Resolving the plugin.** The snippet above resolves from the Gradle Plugin Portal. To take
 > it from Maven Central instead, add `mavenCentral()` to `pluginManagement.repositories` in
-> `settings.gradle.kts`. Until the first 3.0.0 release is published, install it into your local
-> Maven repository with `./gradlew :ruler:publishToMavenLocal` and add `mavenLocal()` there.
+> `settings.gradle.kts`.
 
 
 Configuration
