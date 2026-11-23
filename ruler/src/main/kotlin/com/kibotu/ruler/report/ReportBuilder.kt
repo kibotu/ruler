@@ -29,7 +29,8 @@ class ReportBuilder {
         val proguard = ProguardAnalyzer().analyze(
             files = components.mapKeys { it.key.name },
             rules = proguardRules,
-            ignored = appProjectPath,
+            app = appProjectPath,
+            features = features.values.flatten(),
         )
         return AppReport(
             name = appInfo.applicationId,

@@ -12,6 +12,7 @@ import com.kibotu.ruler.model.ProguardReach
 import com.kibotu.ruler.model.ProguardRuleFile
 import com.kibotu.ruler.model.RuleFlag
 import com.kibotu.ruler.model.RuleImpact
+import com.kibotu.ruler.model.RuleMatch
 import com.kibotu.ruler.model.RuleScope
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
@@ -107,7 +108,15 @@ class JsonReporterTest {
                         bytes = 200,
                         ownKept = Pinned(0, 0),
                         othersKept = Pinned(1, 200),
-                        affectedBy = listOf(RuleImpact(":core", 1, 200, listOf("-keep class com.test.core.**"))),
+                        affectedBy = listOf(
+                            RuleImpact(
+                                source = ":core",
+                                classes = 1,
+                                kept = Pinned(1, 200),
+                                onlyTheirs = Pinned(1, 200),
+                                rules = listOf(RuleMatch("-keep class com.test.core.**", 1, 200)),
+                            ),
+                        ),
                     ),
                 ),
             ),
@@ -125,8 +134,9 @@ class JsonReporterTest {
             "targets":[":core"]}]}],
             "proguardReach":{"classes":1,"bytes":200,"ownKept":{"classes":0,"bytes":0},
             "othersKept":{"classes":1,"bytes":200},
-            "affectedBy":[{"source":":core","classes":1,"bytes":200,
-            "rules":["-keep class com.test.core.**"]}]}}],
+            "affectedBy":[{"source":":core","classes":1,"kept":{"classes":1,"bytes":200},
+            "onlyTheirs":{"classes":1,"bytes":200},
+            "rules":[{"directive":"-keep class com.test.core.**","classes":1,"bytes":200}]}]}}],
             "dynamicFeatures":[]}
             """.trimIndent().replace("\n", ""),
         )

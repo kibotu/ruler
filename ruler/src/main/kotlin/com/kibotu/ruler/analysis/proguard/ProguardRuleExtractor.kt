@@ -37,6 +37,14 @@ class ProguardRuleExtractor {
             }
             .filterValues { it.isNotEmpty() }
 
+    /**
+     * The `proguardFiles` the app declares. AGP's own `getDefaultProguardFile(...)` files are left
+     * out: they name framework classes and match by hierarchy, and no app owner can change them.
+     */
+    fun appRules(files: List<File>): List<ProguardRuleFile> = files
+        .filter { it.isFile && DEFAULT_PROGUARD_FILES !in it.invariantSeparatorsPath }
+        .mapNotNull { file -> file.inputStream().use { ruleFile(it, file.name, appOrigin) } }
+
     private fun parseArchive(archive: RuleArchive): List<ProguardRuleFile> = when {
         archive.file.extension.equals("aar", ignoreCase = true) -> aarRules(archive)
         archive.file.extension.equals("jar", ignoreCase = true) -> jarRules(archive)
@@ -65,7 +73,7 @@ class ProguardRuleExtractor {
             when {
                 prefix.isNotEmpty() ->
                     RuleScope.OUTSIDE_NAMESPACE.takeIf { namespace != null && !prefix.startsWith("$namespace.") }
-                pattern in ALL && rule.pinsClasses && !rule.constrained -> RuleScope.ALL_CLASSES
+                pattern in ALL && rule.wholeClass && !rule.constrained -> RuleScope.ALL_CLASSES
                 else -> RuleScope.CROSS_CUTTING
             }
         }
@@ -143,7 +151,9 @@ class ProguardRuleExtractor {
 
     companion object {
         private const val consumerOrigin = "Consumer rules"
+        private const val appOrigin = "App rules"
         private const val CLASSES_JAR = "classes.jar"
+        private const val DEFAULT_PROGUARD_FILES = "/default_proguard_files/"
         private val ALL = setOf("*", "**")
 
         /** Consumer rule files inside an AAR. AGP merges the declared ones into `proguard.txt`. */

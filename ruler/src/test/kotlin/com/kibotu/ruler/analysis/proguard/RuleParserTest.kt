@@ -16,7 +16,7 @@ class RuleParserTest {
 
         val rule = rules.single()
         assertThat(rule.line).isEqualTo(2)
-        assertThat(rule.keep).isTrue()
+        assertThat(rule.pins).isTrue()
         assertThat(rule.patterns).containsExactly("com.a.**", "com.b.Foo").inOrder()
         assertThat(rule.constrained).isFalse()
     }
@@ -53,7 +53,32 @@ class RuleParserTest {
     fun `assumenosideeffects rewrites but does not keep`() {
         val rule = RuleParser.parse("-assumenosideeffects class android.util.Log { *; }").single()
 
-        assertThat(rule.keep).isFalse()
+        assertThat(rule.pins).isFalse()
+    }
+
+    @Test
+    fun `only keeps that may not shrink a class pin it`() {
+        val rules = RuleParser.parse(
+            """
+            -keep class com.a.A
+            -keepclasseswithmembers class com.a.B { <init>(); }
+            -keep,allowshrinking class com.a.C
+            -keepnames class com.a.D
+            -keepclassmembers class com.a.E { *; }
+            -keepclassmembernames class com.a.F { *; }
+            -keepclasseswithmembernames class com.a.G { native <methods>; }
+            """.trimIndent(),
+        )
+
+        assertThat(rules.map { it.pins }).containsExactly(true, true, false, false, false, false, false).inOrder()
+    }
+
+    @Test
+    fun `a directive after -if is conditional`() {
+        val rules = RuleParser.parse("-if class com.a.Foo\n-keep class com.a.Bar\n-keep class com.a.Baz")
+
+        assertThat(rules.map { it.patterns.single() to it.conditional })
+            .containsExactly("com.a.Bar" to true, "com.a.Baz" to false).inOrder()
     }
 
     @Test

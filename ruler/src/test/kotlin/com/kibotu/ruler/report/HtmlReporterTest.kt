@@ -258,10 +258,10 @@ class HtmlReporterTest {
     }
 
     @Test
-    fun `reads cross dependencies from the reach edges rather than matching rules again`() {
+    fun `reads cross dependencies from the reach rather than matching rules again`() {
         // Matching rule patterns against class names in the page would be a second, weaker copy of
         // the analysis, and the two views would disagree about what a rule reaches.
-        val body = bodyOf("crossEdges")
+        val body = bodyOf("culpritsOf")
 
         assertThat(body).contains("affectedBy")
         assertThat(body).doesNotContain("SCOPE_INFO")

@@ -42,6 +42,7 @@ class RulerPlugin : Plugin<Project> {
                     val entryParser = EntryParser()
                     entryParser.parse(variant.runtimeConfiguration).forEach(task.dependencyEntries::put)
                     task.ruleArchives.set(entryParser.ruleArchives(variant.runtimeConfiguration))
+                    task.appRuleFiles.set(variant.proguardFiles)
 
                     task.projectPath.set(project.path)
                     task.sdkDirectory.set(androidComponents.sdkComponents.sdkDirectory)

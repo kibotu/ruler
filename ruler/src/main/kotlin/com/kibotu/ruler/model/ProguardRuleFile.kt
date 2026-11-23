@@ -48,6 +48,9 @@ enum class RuleScope {
 
     /** Starts with a wildcard but is narrowed by `extends`, `implements` or an annotation. */
     CROSS_CUTTING,
+
+    /** Keeps classes by name, and the app contains none of them. */
+    NO_MATCH,
 }
 
 /** What other components' rules do to a component, measured on its classes in the app. */
@@ -56,22 +59,35 @@ data class ProguardReach(
     /** Number and install size of the component's classes in the app. */
     val classes: Int,
     val bytes: Long,
-    /** Classes pinned by a keep rule of the component itself. */
+    /** Classes kept by a keep rule of the component itself. */
     val ownKept: Pinned,
-    /** Classes pinned by a keep rule of another component, and not by its own. */
+    /** Classes kept by a keep rule of another component, and not by its own. */
     val othersKept: Pinned,
-    /** The other components whose rules match its classes, most bytes first. */
+    /** The other components whose rules match its classes, the most bytes only they keep first. */
     val affectedBy: List<RuleImpact>,
 )
 
 @Serializable
 data class Pinned(val classes: Int, val bytes: Long)
 
+/** What the rules of one other component do to a component. */
 @Serializable
 data class RuleImpact(
     val source: String,
+    /** Number of classes its rules match, kept or only rewritten. */
     val classes: Int,
+    /** The classes its keep rules keep. */
+    val kept: Pinned,
+    /** The classes no other rule keeps: the most that dropping its rules can save. */
+    val onlyTheirs: Pinned,
+    /** Its directives that matched, most bytes kept first. */
+    val rules: List<RuleMatch>,
+)
+
+@Serializable
+data class RuleMatch(
+    val directive: String,
+    val classes: Int,
+    /** Install size of the classes it keeps. Zero for a directive that keeps none. */
     val bytes: Long,
-    /** The directives that matched, most classes first. */
-    val rules: List<String>,
 )
