@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0]
+
 ### Added
 
 - Cross-dependency rules. The costly kind of outside-namespace rule: one that can be shown to have
@@ -301,7 +303,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Extracted non-Gradle specific code to `ruler-common`.
 
-[Unreleased]: https://github.com/kibotu/ruler/compare/4.0.0...main
+[Unreleased]: https://github.com/kibotu/ruler/compare/4.1.0...main
+[4.1.0]: https://github.com/kibotu/ruler/compare/4.0.0...4.1.0
 [4.0.0]: https://github.com/kibotu/ruler/compare/3.3.2...4.0.0
 [3.3.2]: https://github.com/kibotu/ruler/compare/3.3.1...3.3.2
 [3.3.1]: https://github.com/kibotu/ruler/compare/3.3.0...3.3.1
