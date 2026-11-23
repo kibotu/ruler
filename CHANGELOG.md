@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Cross-dependency rules. The costly kind of outside-namespace rule: one that can be shown to have
+  matched classes another component of the app owns, such as `androidx.versionedparcelable`
+  keeping `androidx.**Parcelizer` inside `androidx.core:core`. The rules of a dependency are matched
+  against the classes the app actually contains, so the size of the kept code stays on the component
+  that owns it and the library that wrote the rule is named next to it — which matters because a
+  package-wide keep supersedes the consumer rules that the other library ships for itself, and
+  Android's guidance for library authors is to not write these rules at all.
+- A panel at the top of the ProGuard tab ranking those pairs by the install size they pin, with the
+  directives and the component they reach, and a note on how many directives the reached component
+  ships itself. Summary cards count them, component cards carry a cross-dependency chip, and the
+  explainer names the remedies: keeping only the entry point your library reflects on, and AGP 8.4's
+  `optimization.keepRules { it.ignoreFrom("com.example:lib") }`.
+- `targets` on a `CROSS_DEPENDENCY` flag in `report.json`: the components whose classes that
+  directive reached, the costliest first. It is only present where the reach analysis proved it, so
+  an `OUTSIDE_NAMESPACE` flag keeps saying "names another package" without claiming what matched.
+
+### Changed
+
+- A directive is counted under one scope. The cross-dependency flag replaces the outside-namespace
+  flag on the line it was proved on, so the sharper number replaces the vaguer one instead of being
+  added to it: on the sample app both `androidx.**Parcelizer` keeps moved from "outside namespace"
+  to "cross-dependency", and the tab now says where those 2.51 KB came from.
+
+
 ## [4.0.0]
 
 ### Added
@@ -273,7 +301,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Extracted non-Gradle specific code to `ruler-common`.
 
-[unreleased]: https://github.com/kibotu/ruler/compare/3.3.1...main
+[Unreleased]: https://github.com/kibotu/ruler/compare/4.0.0...main
 [4.0.0]: https://github.com/kibotu/ruler/compare/3.3.2...4.0.0
 [3.3.2]: https://github.com/kibotu/ruler/compare/3.3.1...3.3.2
 [3.3.1]: https://github.com/kibotu/ruler/compare/3.3.0...3.3.1

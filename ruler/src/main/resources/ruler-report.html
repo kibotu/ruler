@@ -179,6 +179,7 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
 .impact-head span:last-child{color:#666;font-weight:400;white-space:nowrap}
 .impact-track{height:6px;border-radius:3px;background:#e8eaf0;margin:5px 0}
 .impact-fill{height:100%;border-radius:3px;background:#f39c12}
+.impact-note{font-size:11px;color:#666;margin:3px 0 5px}
 .impact-rules code{display:inline-block;background:#f0f0f0;padding:1px 6px;border-radius:3px;font-size:11px;margin:2px 4px 2px 0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .rule-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;margin-bottom:16px;overflow:hidden}
 .rule-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:#063773}
@@ -302,9 +303,14 @@ select{padding:10px 15px;border:1px solid #ddd;border-radius:4px;font-size:14px;
         <div class="filter-chip active" data-filter="external">External</div>
       </div>
     </div>
+    <div class="section-block alt">
+      <h2 class="section-title">🔗 Cross-dependency rules</h2>
+      <p class="section-subtitle">Rules that reach classes another component owns, ranked by the code they reach. Keeping a package you only consume overrides the consumer rules that package ships itself.</p>
+      <div id="proguardCross"></div>
+    </div>
     <div class="section-block">
       <h2 class="section-title">📦 Rules by component</h2>
-      <p class="section-subtitle">Components that bundle ProGuard/R8 rules, or that other libraries’ rules reach. Rules leaving their library come first. Click a card to open it.</p>
+      <p class="section-subtitle">Components that bundle ProGuard/R8 rules, or that other libraries’ rules reach. The libraries whose rules reach into other components come first. Click a card to open it.</p>
       <div id="proguardComponents"></div>
     </div>
     <div class="section-block alt">
@@ -617,18 +623,32 @@ function renderProguardSection(rules){
   var flagged=rules.reduce(function(s,f){return s+scopeFlags(f).length;},0);
   return '<div class="pg-section" style="margin-top:30px"><div class="pg-header collapsible" data-collapse=".pg-body"><h4>ProGuard Rules <span class="count-badge">'+
     rules.length+'</span></h4><span class="pg-meta">'+directives+' directives</span>'+
-    (flagged?'<span class="pg-scope">&#9888;&#xFE0E; '+flagged+' outside namespace</span>':'')+
+    (flagged?'<span class="pg-scope">&#9888;&#xFE0E; '+flagged+' beyond its namespace</span>':'')+
     '<span class="expand-icon toggle-icon">&#9660;</span></div>'+
     '<div class="pg-body collapsed">'+rules.map(renderRuleFile).join('')+'</div></div>';
 }
 
-// What each kind of flagged rule means, as it reads in a tooltip. Only a rule that names another
-// package is a warning on its own; one that matches by hierarchy is usually legitimate.
+// What each kind of flagged rule means, as it reads in a tooltip. A rule that names another
+// component's code is the one with a cost attached to it; one that matches by hierarchy is
+// usually legitimate.
 var SCOPE_INFO={
+  CROSS_DEPENDENCY:{level:'warn',label:'cross-dependency',why:'Reaches classes another component of this app owns, so it keeps or rewrites a dependency it does not own. A package-wide keep overrides the consumer rules that dependency ships itself.'},
   OUTSIDE_NAMESPACE:{level:'warn',label:'outside namespace',why:'Names a package outside the library that ships it. R8 applies it to the whole app.'},
   ALL_CLASSES:{level:'warn',label:'all classes',why:'Matches every class in the app, whichever library ships the rule.'},
   CROSS_CUTTING:{level:'info',label:'by hierarchy',why:'Matches by extends, implements or annotation, so it can reach classes of any library.'}
 };
+
+// The components a flag names, as they read in a tooltip: the costliest two, then how many more.
+function targetList(targets){
+  var named=targets.slice(0,2).join(', ');
+  return targets.length>2?named+' and '+(targets.length-2)+' more':named;
+}
+
+function scopeTip(scope,targets){
+  var tip=SCOPE_INFO[scope].why;
+  if(targets&&targets.length)tip+=' It reaches '+targetList(targets)+'.';
+  return esc(tip);
+}
 
 // Flags that point past the shipping component's own package, as opposed to the broad but
 // customary rules that match by hierarchy.
@@ -639,18 +659,25 @@ function scopeFlags(file){
 function renderRuleFile(file){
   var targeted=file.origin.indexOf('Targeted')===0;
   var byLine={};
-  (file.flags||[]).forEach(function(f){byLine[f.line]=f;});
+  var scopeTargets={};
+  (file.flags||[]).forEach(function(f){
+    byLine[f.line]=f;
+    if(!f.targets)return;
+    var named=scopeTargets[f.scope]||[];
+    f.targets.forEach(function(t){if(named.indexOf(t)<0)named.push(t);});
+    scopeTargets[f.scope]=named;
+  });
   var lines=file.content.split('\n').map(function(text,i){
     var flag=byLine[i+1];
     if(!flag)return esc(text);
     var info=SCOPE_INFO[flag.scope];
-    return '<span class="pg-line '+info.level+'" title="'+esc(info.why)+'">'+esc(text)+'</span>';
+    return '<span class="pg-line '+info.level+'" title="'+scopeTip(flag.scope,flag.targets)+'">'+esc(text)+'</span>';
   }).join('\n');
   var counts={};
   (file.flags||[]).forEach(function(f){counts[f.scope]=(counts[f.scope]||0)+1;});
   var chips=Object.keys(SCOPE_INFO).filter(function(k){return counts[k];}).map(function(k){
     var info=SCOPE_INFO[k];
-    return '<span class="pg-scope'+(info.level==='info'?' info':'')+'" title="'+esc(info.why)+
+    return '<span class="pg-scope'+(info.level==='info'?' info':'')+'" title="'+scopeTip(k,scopeTargets[k])+
       (file.namespace&&k==='OUTSIDE_NAMESPACE'?' This library lives in '+esc(file.namespace)+'.':'')+'">'+
       (info.level==='warn'?'&#9888;&#xFE0E; ':'&#9432; ')+counts[k]+' '+info.label+'</span>';
   }).join('');
@@ -1127,20 +1154,59 @@ function flagChip(flag){
     esc(flag.label)+'</span>';
 }
 
+function plural(n,word){return n===1?word:word+'s';}
 function hasProguardRules(c){return c.proguardRules&&c.proguardRules.length;}
 function directivesOf(c){return (c.proguardRules||[]).reduce(function(s,f){return s+f.ruleCount;},0);}
 // A component belongs on the tab if it ships rules, or if other components' rules reach it.
 function hasProguardStory(c){return hasProguardRules(c)||c.proguardReach;}
+// The reach data stores each culprit and target once, on the component its classes reach. Read
+// from the other side, it says what the rules a component ships cost the rest of the app, which
+// no card of its own would otherwise show.
+function crossEdges(){
+  var edges=[];
+  report.components.forEach(function(c){
+    if(!c.proguardReach)return;
+    c.proguardReach.affectedBy.forEach(function(i){
+      edges.push({culprit:i.source,target:c,classes:i.classes,bytes:i.bytes,rules:i.rules});
+    });
+  });
+  return edges.sort(function(a,b){return b.bytes-a.bytes;});
+}
+function reachedBytes(c){
+  var cost=crossCost[c.name];
+  return cost?cost.bytes:0;
+}
+// A rule that can be shown reaching another component is counted as a cross dependency, not also
+// as a mere outside-namespace rule: the sharper flag replaces the vaguer one on the same line.
+function crossRules(c){
+  return (c.proguardRules||[]).reduce(function(s,f){
+    return s+(f.flags||[]).filter(function(f){return f.scope==='CROSS_DEPENDENCY';}).length;
+  },0);
+}
 function outsideRules(c){
-  return (c.proguardRules||[]).reduce(function(s,f){return s+scopeFlags(f).length;},0);
+  return (c.proguardRules||[]).reduce(function(s,f){
+    return s+scopeFlags(f).filter(function(f){return f.scope!=='CROSS_DEPENDENCY';}).length;
+  },0);
 }
 function affectedBytes(c){
   return c.proguardReach?c.proguardReach.affectedBy.reduce(function(s,i){return s+i.bytes;},0):0;
 }
 
+// Every class a rule reaches, sized the way the reach blocks size them.
+var MAX_CROSS=10;
+var crossCost={};
+
 function renderProguardTab(){
   var withRules=report.components.filter(hasProguardRules);
   var story=report.components.filter(hasProguardStory);
+  var edges=crossEdges();
+  crossCost={};
+  edges.forEach(function(e){
+    var cost=crossCost[e.culprit]||(crossCost[e.culprit]={bytes:0,components:0});
+    cost.bytes+=e.bytes;
+    cost.components++;
+  });
+  var cross=withRules.reduce(function(s,c){return s+crossRules(c);},0);
   var outside=withRules.reduce(function(s,c){return s+outsideRules(c);},0);
   var affected=report.components.filter(function(c){return c.proguardReach&&c.proguardReach.affectedBy.length;});
   var files=withRules.reduce(function(s,c){return s+c.proguardRules.length;},0);
@@ -1153,25 +1219,68 @@ function renderProguardTab(){
     '<div class="label">bundled by dependencies</div></div>'+
     '<div class="summary-card"><h3>Directives</h3><div class="value">'+directives+'</div>'+
     '<div class="label">total -rules</div></div>'+
-    '<div class="summary-card"><h3>Outside namespace</h3><div class="value">'+outside+'</div>'+
-    '<div class="label">rules naming another library\u2019s package</div></div>'+
+    '<div class="summary-card"><h3>Cross-dependency</h3><div class="value">'+cross+'</div>'+
+    '<div class="label">rules proven against classes another component owns</div></div>'+
+    '<div class="summary-card"><h3>Beyond their namespace</h3><div class="value">'+outside+'</div>'+
+    '<div class="label">rules reaching past their own library that Ruler cannot tie to a component</div></div>'+
+    '<div class="summary-card"><h3>Kept by others</h3><div class="value">'+formatBytes(affected.reduce(function(s,c){
+      return s+c.proguardReach.othersKept.bytes;
+    },0))+'</div><div class="label">install size pinned only by rules from outside the component</div></div>'+
     '<div class="summary-card"><h3>Affected</h3><div class="value">'+affected.length+'</div>'+
     '<div class="label">components reached by other libraries\u2019 rules</div></div>'+
     '<div class="summary-card"><h3>Flagged</h3><div class="value">'+flagged.length+'</div>'+
     '<div class="label">ship global options or broad keeps</div></div>';
 
+  var shown=edges.filter(function(e){
+    // Filtered by the component the rules reach: the library doing the keeping is usually external
+    // while the code it keeps is internal, and that pairing is what the chips are about.
+    return (isInternal(e.target)&&proguardFilters.internal)||(!isInternal(e.target)&&proguardFilters.external);
+  });
+  renderCrossPanel(shown);
+
   var comps=story.filter(function(c){
     return (isInternal(c)&&proguardFilters.internal)||(!isInternal(c)&&proguardFilters.external);
   });
-  // Most worrying first: rules that leave their library, then who is reached by others, then size.
+  // Most worrying first: what a component's own rules cost others, then rules leaving their
+  // library, then what others do to it, then size.
   comps.sort(function(a,b){
-    return outsideRules(b)-outsideRules(a)||affectedBytes(b)-affectedBytes(a)||directivesOf(b)-directivesOf(a);
+    return reachedBytes(b)-reachedBytes(a)||outsideRules(b)-outsideRules(a)||
+      affectedBytes(b)-affectedBytes(a)||directivesOf(b)-directivesOf(a);
   });
   document.getElementById('proguardComponents').innerHTML=comps.length?
     comps.map(renderRuleCard).join(''):'<div class="no-results">No components bundle rules</div>';
 
   renderProguardFlags(flagged);
   renderProguardExplainer();
+}
+
+// Ranked pairs of the library whose rules reach and the component they reach. The reach block on
+// each card already names the same edges from the receiving side, so the panel names the cost of
+// a library for the apps that consume it.
+function renderCrossPanel(edges){
+  var el=document.getElementById('proguardCross');
+  if(!edges.length){
+    el.innerHTML='<div class="no-data">None found. No component keeps or rewrites classes another component owns.</div>';
+    return;
+  }
+  var top=edges[0].bytes;
+  var culprits={},reached={};
+  edges.forEach(function(e){culprits[e.culprit]=true;reached[e.target.name]=true;});
+  var n=Object.keys(culprits).length,m=Object.keys(reached).length;
+  var rules=edges.reduce(function(s,e){return s+e.rules.length;},0);
+  el.innerHTML='<div class="reach-title">'+n+' '+plural(n,'component')+' whose rules reach into '+m+' '+plural(m,'component')+
+    ' &middot; '+rules+' '+plural(rules,'rule')+' matched against classes this app contains</div>'+
+    edges.slice(0,MAX_CROSS).map(function(e){
+      return '<div class="impact-row"><div class="impact-head"><span>'+esc(e.culprit)+' &#8594; '+esc(e.target.name)+
+        '</span><span>'+e.classes+' classes \u00b7 '+formatBytes(e.bytes)+'</span></div>'+
+        '<div class="impact-track"><div class="impact-fill" style="width:'+(top?e.bytes/top*100:0)+'%"></div></div>'+
+        (hasProguardRules(e.target)?'<div class="impact-note">'+esc(e.target.name)+' ships '+directivesOf(e.target)+' '+
+          plural(directivesOf(e.target),'rule directive')+' of its own, superseded wherever a keep here names the same packages.</div>':'')+
+        '<div class="impact-rules">'+e.rules.map(function(r){return '<code title="'+esc(r)+'">'+esc(r)+'</code>';}).join('')+
+        '</div></div>';
+    }).join('')+
+    (edges.length>MAX_CROSS?'<div class="impact-note">'+(edges.length-MAX_CROSS)+' more of '+edges.length+
+      ' pairs not shown. Each card names the rest.</div>':'');
 }
 
 // Each card tells the rule story of one component: how far other libraries' rules reach into it,
@@ -1181,6 +1290,8 @@ function renderRuleCard(component,i){
   var id='r'+i;
   var rules=component.proguardRules||[];
   var flags=flagsOf(rules);
+  var cross=crossRules(component);
+  var cost=crossCost[component.name]||{bytes:0,components:0};
   var outside=outsideRules(component);
   var reach=component.proguardReach;
   var by=reach?reach.affectedBy.length:0;
@@ -1189,6 +1300,9 @@ function renderRuleCard(component,i){
     '<div class="module-info"><div class="module-name-row">'+esc(component.name)+'</div>'+
     renderOwnerBadges(component)+
     (isInternal(component)?'<span class="internal-badge internal-badge-filter">Internal</span>':'')+
+    (cross?' <span class="pg-scope" title="&#8594; Its rules reach classes another component owns: '+cost.components+
+      ' component'+(cost.components===1?'':'s')+', '+formatBytes(cost.bytes)+' of their install size.">&#8594; '+
+      cross+' cross-dependency \u00b7 '+formatBytes(cost.bytes)+'</span>':'')+
     (outside?' <span class="pg-scope" title="Rules this component ships that name another package.">&#9888;&#xFE0E; '+outside+' outside namespace</span>':'')+
     (by?' <span class="pg-scope info" title="Other components ship rules that match its classes.">&#8623; affected by '+by+'</span>':'')+'</div>'+
     '<div class="module-stats"><div class="module-stat"><span class="module-stat-label">Directives</span>'+
@@ -1267,7 +1381,22 @@ function renderProguardExplainer(){
     ' are marked as by hierarchy: usually fine, but they can reach any library.</p>'+
     '<p>The keep reach bar and \u201caffected by\u201d list match the other libraries\u2019 rules against'+
     ' a component\u2019s classes by name, sized by their install size. Hierarchy rules and the app\u2019s own'+
-    ' rules are left out, so treat the numbers as a lower bound.</p>'+
+    ' rules are left out, so treat the numbers as a lower bound. Only keep rules pin code: a rule'+
+    ' that only rewrites it, like <code>-assumenosideeffects</code>, counts as reaching a component'+
+    ' without adding to its pinned bytes.</p>'+
+    '<h4>Cross-dependency rules</h4>'+
+    '<p>The costly kind: a rule that keeps or rewrites classes another component of the app owns.'+
+    ' Android\u2019s guidance for library authors is not to write them \u2014 most libraries ship their own'+
+    ' consumer rules, and a package-wide keep of the same package supersedes them, so R8 retains'+
+    ' code the app never references. That code is attributed to the component that owns it, so the'+
+    ' library that wrote the rule looks smaller than the app it made bigger, which is why the reach'+
+    ' panel names both sides of it.</p>'+
+    '<p>If a dependency has to be kept, keep the entry point your library reflects on and let R8'+
+    ' follow the references from there. Where a library\u2019s rules cannot be narrowed, AGP 8.4 and'+
+    ' newer can ignore one dependency\u2019s consumer rules entirely:'+
+    ' <code>optimization.keepRules { it.ignoreFrom("com.example:lib") }</code>. R8 can also say why it'+
+    ' kept a single class, through <code>-whyareyoukeeping</code>, which is for local diagnosis and'+
+    ' should not be committed.</p>'+
     '<h4>The app\u2019s own rules</h4>'+
     '<p><code>proguardFiles</code> and the <code>getDefaultProguardFile(...)</code> defaults belong'+
     ' to the app, not to any component, so they are not listed per card. The fully merged'+

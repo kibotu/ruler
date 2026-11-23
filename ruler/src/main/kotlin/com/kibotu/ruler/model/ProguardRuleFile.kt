@@ -18,7 +18,7 @@ data class ProguardRuleFile(
     val ruleCount: Int,
     /** The package the component's own classes live in, which its rules are measured against. */
     val namespace: String? = null,
-    /** The rules that reach beyond [namespace]. Null when all of them stay inside. */
+    /** The rules that reach beyond the component. Null when none of them do. */
     val flags: List<RuleFlag>? = null,
 )
 
@@ -30,10 +30,16 @@ data class RuleFlag(
     /** The directive up to its member block, on one line. */
     val directive: String,
     val scope: RuleScope,
+    /** The components whose classes the directive reached, the costly one first. Only set on a
+     *  [RuleScope.CROSS_DEPENDENCY], where it is known because those classes are in the app. */
+    val targets: List<String>? = null,
 )
 
 @Serializable
 enum class RuleScope {
+    /** Reaches classes of another component of the app, so it acts on a dependency it does not own. */
+    CROSS_DEPENDENCY,
+
     /** Names a package other than the one the component lives in. */
     OUTSIDE_NAMESPACE,
 

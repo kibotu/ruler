@@ -9,6 +9,7 @@ import com.kibotu.ruler.model.ComponentType
 import com.kibotu.ruler.model.DynamicFeature
 import com.kibotu.ruler.model.FileType
 import com.kibotu.ruler.model.ResourceType
+import com.kibotu.ruler.model.RuleScope
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -234,6 +235,37 @@ class HtmlReporterTest {
         // sections themselves keep the fixed order.
         assertThat(bodyOf("renderFilePart"))
             .contains("fileSize(b,sizeKey)-fileSize(a,sizeKey)")
+    }
+
+    @Test
+    fun `gives every rule scope a label, a colour and a tooltip`() {
+        // A scope with no entry in SCOPE_INFO renders no chip and no line highlight, so a rule the
+        // analysis flagged goes unseen. Tying this to the enum means a scope added later fails
+        // here rather than quietly going missing.
+        val info = template().substringAfter("var SCOPE_INFO={").substringBefore("};")
+
+        RuleScope.entries.forEach { scope ->
+            assertWithMessage("$scope has no entry in SCOPE_INFO").that(info).contains("${scope.name}:")
+        }
+    }
+
+    @Test
+    fun `counts a cross dependency once, never also as a vaguer flag`() {
+        // A cross dependency replaces the outside-namespace flag on the line it proved, so counting
+        // it under both headings counted the same rule twice and hid the sharper number.
+        assertThat(bodyOf("crossRules")).contains("'CROSS_DEPENDENCY'")
+        assertThat(bodyOf("outsideRules")).contains("!=='CROSS_DEPENDENCY'")
+    }
+
+    @Test
+    fun `reads cross dependencies from the reach edges rather than matching rules again`() {
+        // Matching rule patterns against class names in the page would be a second, weaker copy of
+        // the analysis, and the two views would disagree about what a rule reaches.
+        val body = bodyOf("crossEdges")
+
+        assertThat(body).contains("affectedBy")
+        assertThat(body).doesNotContain("SCOPE_INFO")
+        assertThat(body).doesNotContain("startsWith(")
     }
 
     @Test

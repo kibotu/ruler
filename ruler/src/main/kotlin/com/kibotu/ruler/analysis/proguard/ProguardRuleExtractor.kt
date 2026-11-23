@@ -48,6 +48,9 @@ class ProguardRuleExtractor {
      * consumer rule to the whole app, so a rule that names someone else's package is the
      * library author's rule changing another team's code. Without classes there is no namespace
      * to measure against, and nothing is flagged.
+     *
+     * This is the view from the archive alone. [ProguardAnalyzer] then sharpens the directives it
+     * can show pinning classes of another component, which needs the app rather than the archive.
      */
     private fun analyzed(file: ProguardRuleFile, namespace: String?): ProguardRuleFile {
         val flags = RuleParser.parse(file.content).mapNotNull { rule ->
@@ -141,7 +144,6 @@ class ProguardRuleExtractor {
     companion object {
         private const val consumerOrigin = "Consumer rules"
         private const val CLASSES_JAR = "classes.jar"
-        private const val MAX_DIRECTIVE = 200
         private val ALL = setOf("*", "**")
 
         /** Consumer rule files inside an AAR. AGP merges the declared ones into `proguard.txt`. */

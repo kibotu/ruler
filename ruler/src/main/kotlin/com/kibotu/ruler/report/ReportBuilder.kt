@@ -3,7 +3,7 @@ package com.kibotu.ruler.report
 import com.kibotu.ruler.analysis.AppInfo
 import com.kibotu.ruler.analysis.dependency.DependencyComponent
 import com.kibotu.ruler.analysis.ownership.OwnershipInfo
-import com.kibotu.ruler.analysis.proguard.ProguardReachAnalyzer
+import com.kibotu.ruler.analysis.proguard.ProguardAnalyzer
 import com.kibotu.ruler.model.AppComponent
 import com.kibotu.ruler.model.AppFile
 import com.kibotu.ruler.model.AppReport
@@ -26,7 +26,7 @@ class ReportBuilder {
         proguardRules: Map<String, List<ProguardRuleFile>> = emptyMap(),
     ): AppReport {
         val allFiles = components.values.flatten()
-        val proguardReach = ProguardReachAnalyzer().analyze(
+        val proguard = ProguardAnalyzer().analyze(
             files = components.mapKeys { it.key.name },
             rules = proguardRules,
             ignored = appProjectPath,
@@ -56,8 +56,8 @@ class ReportBuilder {
                     files = reportFiles(files, omitFileBreakdown) { file ->
                         ownershipInfo?.let { it.fileOwners(file.name) ?: declaredOwners }
                     },
-                    proguardRules = proguardRules[component.name]?.ifEmpty { null },
-                    proguardReach = proguardReach[component.name],
+                    proguardRules = proguard.rules[component.name]?.ifEmpty { null },
+                    proguardReach = proguard.reach[component.name],
                 )
             }.sortedWith(largestFirst),
             dynamicFeatures = features.map { (feature, files) ->

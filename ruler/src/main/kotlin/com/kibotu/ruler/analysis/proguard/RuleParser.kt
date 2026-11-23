@@ -1,5 +1,8 @@
 package com.kibotu.ruler.analysis.proguard
 
+/** How long a reported directive may get, so a long class specification stays on one line. */
+internal const val MAX_DIRECTIVE = 200
+
 /** A class specification of a ProGuard/R8 directive, reduced to what name matching needs. */
 internal data class ClassRule(
     /** 1-based line where the directive starts. */
