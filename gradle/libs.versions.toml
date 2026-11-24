@@ -6,17 +6,17 @@ kotlin-daemonEmbeddable = { module = "org.jetbrains.kotlin:kotlin-daemon-embedda
 
 # Android Gradle Plugin and tools
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version = "9.5.2" }
-android-tools-apkanalyzer = { module = "com.android.tools.apkparser:apkanalyzer", version = "32.5.0" }
-android-tools-common = { module = "com.android.tools:common", version = "32.5.1" }
-android-tools-sdklib = { module = "com.android.tools:sdklib", version = "32.4.1" }
-bundletool = { module = "com.android.tools.build:bundletool", version = "1.18.2" }
+android-tools-apkanalyzer = { module = "com.android.tools.apkparser:apkanalyzer", version = "32.5.2" }
+android-tools-common = { module = "com.android.tools:common", version = "32.5.2" }
+android-tools-sdklib = { module = "com.android.tools:sdklib", version = "32.5.2" }
+bundletool = { module = "com.android.tools.build:bundletool", version = "1.18.3" }
 dexlib = { module = "com.android.tools.smali:smali-dexlib2", version = "3.0.9" }
 
 # Google
 protobuf = { module = "com.google.protobuf:protobuf-java", version = "4.36.2" }
 
 # Kotlin libraries
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.12.0" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.13.0" }
 
 # YAML
 snakeyaml = { module = "org.yaml:snakeyaml", version = "2.7" }
@@ -31,11 +31,11 @@ junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version = "6
 junit-platformLauncher = { module = "org.junit.platform:junit-platform-launcher", version = "6.1.3" }
 
 # Assertions
-truth = { module = "com.google.truth:truth", version = "1.4.4" }
+truth = { module = "com.google.truth:truth", version = "1.4.5" }
 
 [plugins]
-android-application = { id = "com.android.application", version = "9.5.1" }
-android-library = { id = "com.android.library", version = "9.5.1" }
+android-application = { id = "com.android.application", version = "9.5.2" }
+android-library = { id = "com.android.library", version = "9.5.2" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.21" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.4.21" }
 pluginPublish = { id = "com.gradle.plugin-publish", version = "2.2.1" }
