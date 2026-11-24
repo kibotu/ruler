@@ -88,14 +88,42 @@ dependencies {
 // unshaded snakeyaml or kotlinx-serialization would collide with other plugins.
 val shadowJar = tasks.named<ShadowJar>("shadowJar") {
     archiveClassifier = ""
-    relocate("kotlinx.serialization", "com.kibotu.ruler.shadow.kotlinx.serialization")
-    relocate("org.yaml.snakeyaml", "com.kibotu.ruler.shadow.org.yaml.snakeyaml")
+
+    @Suppress("DEPRECATION")
+    enableKotlinModuleRemapping = false
+
+    relocate(
+        "kotlinx.serialization",
+        "com.kibotu.ruler.shadow.kotlinx.serialization"
+    )
+    relocate(
+        "org.yaml.snakeyaml",
+        "com.kibotu.ruler.shadow.org.yaml.snakeyaml"
+    )
+
+    // Exclude duplicate license and notice files.
+    exclude(
+        "NOTICE",
+        "LICENSE",
+        "META-INF/LICENSE",
+        "META-INF/AL2.0",
+        "META-INF/LGPL2.1",
+        "META-INF/LICENSE.txt",
+        "META-INF/NOTICE.txt",
+        "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
+        "META-INF/LICENSE.md",
+        "META-INF/NOTICE.md",
+        "META-INF/DEPENDENCIES",
+        "META-INF/NOTICE"
+    )
     exclude("META-INF/maven/**")
     exclude("META-INF/*.SF")
     exclude("META-INF/*.DSA")
     exclude("META-INF/*.RSA")
+
     mergeServiceFiles()
     configurations = listOf(project.configurations.runtimeClasspath.get())
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 // Hand the relocated jar to every consumer. Disabling the `jar` task instead would leave the
